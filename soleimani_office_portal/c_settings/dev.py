@@ -1,4 +1,4 @@
-from withings.settings import *
+from soleimani_office_portal.settings import *
 
 SECRET_KEY = env('SECRET_KEY')
 

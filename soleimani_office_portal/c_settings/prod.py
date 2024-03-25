@@ -1,4 +1,4 @@
-from withings.settings import *
+from soleimani_office_portal.settings import *
 
 SECRET_KEY = env('SECRET_KEY')
 
@@ -6,7 +6,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
-CSRF_TRUSTED_ORIGINS = ['https://withings.a-fathollahi.com/']
+CSRF_TRUSTED_ORIGINS = ['https://s-office-portal.a-fathollahi.com/']
 
 DATABASES['default'] = {
     'ENGINE': 'django.db.backends.sqlite3',
@@ -18,9 +18,9 @@ DATABASES['log_db'] = {
     'NAME': BASE_DIR / 'log_db.sqlite3',
 }
 
-CRONJOBS = [
-    ('*/59 * * * *', 'account.tasks.refresh_tokens',),
-]
+# CRONJOBS = [
+#     ('*/59 * * * *', 'account.tasks.refresh_tokens',),
+# ]
 
 # DATABASES['default'] = {
 #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
