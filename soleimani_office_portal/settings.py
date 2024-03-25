@@ -27,6 +27,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'knox',
     'custom_logs',
+    'gallery',
+    'portal',
 ]
 
 MIDDLEWARE = [
