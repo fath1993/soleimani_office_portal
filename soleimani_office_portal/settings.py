@@ -27,8 +27,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'knox',
     'custom_logs',
+    'accounts',
     'gallery',
     'portal',
+    'panel',
 ]
 
 MIDDLEWARE = [
@@ -98,7 +100,7 @@ REST_KNOX = {
     'AUTH_HEADER_PREFIX': 'BatoboxToken',
 }
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'fa-ir'
 
 TIME_ZONE = 'Asia/Tehran'
 

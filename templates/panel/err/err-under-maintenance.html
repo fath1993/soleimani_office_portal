@@ -1,0 +1,19 @@
+{% extends 'panel/err/base.html' %}
+{% load static %}
+
+{% block title %}در دست تعمیر!{% endblock %}
+
+{% block content %}
+    <div class="container-xxl container-p-y">
+        <div class="misc-wrapper">
+            <h1 class="mb-2 mx-2 secondary-font">در دست تعمیر!</h1>
+            <p class="mb-4 mx-2">با عرض پوزش برای ناراحتی، در حال حاضر در حال انجام برخی تعمیرات هستیم</p>
+            <a href="{% url 'panel:panel-dashboard' %}" class="btn btn-primary">بازگشت به خانه</a>
+            <div class="mt-4">
+                <img src="{% static 'assets/img/illustrations/boy-working-light.png' %}" alt="girl-doing-yoga-light" width="500"
+                     class="img-fluid" data-app-light-img="illustrations/boy-working-light.png"
+                     data-app-dark-img="illustrations/boy-working-dark.png">
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load panel_custom_tag %}
+
+{% block extra_head %}
+
+{% endblock %}
+
+
+{% block content %}
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <h4 class="py-3 breadcrumb-wrapper mb-4">
+            <span class="text-muted fw-light">مدیریت کاربران / مجوز ها / <span class="text-black">مشخصات مجوز : {{ permission.title }}</span></span>
+        </h4>
+        <div class="row gy-4">
+            <div class="col-md-12">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="pb-2 border-bottom mb-4 secondary-font">جزئیات</h5>
+                        <div class="info-container">
+                            <ul class="list-unstyled">
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">عنوان:</span>
+                                    <span>{{ permission.title|default:"-" }}</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">دسترسی به</span>
+                                    <span>{{ permission.has_access_to_section|default:"-" }}</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">مجوز خواندن:</span>
+                                    <span>{% if permission.read %}<span class="text-success">دارد</span>{% else %}<span class="text-danger">ندارد</span>{% endif %}</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">مجوز ایجاد کردن:</span>
+                                    <span>{% if permission.create %}<span class="text-success">دارد</span>{% else %}<span class="text-danger">ندارد</span>{% endif %}</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">مجوز ویرایش کردن:</span>
+                                    <span>{% if permission.modify %}<span class="text-success">دارد</span>{% else %}<span class="text-danger">ندارد</span>{% endif %}</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">مجوز حذف کردن:</span>
+                                    <span>{% if permission.delete %}<span class="text-success">دارد</span>{% else %}<span class="text-danger">ندارد</span>{% endif %}</span>
+                                </li>
+                            </ul>
+                            <div class="d-flex justify-content-center pt-3">
+                                <a href="{% url 'panel:permission-list' %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                   class="btn btn-primary me-3">بازگشت</a>
+                                {% if request.user|permission_section_is_allowed:'modify' %}
+                                    <a href="{% url 'panel:permission-modify-with-id' permission_id=permission.id %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                       class="btn btn-primary me-3">ویرایش</a>
+                                {% endif %}
+
+                                {% if request.user|permission_section_is_allowed:'delete' %}
+                                    <a href="javascript:void(0)" class="btn btn-label-danger suspend-user"
+                                       data-bs-toggle="modal" data-bs-target="#deleteUserModal">حذف</a>
+                                    <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-simple modal-enable-otp modal-dialog-centered">
+                                            <div class="modal-content p-3 p-md-5">
+                                                <div class="modal-body">
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                            aria-label="Close"></button>
+                                                    <div class="text-center mb-4 mt-0 mt-md-n2">
+                                                        <h3 class="mb-4 secondary-font">تایید حذف</h3>
+                                                    </div>
+                                                    <h6>آیا از حذف مجوز <strong class="bg-warning">{{ permission.title }}</strong> مطمئن هستید؟</h6>
+                                                    <form class="row g-3 mt-3" method="post" action="{% url 'panel:permission-delete-with-id' permission_id=permission.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                        {% csrf_token %}
+                                                        <div class="col-12">
+                                                            <button type="submit" class="btn btn-primary me-sm-3 me-1">
+                                                                بله
+                                                            </button>
+                                                            <button type="reset" class="btn btn-label-secondary"
+                                                                    data-bs-dismiss="modal" aria-label="Close">
+                                                                انصراف
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_body %}
+    <script src="{% static 'assets/js/main.js' %}"></script>
+{% endblock %}

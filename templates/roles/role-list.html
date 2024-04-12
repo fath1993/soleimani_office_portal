@@ -1,0 +1,595 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_head %}
+<!-- Vendors CSS -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/typeahead-js/typeahead.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/flatpickr/flatpickr.css' %}">
+    <!-- Row Group CSS -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css' %}">
+    <!-- Form Validation -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/formvalidation/dist/css/formValidation.min.css' %}">
+{% endblock %}
+
+
+{% block content %}
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <h4 class="py-3 breadcrumb-wrapper mb-4">
+            <span class="text-muted fw-light">مدیریت کاربران / <span class="text-black">نقش ها</span></span>
+        </h4>
+        <!-- Users List Table -->
+        <div class="card">
+            <div class="card-datatable text-nowrap">
+                <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
+                    <i class="ti-plus m-r-5"></i> ایجاد نقش جدید
+                </button>
+                <table class="dt-complex-header table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>ردیف</th>
+                        <th>نام نقش</th>
+                        <th>اجازه خواندن</th>
+                        <th>اجازه نوشتن</th>
+                        <th>عملیات</th>
+                    </tr>
+                    </thead>
+                    <tbody style="text-align: center">
+                    {% for role in roles %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td><a href="{{ role.get_absolute_url }}"
+                                   class="text-primary">{{ role.role_name }}</a></td>
+                            {% if role.allowed_to_read %}
+                            <td>بله</td>
+                            {% else %}
+                            <td>خیر</td>
+                            {% endif %}
+                            {% if role.allowed_to_write %}
+                            <td>بله</td>
+                            {% else %}
+                            <td>خیر</td>
+                            {% endif %}
+                            <td>
+                                <ul class="d-flex inline-group">
+                                    <a class="me-3"
+                                           href="{% url 'panel:role-detail-with-id' role_id=role.id %}"><i
+                                            class="fa fa-solid fa-eye"></i> جزئیات</a>
+                                    <a class="me-3"
+                                           href="{% url 'panel:role-edit-with-id' role_id=role.id %}"><i
+                                            class="fa fa-solid fa-edit"></i> ویرایش</a>
+                                    <a data-bs-toggle="modal"
+                                           data-bs-target="#modalCenter{{ forloop.counter }}"
+                                           class="me-3" href="#">
+                                            <i class="fa fa-solid fa-trash"></i> حذف
+                                    </a>
+                                    <!-- Bootstrap modals -->
+                                    <!-- Modal -->
+                                    <div class="modal fade" id="modalCenter{{ forloop.counter }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title secondary-font"
+                                                        id="modalCenterTitle">حذف</h5>
+                                                    <button type="button" class="btn-close"
+                                                            data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <strong>آیا از حذف این مورد مطمئن هستید؟</strong>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-label-secondary"
+                                                            data-bs-dismiss="modal">
+                                                        بستن
+                                                    </button>
+                                                    <form action="{% url 'panel:role-remove-with-id' role_id=role.id %}"
+                                                          method="post">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-primary">
+                                                            بله
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--/ Bootstrap modals -->
+                                </ul>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- Modal to add new record -->
+        <div class="offcanvas offcanvas-end" id="add-new-record">
+            <div class="offcanvas-header border-bottom">
+                <h5 class="offcanvas-title" id="exampleModalLabel">نقش جدید</h5>
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
+                        aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body flex-grow-1">
+                <form class="add-new-record pt-0 row g-2" id="form-add-new-record" method="post">
+                    {% csrf_token %}
+                    <div class="col-sm-12">
+                        <label class="form-label" for="role_name">نام نقش</label>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-badge"></i></span>
+                            <input type="text" id="role_name" class="form-control dt-role_name" name="role_name" required
+                                   placeholder="نام نقش" aria-label="role_name"
+                                   aria-describedby="role_name">
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="demo-inline-spacing">
+                                <label class="me-3 switch switch-primary">
+                                    <input type="checkbox" name="allowed_to_read" class="switch-input">
+                                    <span class="switch-toggle-slider">
+                                        <span class="switch-on">
+                                            <i class="bx bx-check"></i>
+                                        </span>
+                                        <span class="switch-off">
+                                            <i class="bx bx-x"></i>
+                                        </span>
+                                    </span>
+                                    <span class="switch-label">اجازه خواندن</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="demo-inline-spacing">
+                                <label class="me-3 switch switch-primary">
+                                    <input type="checkbox" name="allowed_to_write" class="switch-input">
+                                    <span class="switch-toggle-slider">
+                                        <span class="switch-on">
+                                            <i class="bx bx-check"></i>
+                                        </span>
+                                        <span class="switch-off">
+                                            <i class="bx bx-x"></i>
+                                        </span>
+                                    </span>
+                                    <span class="switch-label">اجازه نوشتن</span>
+                                </label>
+                            </div>
+                        </div>
+                        <hr>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_states">اجازه دسترسی به استان های</label>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-stats"></i></span>
+                            <input type="text" id="allowed_access_to_states" class="form-control dt-allowed_access_to_states" name="allowed_access_to_states"
+                                   placeholder="همه" aria-label="allowed_access_to_states" aria-describedby="allowed_access_to_states">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_provinces">اجازه دسترسی به شهرستان های</label>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-stats"></i></span>
+                            <input type="text" id="allowed_access_to_provinces" class="form-control dt-allowed_access_to_provinces" name="allowed_access_to_provinces"
+                                   placeholder="همه" aria-label="allowed_access_to_provinces" aria-describedby="allowed_access_to_provinces">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_city">اجازه دسترسی به شهر های</label>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bxs-city"></i></span>
+                            <input type="text" id="allowed_access_to_city" class="form-control dt-allowed_access_to_city" name="allowed_access_to_city"
+                                   placeholder="همه" aria-label="allowed_access_to_city" aria-describedby="allowed_access_to_city">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_neighbourhood">اجازه دسترسی به محله های</label>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-map"></i></span>
+                            <input type="text" id="allowed_access_to_neighbourhood" class="form-control dt-allowed_access_to_neighbourhood" name="allowed_access_to_neighbourhood"
+                                   placeholder="همه" aria-label="allowed_access_to_neighbourhood" aria-describedby="allowed_access_to_neighbourhood">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_district">اجازه دسترسی به ناحیه های</label>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-map"></i></span>
+                            <input type="text" id="allowed_access_to_district" class="form-control dt-allowed_access_to_district" name="allowed_access_to_district"
+                                   placeholder="همه" aria-label="allowed_access_to_district" aria-describedby="allowed_access_to_district">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_address">اجازه دسترسی به آدرس های</label>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-map"></i></span>
+                            <input type="text" id="allowed_access_to_address" class="form-control dt-allowed_access_to_address" name="allowed_access_to_address"
+                                   placeholder="همه" aria-label="allowed_access_to_address" aria-describedby="allowed_access_to_address">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_geo_point_lat">اجازه دسترسی به جئو پوینت لت های</label>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-map-pin"></i></span>
+                            <input type="text" id="allowed_access_to_geo_point_lat" class="form-control dt-allowed_access_to_geo_point_lat" name="allowed_access_to_geo_point_lat"
+                                   placeholder="همه" aria-label="allowed_access_to_geo_point_lat" aria-describedby="allowed_access_to_geo_point_lat">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_geo_pont_lon">اجازه دسترسی به جئو پوینت لون های</label>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-map-pin"></i></span>
+                            <input type="text" id="allowed_access_to_geo_pont_lon" class="form-control dt-allowed_access_to_geo_pont_lon" name="allowed_access_to_geo_pont_lon"
+                                   placeholder="همه" aria-label="allowed_access_to_geo_pont_lon" aria-describedby="allowed_access_to_geo_pont_lon">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_selling_type">اجازه دسترسی به نوع فروش های</label>
+                        <small class="text-muted">فروش یا اجاره</small>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-money"></i></span>
+                            <input type="text" id="allowed_access_to_selling_type" class="form-control dt-allowed_access_to_selling_type" name="allowed_access_to_selling_type"
+                                   placeholder="همه" aria-label="allowed_access_to_selling_type" aria-describedby="allowed_access_to_selling_type">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_property_type">اجازه دسترسی به نوع سکونت های</label>
+                        <small class="text-muted">اداری، تجاری یا مسکونی</small>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-store"></i></span>
+                            <input type="text" id="allowed_access_to_property_type" class="form-control dt-allowed_access_to_property_type" name="allowed_access_to_property_type"
+                                   placeholder="همه" aria-label="allowed_access_to_property_type" aria-describedby="allowed_access_to_property_type">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_number_of_bedrooms">اجازه دسترسی به تعداد اتاق های</label>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-building"></i></span>
+                            <input type="text" id="allowed_access_to_number_of_bedrooms" class="form-control dt-allowed_access_to_number_of_bedrooms" name="allowed_access_to_number_of_bedrooms"
+                                   placeholder="همه" aria-label="allowed_access_to_number_of_bedrooms" aria-describedby="allowed_access_to_number_of_bedrooms">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_number_of_floors">اجازه دسترسی به تعداد طبقات</label>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-building"></i></span>
+                            <input type="text" id="allowed_access_to_number_of_floors" class="form-control dt-allowed_access_to_number_of_floors" name="allowed_access_to_number_of_floors"
+                                   placeholder="همه" aria-label="allowed_access_to_number_of_floors" aria-describedby="allowed_access_to_number_of_floors">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_kitchen_type">اجازه دسترسی به نوع آشپزخانه های</label>
+                        <small class="text-muted">فرنیش، ام دی اف، مدرن یا معمولی</small>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-building"></i></span>
+                            <input type="text" id="allowed_access_to_kitchen_type" class="form-control dt-allowed_access_to_kitchen_type" name="allowed_access_to_kitchen_type"
+                                   placeholder="همه" aria-label="allowed_access_to_kitchen_type" aria-describedby="allowed_access_to_kitchen_type">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_flore_type">اجازه دسترسی به نوع کف های</label>
+                        <small class="text-muted">سرامیک، سنگ یا لمینت</small>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-building"></i></span>
+                            <input type="text" id="allowed_access_to_flore_type" class="form-control dt-allowed_access_to_flore_type" name="allowed_access_to_flore_type"
+                                   placeholder="همه" aria-label="allowed_access_to_flore_type" aria-describedby="allowed_access_to_flore_type">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_frontage_type">اجازه دسترسی به نوع نما های</label>
+                        <small class="text-muted">کامپوزیت، سنگ، رومی، سیمان یا آجر</small>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-building"></i></span>
+                            <input type="text" id="allowed_access_to_frontage_type" class="form-control dt-allowed_access_to_frontage_type" name="allowed_access_to_frontage_type"
+                                   placeholder="همه" aria-label="allowed_access_to_frontage_type" aria-describedby="allowed_access_to_frontage_type">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_cooling_type">اجازه دسترسی به نوع سرمایش های</label>
+                        <small class="text-muted">کولر، چیلر یا داکت اسپلیت</small>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-cool"></i></span>
+                            <input type="text" id="allowed_access_to_cooling_type" class="form-control dt-allowed_access_to_cooling_type" name="allowed_access_to_cooling_type"
+                                   placeholder="همه" aria-label="allowed_access_to_cooling_type" aria-describedby="allowed_access_to_cooling_type">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_heating_type">اجازه دسترسی به نوع گرمایش های</label>
+                        <small class="text-muted">پکیج، چیلر، داکت اسپلیت یا بخاری</small>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bxs-cool"></i></span>
+                            <input type="text" id="allowed_access_to_heating_type" class="form-control dt-allowed_access_to_heating_type" name="allowed_access_to_heating_type"
+                                   placeholder="همه" aria-label="allowed_access_to_heating_type" aria-describedby="allowed_access_to_heating_type">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_direction_type">اجازه دسترسی به جهت ساختمان های</label>
+                        <small class="text-muted">8 جهت جغرافیایی</small>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-directions"></i></span>
+                            <input type="text" id="allowed_access_to_direction_type" class="form-control dt-allowed_access_to_direction_type" name="allowed_access_to_direction_type"
+                                   placeholder="همه" aria-label="allowed_access_to_direction_type" aria-describedby="allowed_access_to_direction_type">
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="text-light small fw-semibold mb-3">اجازه دسترسی به آسانسور دار ها</div>
+                            <div class="switches-stacked">
+                                <label class="switch">
+                                    <input type="radio" class="switch-input" name="allowed_access_to_has_elevator" value="دارد"
+                                           {% if allowed_access_to_has_elevator == 'دارد' %}checked{% endif %}>
+                                    <span class="switch-toggle-slider">
+                                        <span class="switch-on"></span>
+                                        <span class="switch-off"></span>
+                                    </span>
+                                    <span class="switch-label">دارد</span>
+                                </label>
+
+                                <label class="switch">
+                                    <input type="radio" class="switch-input" name="allowed_access_to_has_elevator" value="ندارد"
+                                           {% if allowed_access_to_has_elevator == 'ندارد' %}checked{% endif %}>
+                                    <span class="switch-toggle-slider">
+                                        <span class="switch-on"></span>
+                                        <span class="switch-off"></span>
+                                    </span>
+                                    <span class="switch-label">ندارد</span>
+                                </label>
+
+                                <label class="switch">
+                                    <input type="radio" class="switch-input" name="allowed_access_to_has_elevator" value="همه"
+                                            {% if allowed_access_to_has_elevator == 'همه' %}checked
+                                            {% elif allowed_access_to_has_elevator != 'دارد' or allowed_access_to_has_elevator != 'ندارد' %}
+                                                checked
+                                            {% endif %}>
+                                    <span class="switch-toggle-slider">
+                                        <span class="switch-on"></span>
+                                        <span class="switch-off"></span>
+                                    </span>
+                                    <span class="switch-label">همه</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-light small fw-semibold mb-3">اجازه دسترسی به انبار دار ها</div>
+                            <div class="switches-stacked">
+                                <label class="switch">
+                                    <input type="radio" class="switch-input" name="allowed_access_to_has_warehouse" value="دارد"
+                                           {% if allowed_access_to_has_warehouse == 'دارد' %}checked{% endif %}>
+                                    <span class="switch-toggle-slider">
+                                        <span class="switch-on"></span>
+                                        <span class="switch-off"></span>
+                                    </span>
+                                    <span class="switch-label">دارد</span>
+                                </label>
+
+                                <label class="switch">
+                                    <input type="radio" class="switch-input" name="allowed_access_to_has_warehouse" value="ندارد"
+                                           {% if allowed_access_to_has_warehouse == 'ندارد' %}checked{% endif %}>
+                                    <span class="switch-toggle-slider">
+                                        <span class="switch-on"></span>
+                                        <span class="switch-off"></span>
+                                    </span>
+                                    <span class="switch-label">ندارد</span>
+                                </label>
+
+                                <label class="switch">
+                                    <input type="radio" class="switch-input" name="allowed_access_to_has_warehouse" value="همه"
+                                            {% if allowed_access_to_has_warehouse == 'همه' %}checked
+                                            {% elif allowed_access_to_has_warehouse != 'دارد' or allowed_access_to_has_warehouse != 'ندارد' %}
+                                                checked
+                                            {% endif %}>
+                                    <span class="switch-toggle-slider">
+                                        <span class="switch-on"></span>
+                                        <span class="switch-off"></span>
+                                    </span>
+                                    <span class="switch-label">همه</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-light small fw-semibold mb-3">اجازه دسترسی به پارکینگ دار ها</div>
+                            <div class="switches-stacked">
+                                <label class="switch">
+                                    <input type="radio" class="switch-input" name="allowed_access_to_has_parking" value="دارد"
+                                           {% if allowed_access_to_has_parking == 'دارد' %}checked{% endif %}>
+                                    <span class="switch-toggle-slider">
+                                        <span class="switch-on"></span>
+                                        <span class="switch-off"></span>
+                                    </span>
+                                    <span class="switch-label">دارد</span>
+                                </label>
+
+                                <label class="switch">
+                                    <input type="radio" class="switch-input" name="allowed_access_to_has_parking" value="ندارد"
+                                        {% if allowed_access_to_has_parking == 'ندارد' %}checked{% endif %}>
+                                    <span class="switch-toggle-slider">
+                                        <span class="switch-on"></span>
+                                        <span class="switch-off"></span>
+                                    </span>
+                                    <span class="switch-label">ندارد</span>
+                                </label>
+
+                                <label class="switch">
+                                    <input type="radio" class="switch-input" name="allowed_access_to_has_parking" value="همه"
+                                            {% if allowed_access_to_has_parking == 'همه' %}checked
+                                            {% elif allowed_access_to_has_parking != 'دارد' or allowed_access_to_has_parking != 'ندارد' %}
+                                                checked
+                                            {% endif %}>
+                                    <span class="switch-toggle-slider">
+                                        <span class="switch-on"></span>
+                                        <span class="switch-off"></span>
+                                    </span>
+                                    <span class="switch-label">همه</span>
+                                </label>
+                            </div>
+                        </div>
+                        <hr>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_land_size_from">دسترسی بر اساس متراژ زمین از...تا</label>
+                        <div class="input-group input-group-merge">
+                            <input class="form-control d-inline-block mt-2" type="number" id="allowed_access_to_land_size_from" name="allowed_access_to_land_size_from">
+                            <input class="form-control d-inline-block mt-2" type="number" id="allowed_access_to_land_size_to" name="allowed_access_to_land_size_to">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_land_area_from">دسترسی بر اساس مساحت زمین از...تا</label>
+                        <div class="input-group input-group-merge">
+                            <input class="form-control d-inline-block mt-2" type="number" id="allowed_access_to_land_area_from" name="allowed_access_to_land_area_from">
+                            <input class="form-control d-inline-block mt-2" type="number" id="allowed_access_to_land_area_to" name="allowed_access_to_land_area_to">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_title_deed">دسترسی بر اساس نوع سند های</label>
+                        <small>اوقاف، رهنی، شورایی، معارض، المثنی، تعاونی یا بدون سند</small>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-tired"></i></span>
+                            <input type="text" id="allowed_access_to_title_deed" class="form-control dt-allowed_access_to_title_deed" name="allowed_access_to_title_deed"
+                                   placeholder="همه" aria-label="allowed_access_to_title_deed" aria-describedby="allowed_access_to_title_deed">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="email">دسترسی بر اساس عمر ساختمان های</label>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-dialpad"></i></span>
+                            <input type="text" id="allowed_access_to_age_of_the_building" class="form-control dt-allowed_access_to_age_of_the_building" name="allowed_access_to_age_of_the_building"
+                                   placeholder="همه" aria-label="allowed_access_to_age_of_the_building" aria-describedby="allowed_access_to_age_of_the_building">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_price_per_meter_from">دسترسی بر اساس قیمت هر متر مربع از...تا</label>
+                        <div class="input-group input-group-merge">
+                            <input class="form-control d-inline-block mt-2" type="number" id="allowed_access_to_price_per_meter_from" name="allowed_access_to_price_per_meter_from">
+                            <input class="form-control d-inline-block mt-2" type="number" id="allowed_access_to_price_per_meter_to" name="allowed_access_to_price_per_meter_to">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_total_price_from">دسترسی بر اساس قیمت کل از...تا</label>
+                        <div class="input-group input-group-merge">
+                            <input class="form-control d-inline-block mt-2" type="number" id="allowed_access_to_total_price_from" name="allowed_access_to_total_price_from">
+                            <input class="form-control d-inline-block mt-2" type="number" id="allowed_access_to_total_price_to" name="allowed_access_to_total_price_to">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_mortgage_price_from">دسترسی بر اساس مبلغ رهن از...تا</label>
+                        <div class="input-group input-group-merge">
+                            <input class="form-control d-inline-block mt-2" type="number" id="allowed_access_to_mortgage_price_from" name="allowed_access_to_mortgage_price_from">
+                            <input class="form-control d-inline-block mt-2" type="number" id="allowed_access_to_mortgage_price_to" name="allowed_access_to_mortgage_price_to">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_rental_price_from">دسترسی بر اساس مبلغ اجاره از...تا</label>
+                        <div class="input-group input-group-merge">
+                            <input class="form-control d-inline-block mt-2" type="number" id="allowed_access_to_rental_price_from" name="allowed_access_to_rental_price_from">
+                            <input class="form-control d-inline-block mt-2" type="number" id="allowed_access_to_rental_price_to" name="allowed_access_to_rental_price_to">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_owner_phone_number">دسترسی بر اساس شماره تماس فروشنده</label>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-phone-call"></i></span>
+                            <input type="text" id="allowed_access_to_owner_phone_number" class="form-control dt-allowed_access_to_owner_phone_number" name="allowed_access_to_owner_phone_number"
+                                   placeholder="همه" aria-label="allowed_access_to_owner_phone_number" aria-describedby="allowed_access_to_owner_phone_number">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_customer_phone_number">دسترسی بر اساس شماره تماس مشتری</label>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bx-phone-call"></i></span>
+                            <input type="text" id="allowed_access_to_customer_phone_number" class="form-control dt-allowed_access_to_customer_phone_number" name="allowed_access_to_customer_phone_number"
+                                   placeholder="همه" aria-label="allowed_access_to_customer_phone_number" aria-describedby="allowed_access_to_customer_phone_number">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="allowed_access_to_expert_consultant_suggestion">دسترسی بر اساس توصیه فروشنده های</label>
+                        <small>گرانتر از حد، قیمت مناسب یا زیر قیمت</small>
+                        <div class="input-group input-group-merge">
+                            <span id="basicFullname2" class="input-group-text"><i class="bx bxs-cube"></i></span>
+                            <input type="text" id="allowed_access_to_expert_consultant_suggestion" class="form-control dt-allowed_access_to_expert_consultant_suggestion" name="allowed_access_to_expert_consultant_suggestion"
+                                   placeholder="همه" aria-label="allowed_access_to_expert_consultant_suggestion" aria-describedby="allowed_access_to_expert_consultant_suggestion">
+                        </div>
+                    </div>
+                    {% if err %}
+                        <div class="form-group mb-3">
+                            <span class="text text-danger">{{ err }}</span>
+                        </div>
+                    {% endif %}
+                    <div class="col-sm-12">
+                        <button type="submit" class="btn btn-primary data-submit me-sm-3 me-1">ثبت</button>
+                        <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">انصراف
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!--/ DataTable with Buttons -->
+    </div>
+{% endblock %}
+
+{% block extra_body %}
+
+    <!-- Vendors JS -->
+    <script src="{% static 'assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js' %}"></script>
+    <script src="{% static 'assets/vendor/libs/datatables-bs5/i18n/fa.js' %}"></script>
+    <!-- Flat Picker -->
+    <script src="{% static 'assets/vendor/libs/moment/moment.js' %}"></script>
+    <script src="{% static 'assets/vendor/libs/jdate/jdate.js' %}"></script>
+    <script src="{% static 'assets/vendor/libs/flatpickr/flatpickr-jdate.js' %}"></script>
+    <script src="{% static 'assets/vendor/libs/flatpickr/l10n/fa-jdate.js' %}"></script>
+    <!-- Form Validation -->
+    <script src="{% static 'assets/vendor/libs/formvalidation/dist/js/FormValidation.min.js' %}"></script>
+    <script src="{% static 'assets/vendor/libs/formvalidation/dist/js/plugins/Bootstrap5.min.js' %}"></script>
+    <script src="{% static 'assets/vendor/libs/formvalidation/dist/js/plugins/AutoFocus.min.js' %}"></script>
+
+    <!-- Main JS -->
+    <script src="{% static 'assets/js/main.js' %}"></script>
+
+    <!-- Page JS -->
+
+    <script>
+        'use strict';
+        var dt_complex_header_table = $('.dt-complex-header')
+        if (dt_complex_header_table.length) {
+            var dt_complex = dt_complex_header_table.DataTable({
+                columns: [
+                    {data: 'forloop_counter'},
+                    {data: 'role_name'},
+                    {data: 'allowed_to_read'},
+                    {data: 'allowed_to_write'},
+                    {data: 'actions'}
+                ],
+                dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end"f>><"table-responsive"t><"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
+                displayLength: 7,
+                lengthMenu: [7, 10, 25, 50, 75, 100]
+            });
+        }
+        let fv, offCanvasEl;
+        document.addEventListener('DOMContentLoaded', function (e) {
+            (function () {
+                const formAddNewRecord = document.getElementById('form-add-new-record');
+
+                setTimeout(() => {
+                    const newRecord = document.querySelector('#create-new'),
+                        offCanvasElement = document.querySelector('#add-new-record');
+
+                    // To open offCanvas, to add new record
+                    if (newRecord) {
+                        newRecord.addEventListener('click', function () {
+                            offCanvasEl = new bootstrap.Offcanvas(offCanvasElement);
+                            offCanvasEl.show();
+                        });
+                    }
+                }, 200);
+            })();
+        });
+    </script>
+{% endblock %}

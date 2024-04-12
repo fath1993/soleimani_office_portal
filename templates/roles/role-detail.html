@@ -1,0 +1,434 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/swiper/swiper.css' %}">
+    <!-- Page CSS -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/css/pages/ui-carousel.css' %}">
+{% endblock %}
+{% block content %}
+    <div id="container-x" class="container-xxl flex-grow-1 container-p-y">
+        <h4 class="py-3 breadcrumb-wrapper mb-4">
+            {% if not user_permission_view %}
+            <span class="text-muted fw-light">جزئیات نقش با عنوان: {{ role.role_name }}</span>
+            {% else %}
+            <span class="text-muted fw-light">پروفایل / دسترسی های من</span>
+            {% endif %}
+        </h4>
+        <div class="row gy-4">
+            <!-- User Content -->
+            <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 order-0 order-md-1">
+                <!-- Billing Address -->
+                <div class="card card-action">
+                    <div class="card-header align-items-center">
+                        {% if not user_permission_view %}
+                        <h5 class="card-action-title mb-0">جزئیات نقش {{ role.role_name }}</h5>
+                        <div class="card-action-element">
+                            <a class="btn btn-primary btn-sm edit-address text-white"
+                               href="{% url 'panel:role-edit-with-id' role_id=role.id %}">ویرایش</a>
+                            <button class="btn btn-primary btn-sm edit-address" type="button" data-bs-toggle="modal"
+                                    data-bs-target="#modalCenter">
+                                حذف
+                            </button>
+                        </div>
+                        {% else %}
+                            {% if request.user.user_profile.parent_user %}
+                            <h5 class="card-action-title mb-0">دسترسی های من با عنوان: <strong >{{ role.role_name }}</strong></h5>
+                            {% else %}
+                                {% if request.user.is_superuser %}
+                                    <h5 class="card-action-title mb-0">دسترسی های من با عنوان: <strong >ادمین کل</strong></h5>
+                                {% else %}
+                                    <h5 class="card-action-title mb-0">دسترسی های من با عنوان: <strong >مدیر</strong></h5>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    {% if user_permission_view %}
+                        {% if not request.user.user_profile.parent_user %}
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-xl-12 col-12">
+                                    <h4 class="text-primary">تمامی دسترسی ها برای مدیر مجاز می باشد</h4>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-xl-6 col-12">
+                                    <h4 class="text-primary">موقعیت مکانی</h4>
+                                    <dl class="row mb-3">
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی به استان های:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_states|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی به شهرستان های:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_provinces|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی به شهر های:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_city|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی به محلات:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_neighbourhood|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی به نواحی:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_district|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی به آدرس های:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_address|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی به نقطه جغرافیایی لت:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_geo_point_lat|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی به نقطه جغرافیایی لون:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_geo_pont_lon|default:"همه" }}</dd>
+                                    </dl>
+                                </div>
+                                <div class="col-xl-6 col-12">
+                                    <h4 class="text-primary">کلیات ملک</h4>
+                                    <dl class="row mb-3">
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس نوع ارائه:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_selling_type|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس نوع سکونت:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_property_type|default:"همه" }}</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-xl-6 col-12">
+                                    <h4 class="text-primary">جزئیات ملک</h4>
+                                    <dl class="row mb-3">
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس تعداد اتاق ها:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_number_of_bedrooms|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس تعداد طبقات:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_number_of_floors|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس نوع آشپر خانه:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_kitchen_type|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس نوع کف:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_flore_type|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس نوع نما:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_frontage_type|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس سیستم سرمایشی:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_cooling_type|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس سیستم گرمایشی:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-66">{{ role.allowed_access_to_heating_type|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس جهت ساختمان:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_direction_type|default:"همه" }}</dd>
+                                    </dl>
+                                </div>
+                                <div class="col-xl-6 col-12">
+                                    <h4 class="text-primary">متعلقات</h4>
+                                    <dl class="row mb-3">
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس آسانسور:</dt>
+                                        {% if role.allowed_access_to_has_elevator == 'دارد' %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6 text-success">دارد</dd>
+                                        {% elif role.allowed_access_to_has_elevator == 'ندارد'  %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6 text-danger">ندارد</dd>
+                                        {% else %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6">همه</dd>
+                                        {% endif %}
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس پارکینگ:</dt>
+                                        {% if role.allowed_access_to_has_parking == 'دارد' %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6 text-success">دارد</dd>
+                                        {% elif role.allowed_access_to_has_parking == 'ندارد'  %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6 text-danger">ندارد</dd>
+                                        {% else %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6">همه</dd>
+                                        {% endif %}
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس انبار:</dt>
+                                        {% if role.allowed_access_to_has_warehouse == 'دارد' %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6 text-success">دارد</dd>
+                                        {% elif role.allowed_access_to_has_warehouse == 'ندارد'  %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6 text-danger">ندارد</dd>
+                                        {% else %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6">همه</dd>
+                                        {% endif %}
+                                    </dl>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-xl-6 col-12">
+                                    <h4 class="text-primary">متراژ و قیمت</h4>
+                                    <dl class="row mb-3">
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس متراژ:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">از {{ role.allowed_access_to_land_size_from|default:"همه" }} تا {{ role.allowed_access_to_land_size_to|default:"همه" }}  متر</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس مساحت زمین:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">از {{ role.allowed_access_to_land_area_from|default:"همه" }} تا {{ role.allowed_access_to_land_area_to|default:"همه" }}  متر</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس نوع سند:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_title_deed|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس عمر ساختمان:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_age_of_the_building|default:"همه" }} سال</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی ب اساس قیمت بر اساس هر متر مربع:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">از {{ role.allowed_access_to_price_per_meter_from|default:"همه" }} تا {{ role.allowed_access_to_price_per_meter_to|default:"همه" }}  تومان</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس قیمت کل:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">از {{ role.allowed_access_to_total_price_from|default:"همه" }} تا {{ role.allowed_access_to_total_price_to|default:"همه" }}  تومان</dd>
+                                    </dl>
+                                </div>
+                                <div class="col-xl-6 col-12">
+                                    <h4 class="text-primary">اطلاعات تکمیلی</h4>
+                                    <dl class="row mb-3">
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس شماره تماس مالک:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_owner_phone_number|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس شماره تماس مستاجر:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_customer_phone_number|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس نظر کارشناس:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_expert_consultant_suggestion|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">دسترسی نوشتن:</dt>
+                                        {% if role.allowed_to_write %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-66">دارد</dd>
+                                        {% else %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6 text-danger">ندارد</dd>
+                                        {% endif %}
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">دسترسی خواندن:</dt>
+                                        {% if role.allowed_to_read %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6">دارد</dd>
+                                        {% else %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6 text-danger">ندارد</dd>
+                                        {% endif %}
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                    <div class="card-body">
+                            <div class="row">
+                                <div class="col-xl-6 col-12">
+                                    <h4 class="text-primary">موقعیت مکانی</h4>
+                                    <dl class="row mb-3">
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی به استان های:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_states|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی به شهرستان های:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_provinces|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی به شهر های:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_city|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی به محلات:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_neighbourhood|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی به نواحی:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_district|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی به آدرس های:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_address|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی به نقطه جغرافیایی لت:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_geo_point_lat|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی به نقطه جغرافیایی لون:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_geo_pont_lon|default:"همه" }}</dd>
+                                    </dl>
+                                </div>
+                                <div class="col-xl-6 col-12">
+                                    <h4 class="text-primary">کلیات ملک</h4>
+                                    <dl class="row mb-3">
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس نوع ارائه:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_selling_type|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس نوع سکونت:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_property_type|default:"همه" }}</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-xl-6 col-12">
+                                    <h4 class="text-primary">جزئیات ملک</h4>
+                                    <dl class="row mb-3">
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس تعداد اتاق ها:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_number_of_bedrooms|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس تعداد طبقات:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_number_of_floors|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس نوع آشپر خانه:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_kitchen_type|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس نوع کف:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_flore_type|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس نوع نما:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_frontage_type|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس سیستم سرمایشی:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_cooling_type|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس سیستم گرمایشی:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-66">{{ role.allowed_access_to_heating_type|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس جهت ساختمان:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_direction_type|default:"همه" }}</dd>
+                                    </dl>
+                                </div>
+                                <div class="col-xl-6 col-12">
+                                    <h4 class="text-primary">متعلقات</h4>
+                                    <dl class="row mb-3">
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس آسانسور:</dt>
+                                        {% if role.allowed_access_to_has_elevator == 'دارد' %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6 text-success">دارد</dd>
+                                        {% elif role.allowed_access_to_has_elevator == 'ندارد'  %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6 text-danger">ندارد</dd>
+                                        {% else %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6">همه</dd>
+                                        {% endif %}
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس پارکینگ:</dt>
+                                        {% if role.allowed_access_to_has_parking == 'دارد' %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6 text-success">دارد</dd>
+                                        {% elif role.allowed_access_to_has_parking == 'ندارد'  %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6 text-danger">ندارد</dd>
+                                        {% else %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6">همه</dd>
+                                        {% endif %}
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس انبار:</dt>
+                                        {% if role.allowed_access_to_has_warehouse == 'دارد' %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6 text-success">دارد</dd>
+                                        {% elif role.allowed_access_to_has_warehouse == 'ندارد'  %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6 text-danger">ندارد</dd>
+                                        {% else %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6">همه</dd>
+                                        {% endif %}
+                                    </dl>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-xl-6 col-12">
+                                    <h4 class="text-primary">متراژ و قیمت</h4>
+                                    <dl class="row mb-3">
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس متراژ:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">از {{ role.allowed_access_to_land_size_from|default:"همه" }} تا {{ role.allowed_access_to_land_size_to|default:"همه" }}  متر</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس مساحت زمین:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">از {{ role.allowed_access_to_land_area_from|default:"همه" }} تا {{ role.allowed_access_to_land_area_to|default:"همه" }}  متر</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس نوع سند:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_title_deed|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس عمر ساختمان:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_age_of_the_building|default:"همه" }} سال</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی ب اساس قیمت بر اساس هر متر مربع:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">از {{ role.allowed_access_to_price_per_meter_from|default:"همه" }} تا {{ role.allowed_access_to_price_per_meter_to|default:"همه" }}  تومان</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس قیمت کل:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">از {{ role.allowed_access_to_total_price_from|default:"همه" }} تا {{ role.allowed_access_to_total_price_to|default:"همه" }}  تومان</dd>
+                                    </dl>
+                                </div>
+                                <div class="col-xl-6 col-12">
+                                    <h4 class="text-primary">اطلاعات تکمیلی</h4>
+                                    <dl class="row mb-3">
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس شماره تماس مالک:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_owner_phone_number|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس شماره تماس مستاجر:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_customer_phone_number|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">اجازه دسترسی بر اساس نظر کارشناس:</dt>
+                                        <dd class="col-sm-12 col-md-4 com-lg-6">{{ role.allowed_access_to_expert_consultant_suggestion|default:"همه" }}</dd>
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">دسترسی نوشتن:</dt>
+                                        {% if role.allowed_to_write %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-66">دارد</dd>
+                                        {% else %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6 text-danger">ندارد</dd>
+                                        {% endif %}
+
+                                        <dt class="col-sm-12 col-md-8 com-lg-6 mb-2 text-nowrap">دسترسی خواندن:</dt>
+                                        {% if role.allowed_to_read %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6">دارد</dd>
+                                        {% else %}
+                                            <dd class="col-sm-12 col-md-4 com-lg-6 text-danger">ندارد</dd>
+                                        {% endif %}
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                </div>
+                <!--/ Billing Address -->
+            </div>
+            <!--/ User Content -->
+        </div>
+
+        {% if not user_permission_view %}
+        <!-- Modal -->
+        <div class="modal fade" id="modalCenter" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title secondary-font"
+                            id="modalCenterTitle">حذف</h5>
+                        <button type="button" class="btn-close"
+                                data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <strong>آیا از حذف این مورد مطمئن هستید؟</strong>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary"
+                                data-bs-dismiss="modal">
+                            بستن
+                        </button>
+                        <form action="{% url 'panel:role-remove-with-id' role_id=role.id %}"
+                              method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary">
+                                بله
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Modal -->
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block extra_body %}
+    <!-- Vendors JS -->
+    <script src="{% static 'assets/vendor/libs/jquery-sticky/jquery-sticky.js' %}"></script>
+    <script src="{% static 'assets/vendor/libs/cleavejs/cleave.js' %}"></script>
+    <script src="{% static 'assets/vendor/libs/cleavejs/cleave-phone.js' %}"></script>
+    <script src="{% static 'assets/vendor/libs/select2/select2.js' %}"></script>
+    <script src="{% static 'assets/vendor/libs/select2/i18n/fa.js' %}"></script>
+
+    <!-- Vendors JS -->
+    <script src="{% static 'assets/vendor/libs/swiper/swiper.js' %}"></script>
+
+    <!-- Main JS -->
+    <script src="{% static 'assets/js/main.js' %}"></script>
+
+    <!-- Page JS -->
+    <script src="{% static 'assets/js/ui-carousel.js' %}"></script>
+    <!-- Page JS -->
+    <script src="{% static 'assets/js/form-layouts.js' %}"></script>
+    <script src="{% static 'custom/pickzone.js' %}"></script>
+{% endblock %}

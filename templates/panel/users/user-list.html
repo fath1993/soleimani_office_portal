@@ -1,0 +1,419 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load panel_custom_tag %}
+
+{% block extra_head %}
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/typeahead-js/typeahead.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'assets/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/flatpickr/flatpickr.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/sweetalert2/sweetalert2.css' %}">
+    <!-- Row Group CSS -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css' %}">
+    <!-- Form Validation -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/formvalidation/dist/css/formValidation.min.css' %}">
+{% endblock %}
+
+
+{% block content %}
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <h4 class="py-3 breadcrumb-wrapper mb-4">
+            <span class="text-muted fw-light">مدیریت کاربران / <span class="text-black">کاربران من</span></span>
+        </h4>
+        <div class="card mb-3">
+            <h5 class="card-header heading-color">
+                فیلتر کاربر ها
+            </h5>
+            <div class="card-body">
+                <div class="row">
+                    <form method="get" action="{% url 'panel:user-list' %}">
+                        <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
+                            <label class="form-label" for="search">جستجو</label>
+                            <div class="input-group">
+                                <input type="text" id="search" name="search" class="form-control text-start"
+                                       placeholder="جستجو" dir="rtl">
+                                <button type="submit" class="input-group-text"><i class="fa fa-search"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            {% if request.user|user_section_is_allowed:'create' %}
+                <h5 class="card-header heading-color">
+                    <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
+                        <i class="ti-plus m-r-5"></i> ایجاد کاربر جدید
+                    </button>
+                    {% if err %}
+                    <strong class="text-danger">{{ err }}</strong>
+                    {% endif %} 
+                    {% if message %}
+                    <strong class="text-success">{{ message }}</strong>
+                    {% endif %} 
+                    <div class="offcanvas offcanvas-end" id="add-new-record">
+                        <div class="offcanvas-header border-bottom">
+                            <h5 class="offcanvas-title" id="exampleModalLabel">کاربر جدید</h5>
+                            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
+                                    aria-label="Close"></button>
+                        </div>
+                        <div class="offcanvas-body flex-grow-1">
+                            <form class="add-new-record pt-0 row g-2" method="post" action="{% url 'panel:user-list' %}">
+                                {% csrf_token %}
+                                <div class="col-sm-12">
+                                    <label class="form-label" for="first_name">نام</label>
+                                    <div class="input-group input-group-merge">
+                                    <span id="first_name" class="input-group-text"><i
+                                            class="bx bx-user"></i></span>
+                                        <input type="text" id="first_name" class="form-control"
+                                               name="first_name"
+                                               placeholder="نام" aria-label="نام"
+                                               aria-describedby="first_name"
+                                               value="{{ first_name|default:'' }}">
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <label class="form-label" for="last_name">نام خانوادگی</label>
+                                    <div class="input-group input-group-merge">
+                                    <span id="last_name" class="input-group-text"><i
+                                            class="bx bx-user"></i></span>
+                                        <input type="text" id="last_name" class="form-control"
+                                               name="last_name"
+                                               placeholder="نام خانوادگی" aria-label="نام خانوادگی"
+                                               aria-describedby="last_name"
+                                               value="{{ last_name|default:'' }}">
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <label class="form-label" for="national_code">کد ملی</label>
+                                    <div class="input-group input-group-merge">
+                                    <span id="national_code" class="input-group-text"><i
+                                            class="bx bx-code"></i></span>
+                                        <input type="text" id="national_code" class="form-control"
+                                               name="national_code"
+                                               placeholder="کد ملی" aria-label="کد ملی"
+                                               aria-describedby="national_code"
+                                               value="{{ national_code|default:'' }}">
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <label class="form-label" for="email">ایمیل</label>
+                                    <div class="input-group input-group-merge">
+                                    <span id="email" class="input-group-text"><i
+                                            class="bx bx-envelope"></i></span>
+                                        <input type="text" id="email" class="form-control dt-email" name="email"
+                                               placeholder="ایمیل" aria-label="ایمیل" aria-describedby="email"
+                                               value="{{ email|default:'' }}">
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <label class="form-label" for="mobile_phone_number">شماره موبایل</label>
+                                    <div class="input-group input-group-merge">
+                                        <span id="mobile_phone_number" class="input-group-text"><i class="bx bxs-phone"></i></span>
+                                        <input type="text" id="mobile_phone_number" class="form-control dt-mobile-number"
+                                               name="mobile_phone_number"
+                                               placeholder="شماره موبایل" aria-label="شماره موبایل"
+                                               aria-describedby="mobile_phone_number"
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               value="{{ mobile_phone_number|default:'' }}" required>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <label class="form-label" for="landline">شماره ثابت</label>
+                                    <div class="input-group input-group-merge">
+                                    <span id="landline" class="input-group-text"><i
+                                            class="bx bx-phone-call"></i></span>
+                                        <input type="text" id="landline" class="form-control dt-landline"
+                                               name="landline"
+                                               placeholder="شماره ثابت" aria-label="شماره ثابت"
+                                               aria-describedby="landline"
+                                               value="{{ landline|default:'' }}">
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <label class="form-label" for="card_number">شماره کارت</label>
+                                    <div class="input-group input-group-merge">
+                                    <span id="card_number" class="input-group-text"><i
+                                            class="bx bx-dollar"></i></span>
+                                        <input type="text" id="card_number" class="form-control dt-card_number"
+                                               name="card_number"
+                                               placeholder="شماره کارت" aria-label="شماره کارت"
+                                               aria-describedby="card_number"
+                                               value="{{ card_number|default:'' }}">
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <label class="form-label" for="isbn">شماره شبا</label>
+                                    <div class="input-group input-group-merge">
+                                    <span id="isbn" class="input-group-text"><i
+                                            class="bx bx-money"></i></span>
+                                        <input type="text" id="isbn" class="form-control dt-isbn"
+                                               name="isbn"
+                                               placeholder="شماره شبا" aria-label="شماره شبا"
+                                               aria-describedby="isbn"
+                                               value="{{ isbn|default:'' }}">
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <label class="form-label" for="address">ادرس</label>
+                                    <div class="input-group input-group-merge">
+                                    <span id="address" class="input-group-text"><i
+                                            class="bx bx-location-plus"></i></span>
+                                        <input type="text" id="address" class="form-control dt-address"
+                                               name="address"
+                                               placeholder="ادرس" aria-label="ادرس"
+                                               aria-describedby="address"
+                                               value="{{ address|default:'' }}">
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <label for="defaultSelect" class="form-label">نقش</label>
+                                    <select id="defaultSelect" name="role_id"
+                                            class="form-select dt-user-role" required>
+                                        {% for role in request|role_list %}
+                                            <option {% if role_id == role.id %} selected {% endif %} value="{{ role.id }}">{{ role.title }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mb-3 form-password-toggle">
+                                    <label class="form-label" for="password1">رمز عبور</label>
+                                    <div class="input-group input-group-merge">
+                                        <input type="password" id="password1" class="form-control text-start"
+                                               name="password1"
+                                               placeholder="············" aria-describedby="password" dir="rtl"
+                                               autocomplete="new-password" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               value="">
+                                        <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                                    </div>
+                                </div>
+                                <div class="mb-3 form-password-toggle">
+                                    <label class="form-label" for="password2">تکرار رمز عبور</label>
+                                    <div class="input-group input-group-merge">
+                                        <input type="password" id="password2" class="form-control text-start"
+                                               name="password2"
+                                               placeholder="············" aria-describedby="password" dir="rtl"
+                                               required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               value="">
+                                        <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <button type="submit" class="btn btn-primary data-submit me-sm-3 me-1">ثبت</button>
+                                    <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">
+                                        انصراف
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </h5>
+            {% endif %}
+            <div class="card-body">
+                <div class="table-responsive text-nowrap" style="min-height: 200px">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>کاربر</th>
+                            <th>نام</th>
+                            <th>نام خانوادگی</th>
+                            <th>نقش</th>
+                            <th>عمل‌ها</th>
+                        </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                        {% for user in users %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    <strong><a href="{% url 'panel:user-detail-with-id' user_id=user.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" target="_self">{{ user.username }}</a></strong>
+                                </td>
+                                <td>{{ user.user_profile.first_name|default:'-' }}</td>
+                                <td>{{ user.user_profile.last_name|default:'-' }}</td>
+                                <td>{{ user.user_profile.role.title|default:'-' }}</td>
+                                <td>
+                                    {% if request.user|user_section_is_allowed:'modify,delete' %}
+                                    <div class="dropdown">
+                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                data-bs-toggle="dropdown">
+                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            {% if request.user|user_section_is_allowed:'modify' %}
+                                            <a class="dropdown-item" href="{% url 'panel:user-edit-with-id' user_id=user.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"><i
+                                                    class="bx bx-edit-alt me-1"></i> ویرایش</a>
+                                            {% endif %}
+                                            {% if request.user|user_section_is_allowed:'delete' %}
+                                            <a class="dropdown-item" href="javascript:void(0);"
+                                               data-bs-toggle="modal" data-bs-target="#deleteUserModal_{{ forloop.counter }}"><i
+                                                    class="bx bx-trash me-1"></i> حذف</a>
+                                            {% endif %}
+                                        </div>
+                                        <div class="modal fade" id="deleteUserModal_{{ forloop.counter }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-simple modal-enable-otp modal-dialog-centered">
+                                            <div class="modal-content p-3 p-md-5">
+                                                <div class="modal-body">
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                            aria-label="Close"></button>
+                                                    <div class="text-center mb-4 mt-0 mt-md-n2">
+                                                        <h3 class="mb-4 secondary-font">تایید حذف</h3>
+                                                    </div>
+                                                    <h6>آیا از حذف کاربر {{ user.username }} مطمئن هستید؟</h6>
+                                                    <form class="row g-3 mt-3" method="post" action="{% url 'panel:user-remove-with-id' user_id=user.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                        {% csrf_token %}
+                                                        <div class="col-12">
+                                                            <button type="submit" class="btn btn-primary me-sm-3 me-1">
+                                                                بله
+                                                            </button>
+                                                            <button type="reset" class="btn btn-label-secondary"
+                                                                    data-bs-dismiss="modal" aria-label="Close">
+                                                                انصراف
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    </div>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="demo-inline-spacing">
+                            <!-- Display page links -->
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination justify-content-center">
+                                    {% if page.has_previous %}
+                                        <li class="page-item prev">
+                                            <a class="page-link" href="?page={{ page.previous_page_number }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"><i
+                                                    class="tf-icon bx bx-chevrons-left"></i></a>
+                                        </li>
+                                    {% endif %}
+                                    {% for num in page.paginator.page_range %}
+                                        {% if num == page.number %}
+                                            <li class="page-item active">
+                                                <a class="page-link" href="?page={{ num }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">{{ num }}</a>
+                                            </li>
+                                        {% elif num == page.paginator.page_range.0 or num == page.paginator.page_range.1 or num == page.paginator.page_range.2 or num == page.paginator.page_range.3 or num == page.paginator.page_range.4 %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">{{ num }}</a>
+                                            </li>
+                                        {% elif num == page.paginator.page_range.5 %}
+                                            <li class="page-item">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if page.has_next %}
+                                        <li class="page-item next">
+                                            <a class="page-link" href="?page={{ page.next_page_number }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"><i
+                                                    class="tf-icon bx bx-chevrons-right"></i></a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_body %}
+    <!-- Main JS -->
+    <script src="{% static 'assets/js/main.js' %}"></script>
+
+    <!-- Page JS -->
+
+    <script>
+        'use strict';
+        var dt_complex_header_table = $('.dt-complex-header')
+        if (dt_complex_header_table.length) {
+            var dt_complex = dt_complex_header_table.DataTable({
+                columns: [
+                    {data: 'forloop_counter'},
+                    {data: 'user'},
+                    {data: 'full_name'},
+                    {data: 'mobile_number'},
+                    {data: 'landline'},
+                    {data: 'user_role'},
+                    {data: 'actions'}
+                ],
+                dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end"f>><"table-responsive"t><"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
+                displayLength: 7,
+                lengthMenu: [7, 10, 25, 50, 75, 100]
+            });
+        }
+        let fv, offCanvasEl;
+        document.addEventListener('DOMContentLoaded', function (e) {
+            (function () {
+                const formAddNewRecord = document.getElementById('form-add-new-record');
+
+                setTimeout(() => {
+                    const newRecord = document.querySelector('#create-new'),
+                        offCanvasElement = document.querySelector('#add-new-record');
+
+                    // To open offCanvas, to add new record
+                    if (newRecord) {
+                        newRecord.addEventListener('click', function () {
+                            offCanvasEl = new bootstrap.Offcanvas(offCanvasElement);
+                            offCanvasEl.show();
+                        });
+                    }
+                }, 200);
+            })();
+        });
+
+        const htmlAlert = document.querySelector('#html-alert')
+        // Html Alert
+        if (htmlAlert) {
+            htmlAlert.onclick = function () {
+                Swal.fire({
+                    title: '<b>ساخت کاربر جدید ممکن نیست</b>',
+                    icon: 'info',
+                    html:
+                        `نقش و مجوز فعالی ندارید. جهت ایجاد کاربر جدید ابتدا <a href="{% url 'panel:role-list' %} ">نقش جدید</a> ایجاد نمایید`,
+                    showCloseButton: true,
+                    showCancelButton: false,
+                    focusConfirm: false,
+                    confirmButtonText: 'باشه',
+                    confirmButtonAriaLabel: 'باشه',
+                    customClass: {
+                        confirmButton: 'btn btn-primary me-3',
+                    },
+                    buttonsStyling: false
+                });
+            };
+        }
+    </script>
+{% endblock %}

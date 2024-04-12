@@ -1,0 +1,27 @@
+{% extends 'panel/err/base.html' %}
+{% load static %}
+
+{% block title %}به زودی ...{% endblock %}
+
+{% block content %}
+    <div class="container-xxl py-3">
+        <div class="misc-wrapper">
+            <h1 class="mb-2 mx-2 secondary-font">به زودی راه اندازی می‌کنیم</h1>
+            <p class="mb-5 mx-2">وب‌سایت ما به زودی بازگشایی می‌شود. لطفا ثبت نام کنید تا از آماده بودن آن مطلع
+                شوید.</p>
+            <form onsubmit="return false">
+                <div class="mb-0">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="ایمیل" autofocus>
+                        <button type="submit" class="btn btn-primary">اطلاع بده</button>
+                    </div>
+                </div>
+            </form>
+            <div class="mt-4">
+                <img src="{% static 'assets/img/illustrations/girl-manage-task-light.png' %}" alt="boy-with-rocket-light"
+                     width="500" class="img-fluid" data-app-light-img="illustrations/girl-manage-task-light.png"
+                     data-app-dark-img="illustrations/girl-manage-task-dark.png">
+            </div>
+        </div>
+    </div>
+{% endblock %}
