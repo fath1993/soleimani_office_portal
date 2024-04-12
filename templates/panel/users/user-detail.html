@@ -60,18 +60,20 @@
                                     <span>{{ user.user_profile.role.title|default:"-" }}</span>
                                 </li>
                             </ul>
-                            <div class="d-flex justify-content-center pt-3">
-                                <a href="{% url 'panel:user-list' %}{% if get_params %}?{{ get_params }}{% endif %}"
-                                   class="btn btn-primary me-3">بازگشت</a>
-                                {% if request.user|user_section_is_allowed:'modify' %}
-                                    <a href="{% url 'panel:user-edit-with-id' user_id=user.id %}{% if get_params %}?{{ get_params }}{% endif %}"
-                                       class="btn btn-primary me-3">ویرایش</a>
-                                {% endif %}
-
+                            <div class="d-flex justify-content-between pt-3">
+                                <div class="text-right">
+                                    {% if request.user|user_section_is_allowed:'modify' %}
+                                        <a href="{% url 'panel:user-edit-with-id' user_id=user.id %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                           class="btn btn-primary me-3">ویرایش</a>
+                                    {% endif %}
+                                    <a href="{% url 'panel:user-list' %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                       class="btn btn-outline-gray me-3">بازگشت</a>
+                                </div>
                                 {% if request.user|user_section_is_allowed:'delete' %}
-                                    <a href="javascript:void(0)" class="btn btn-label-danger suspend-user"
-                                       data-bs-toggle="modal" data-bs-target="#deleteUserModal">حذف</a>
-                                    <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true">
+                                    <div class="text-left">
+                                        <a href="javascript:void(0)" class="btn btn-label-danger suspend-user"
+                                           data-bs-toggle="modal" data-bs-target="#deleteUserModal">حذف</a>
+                                        <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true">
                                         <div class="modal-dialog modal-simple modal-enable-otp modal-dialog-centered">
                                             <div class="modal-content p-3 p-md-5">
                                                 <div class="modal-body">
@@ -96,6 +98,7 @@
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
                                     </div>
                                 {% endif %}
                             </div>

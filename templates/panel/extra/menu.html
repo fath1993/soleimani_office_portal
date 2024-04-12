@@ -68,20 +68,20 @@
                 {% if request.user|role_section_is_allowed %}
                 <li id="role-list" class="menu-item">
                     <a href="{% url 'panel:role-list' %}" class="menu-link">
-                        <div>نقش ها</div>
+                        <div><span>نقش ها </span><span class="text-muted">({{ request|object_count:'role' }})</span></div>
                     </a>
                 </li>
                 {% endif %}
                 {% if request.user|permission_section_is_allowed %}
                 <li id="permission-list" class="menu-item">
                     <a href="{% url 'panel:permission-list' %}" class="menu-link">
-                        <div>مجوز ها</div>
+                        <div><span>مجوز ها </span><span class="text-muted">({{ request|object_count:'permission' }})</span></div>
                     </a>
                 </li>
                 {% endif %}    
                 <li id="user-list" class="menu-item">
                     <a href="{% url 'panel:user-list' %}" class="menu-link">
-                        <div>کاربران</div>
+                        <div><span>کاربران </span><span class="text-muted">({{ request|object_count:'user' }})</span></div>
                     </a>
                 </li>
             </ul>
@@ -96,65 +96,65 @@
             </a>
             <ul class="menu-sub">
                 {% if request.user|product_is_allowed %}
-                <li id="property-new" class="menu-item">
-                    <a href="#" class="menu-link">
-                        <div>محصولات</div>
+                <li id="product-list" class="menu-item">
+                    <a href="{% url 'panel:product-list' %}" class="menu-link">
+                        <div><span>محصولات </span><span class="text-muted">({{ request|object_count:'product' }})</span></div>
                     </a>
                 </li>
                 {% endif %}
             
                 {% if request.user|teaser_maker_is_allowed %}
-                <li id="my-property-list" class="menu-item">
-                    <a href="#" class="menu-link">
-                        <div>تیزر ساز ها</div>
+                <li id="teaser-maker-list" class="menu-item">
+                    <a href="{% url 'panel:teaser-maker-list' %}" class="menu-link">
+                        <div><span>تیزر ساز ها </span><span class="text-muted">({{ request|object_count:'teaser-maker' }})</span></div>
                     </a>
                 </li>
                 {% endif %}   
             
                 {% if request.user|reseller_network_is_allowed %}
-                <li id="my-property-list" class="menu-item">
-                    <a href="#" class="menu-link">
-                        <div>شبکه ها</div>
+                <li id="reseller-network-list" class="menu-item">
+                    <a href="{% url 'panel:reseller-network-list' %}" class="menu-link">
+                        <div><span>شبکه ها </span><span class="text-muted">({{ request|object_count:'reseller-network' }})</span></div>
                     </a>
                 </li>
                 {% endif %}    
             
                 {% if request.user|receiver_is_allowed %}
-                <li id="property-report-list" class="menu-item">
-                    <a href="#" class="menu-link">
-                        <div>دریافت کنندگان</div>
+                <li id="receiver-list" class="menu-item">
+                    <a href="{% url 'panel:receiver-list' %}" class="menu-link">
+                        <div><span>دریافت کنندگان </span><span class="text-muted">({{ request|object_count:'receiver' }})</span></div>
                     </a>
                 </li>
                 {% endif %}    
                     
                 {% if request.user|advertise_content_is_allowed %} 
-                <li id="property-new" class="menu-item">
-                    <a href="#" class="menu-link">
-                        <div>محتوای تبلیغاتی</div>
+                <li id="advertise-content-list" class="menu-item">
+                    <a href="{% url 'panel:advertise-content-list' %}" class="menu-link">
+                        <div><span>محتوای تبلیغاتی </span><span class="text-muted">({{ request|object_count:'advertise-content' }})</span></div>
                     </a>
                 </li>
                 {% endif %}    
                 
                 {% if request.user|forward_to_portal_is_allowed %} 
-                <li id="property-new" class="menu-item">
-                    <a href="#" class="menu-link">
-                        <div>انتقال دهندگان</div>
+                <li id="forward-to-portal-list" class="menu-item">
+                    <a href="{% url 'panel:forward-to-portal-list' %}" class="menu-link">
+                        <div><span>انتقال دهتدگان </span><span class="text-muted">({{ request|object_count:'forward-to-portal' }})</span></div>
                     </a>
                 </li>
                 {% endif %}    
                     
                 {% if request.user|communication_channel_is_allowed %} 
-                <li id="property-new" class="menu-item">
-                    <a href="#" class="menu-link">
-                        <div>کانال های ارتباطی</div>
+                <li id="communication-channel-list" class="menu-item">
+                    <a href="{% url 'panel:communication-channel-list' %}" class="menu-link">
+                        <div><span>کانال های ارتباطی </span><span class="text-muted">({{ request|object_count:'communication-channel' }})</span></div>
                     </a>
                 </li>
                 {% endif %}
             
                 {% if request.user|registrar_is_allowed %} 
-                <li id="property-new" class="menu-item">
-                    <a href="#" class="menu-link">
-                        <div>تخصیص دهنده ها</div>
+                <li id="registrar-list" class="menu-item">
+                    <a href="{% url 'panel:registrar-list' %}" class="menu-link">
+                        <div><span>تخصیص دهنده ها </span><span class="text-muted">({{ request|object_count:'registrar' }})</span></div>
                     </a>
                 </li>
                 {% endif %}    
@@ -199,37 +199,4 @@
         </li>
     </ul>
 </aside>
-<script>
-    const host = window.location.host;
-    const pathname = window.location.pathname;
-    console.log(pathname)
-    if (pathname === '/') {
-        document.getElementById('dashboard').className += ' active'
-        document.getElementById('dashboard').parentElement.parentElement.className += ' active open'
-    } else if (pathname === '/real-estate/property-new/') {
-        document.getElementById('property-new').className += ' active'
-        document.getElementById('property-new').parentElement.parentElement.className += ' active open'
-    } else if (pathname === '/advance-filter/') {
-        document.getElementById('advance-filter').className += ' active'
-        document.getElementById('advance-filter').parentElement.parentElement.className += ' active open'
-    }  else if (pathname === '/advance-filter/') {
-        document.getElementById('advance-filter').className += ' active'
-        document.getElementById('advance-filter').parentElement.parentElement.className += ' active open'
-    } else if (pathname.includes('/real-estate/')) {
-        document.getElementById('my-property-list').parentElement.parentElement.className += ' active open'
-        if (pathname === '/real-estate/property-list/'){
-            document.getElementById('my-property-list').className += ' active'
-        } else if (pathname === '/real-estate/property-report-list/') {
-            document.getElementById('property-report-list').className += ' active'
-        }
-    } else if (pathname.includes('/user/')) {
-        document.getElementById('user-list').parentElement.parentElement.className += ' active open'
-        document.getElementById('user-list').className += ' active'
-    } else if (pathname.includes('/permission/')) {
-        document.getElementById('permission-list').parentElement.parentElement.className += ' active open'
-        document.getElementById('permission-list').className += ' active'
-    } else if (pathname.includes('/role/')) {
-        document.getElementById('role-list').parentElement.parentElement.className += ' active open'
-        document.getElementById('role-list').className += ' active'
-    }
-</script>
+<script src="{% static 'custom/menu-controller.js' %}"></script>

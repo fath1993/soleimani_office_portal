@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load panel_custom_tag %}
+
+{% block extra_head %}
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/typeahead-js/typeahead.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'assets/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/flatpickr/flatpickr.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/sweetalert2/sweetalert2.css' %}">
+    <!-- Row Group CSS -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css' %}">
+    <!-- Form Validation -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/formvalidation/dist/css/formValidation.min.css' %}">
+{% endblock %}
+
+
+{% block content %}
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <h4 class="py-3 breadcrumb-wrapper mb-4">
+            <span class="text-muted fw-light">مدیریت منابع / <span class="text-black">محصولات</span></span>
+        </h4>
+        <div class="card mb-3">
+            <h5 class="card-header heading-color">
+                فیلتر محصولات
+            </h5>
+            <div class="card-body">
+                <div class="row">
+                    <form method="get" action="{% url 'panel:product-filter' %}">
+                        <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
+                            <label class="form-label" for="search">جستجو</label>
+                            <div class="input-group">
+                                <input type="text" id="search" name="search" class="form-control text-start"
+                                       placeholder="جستجو" dir="rtl">
+                                <button type="submit" class="input-group-text"><i class="fa fa-search"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            {% if request.user|user_section_is_allowed:'create' %}
+                <h5 class="card-header heading-color">
+                    <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
+                        <i class="ti-plus m-r-5"></i> ایجاد محصول جدید
+                    </button>
+                    {% if err %}
+                        <strong class="text-danger">{{ err }}</strong>
+                    {% endif %}
+                    {% if message %}
+                        <strong class="text-success">{{ message }}</strong>
+                    {% endif %}
+                    <div class="offcanvas offcanvas-end" id="add-new-record">
+                        <div class="offcanvas-header border-bottom">
+                            <h5 class="offcanvas-title" id="exampleModalLabel">مجوز جدید</h5>
+                            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
+                                    aria-label="Close"></button>
+                        </div>
+                        <div class="offcanvas-body flex-grow-1">
+                            <form class="add-new-record pt-0 row g-2" method="post"
+                                  action="{% url 'panel:permission-list' %}">
+                                {% csrf_token %}
+                                <div class="col-sm-12">
+                                    <label class="form-label" for="first_name">عنوان</label>
+                                    <div class="input-group input-group-merge">
+                                    <span id="title" class="input-group-text"><i
+                                            class="bx bx-user"></i></span>
+                                        <input type="text" id="title" class="form-control"
+                                               name="title" required
+                                               placeholder="عنوان" aria-label="عنوان"
+                                               aria-describedby="title"
+                                               value="{{ title|default:'' }}">
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <label for="defaultSelect" class="form-label">دسترسی به</label>
+                                    <select id="defaultSelect" name="role_id"
+                                            class="form-select dt-user-role" required>
+                                        <option {% if has_access_to_section == 'user' %} selected {% endif %}
+                                                                                         value="user">کاربر
+                                        </option>
+                                        <option {% if has_access_to_section == 'permission' %} selected {% endif %}
+                                                                                               value="permission">مجوز
+                                        </option>
+                                        <option {% if has_access_to_section == 'role' %} selected {% endif %}
+                                                                                         value="role">نقش
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="form-check form-check-primary mt-3">
+                                    <input class="form-check-input" type="checkbox" value="true" id="read" name="read"
+                                           checked>
+                                    <label class="form-check-label" for="read">خواندن</label>
+                                </div>
+                                <div class="form-check form-check-secondary">
+                                    <input class="form-check-input" type="checkbox" value="true" id="create" name="create"
+                                           checked>
+                                    <label class="form-check-label" for="create">ایجاد</label>
+                                </div>
+                                <div class="form-check form-check-success">
+                                    <input class="form-check-input" type="checkbox" value="true" id="modify" name="modify"
+                                           checked>
+                                    <label class="form-check-label" for="modify">ویرایش</label>
+                                </div>
+                                <div class="form-check form-check-danger">
+                                    <input class="form-check-input" type="checkbox" value="true" id="delete" name="delete"
+                                           checked>
+                                    <label class="form-check-label" for="delete">حذف</label>
+                                </div>
+                                <div class="col-sm-12">
+                                    <button type="submit" class="btn btn-primary data-submit me-sm-3 me-1">ثبت</button>
+                                    <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">
+                                        انصراف
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </h5>
+            {% endif %}
+            <div class="card-body">
+                <div class="table-responsive text-nowrap" style="min-height: 250px">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>نام</th>
+                            <th>نوع</th>
+                            <th>کد</th>
+                            <th>عملیات</th>
+                        </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                        {% for product in page %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    <strong><a href="{% url 'panel:product-detail-with-id' product_id=product.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+                                               target="_self">{{ product.name }}</a></strong>
+                                </td>
+                                <td>{{ product.type }}</td>
+                                <td>{{ product.code }}</td>
+                                <td>
+                                    {% if request.user|product_is_allowed:'modify,delete' %}
+                                        <div class="dropdown">
+                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                    data-bs-toggle="dropdown">
+                                                <i class="bx bx-dots-vertical-rounded"></i>
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                {% if request.user|product_is_allowed:'modify' %}
+                                                    <a class="dropdown-item" href="{% url 'panel:product-modify-with-id' product_id=product.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"><i
+                                                            class="bx bx-edit-alt me-1"></i> ویرایش</a>
+                                                    <a class="dropdown-item" href="javascript:void(0)" onclick="" {% if not product.disable %}hidden{% endif %}><i
+                                                            class="bx bx-lock-open me-1"></i> فعال</a>    
+                                                    <a class="dropdown-item" href="javascript:void(0)" onclick="" {% if product.disable %}hidden{% endif %}><i
+                                                            class="bx bx-lock me-1"></i> غیر فعال</a>    
+                                                    
+                                                {% endif %}
+                                                {% if request.user|product_is_allowed:'delete' %}
+                                                    <a class="dropdown-item" href="javascript:void(0);"
+                                                       data-bs-toggle="modal"
+                                                       data-bs-target="#deleteModal_{{ forloop.counter }}"><i
+                                                            class="bx bx-trash me-1"></i> حذف</a>
+                                                {% endif %}
+                                            </div>
+                                            <div class="modal fade" id="deleteModal_{{ forloop.counter }}"
+                                                 tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-simple modal-enable-otp modal-dialog-centered">
+                                                    <div class="modal-content p-3 p-md-5">
+                                                        <div class="modal-body">
+                                                            <button type="button" class="btn-close"
+                                                                    data-bs-dismiss="modal"
+                                                                    aria-label="Close"></button>
+                                                            <div class="text-center mb-4 mt-0 mt-md-n2">
+                                                                <h3 class="mb-4 secondary-font">تایید حذف</h3>
+                                                            </div>
+                                                            <h6>آیا از حذف محصول <strong class="bg-warning">{{ product.name }}</strong> مطمئن هستید؟</h6>
+                                                            <form class="row g-3 mt-3" method="post" action="{% url 'panel:product-delete-with-id' product_id=product.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                                {% csrf_token %}
+                                                                <div class="col-12">
+                                                                    <button type="submit"
+                                                                            class="btn btn-primary me-sm-3 me-1">
+                                                                        بله
+                                                                    </button>
+                                                                    <button type="reset" class="btn btn-label-secondary"
+                                                                            data-bs-dismiss="modal" aria-label="Close">
+                                                                        انصراف
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="demo-inline-spacing">
+                            <!-- Display page links -->
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination justify-content-center">
+                                    {% if page.has_previous %}
+                                        <li class="page-item prev">
+                                            <a class="page-link" href="?page={{ page.previous_page_number }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"><i
+                                                    class="tf-icon bx bx-chevrons-left"></i></a>
+                                        </li>
+                                    {% endif %}
+                                    {% for num in page.paginator.page_range %}
+                                        {% if num == page.number %}
+                                            <li class="page-item active">
+                                                <a class="page-link" href="?page={{ num }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">{{ num }}</a>
+                                            </li>
+                                        {% elif num == page.paginator.page_range.0 or num == page.paginator.page_range.1 or num == page.paginator.page_range.2 or num == page.paginator.page_range.3 or num == page.paginator.page_range.4 %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">{{ num }}</a>
+                                            </li>
+                                        {% elif num == page.paginator.page_range.5 %}
+                                            <li class="page-item">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if page.has_next %}
+                                        <li class="page-item next">
+                                            <a class="page-link" href="?page={{ page.next_page_number }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"><i
+                                                    class="tf-icon bx bx-chevrons-right"></i></a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_body %}
+    <!-- Main JS -->
+    <script src="{% static 'assets/js/main.js' %}"></script>
+
+    <!-- Page JS -->
+
+    <script>
+        'use strict';
+        var dt_complex_header_table = $('.dt-complex-header')
+        if (dt_complex_header_table.length) {
+            var dt_complex = dt_complex_header_table.DataTable({
+                columns: [
+                    {data: 'forloop_counter'},
+                    {data: 'user'},
+                    {data: 'full_name'},
+                    {data: 'mobile_number'},
+                    {data: 'landline'},
+                    {data: 'user_role'},
+                    {data: 'actions'}
+                ],
+                dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end"f>><"table-responsive"t><"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
+                displayLength: 7,
+                lengthMenu: [7, 10, 25, 50, 75, 100]
+            });
+        }
+        let fv, offCanvasEl;
+        document.addEventListener('DOMContentLoaded', function (e) {
+            (function () {
+                const formAddNewRecord = document.getElementById('form-add-new-record');
+
+                setTimeout(() => {
+                    const newRecord = document.querySelector('#create-new'),
+                        offCanvasElement = document.querySelector('#add-new-record');
+
+                    // To open offCanvas, to add new record
+                    if (newRecord) {
+                        newRecord.addEventListener('click', function () {
+                            offCanvasEl = new bootstrap.Offcanvas(offCanvasElement);
+                            offCanvasEl.show();
+                        });
+                    }
+                }, 200);
+            })();
+        });
+
+        const htmlAlert = document.querySelector('#html-alert')
+        // Html Alert
+        if (htmlAlert) {
+            htmlAlert.onclick = function () {
+                Swal.fire({
+                    title: '<b>ساخت کاربر جدید ممکن نیست</b>',
+                    icon: 'info',
+                    html:
+                        `نقش و مجوز فعالی ندارید. جهت ایجاد کاربر جدید ابتدا <a href="{% url 'panel:role-list' %} ">نقش جدید</a> ایجاد نمایید`,
+                    showCloseButton: true,
+                    showCancelButton: false,
+                    focusConfirm: false,
+                    confirmButtonText: 'باشه',
+                    confirmButtonAriaLabel: 'باشه',
+                    customClass: {
+                        confirmButton: 'btn btn-primary me-3',
+                    },
+                    buttonsStyling: false
+                });
+            };
+        }
+    </script>
+{% endblock %}

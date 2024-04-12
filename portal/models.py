@@ -50,6 +50,8 @@ class Product(models.Model):
     updated_by = models.ForeignKey(User, related_name='updated_by_product', on_delete=models.CASCADE, null=False,
                                    blank=False, editable=False, verbose_name='بروز شده توسط')
 
+    disabled = models.BooleanField(default=False, verbose_name='غیر فعال')
+
     def __str__(self):
         return f'name: {self.name} | code: {self.code}'
 

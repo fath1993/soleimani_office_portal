@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load panel_custom_tag %}
 
 {% block extra_head %}
 {% endblock %}
@@ -13,15 +14,15 @@
             <div class="card h-100">
                 <div class="card-header">
                     <h3 class="card-title mb-2">تبریک می‌گوییم {{ request.user.first_name }}!</h3>
-                    <span class="mb-4 primary-font"> قدرتمند ترین ابزار جهت مشاوره املاک پیش روی شماست</span>
+                    <span class="mb-4 primary-font"> قدرتمند ترین ابزار جهت مدیریت فروش پیش روی شماست</span>
                 </div>
                 <div class="card-body">
                     <div class="row align-items-end">
                         <div class="col-6">
-                            <h1 class="display-6 text-primary mb-2 pt-3 pb-2">ثبت فایل</h1>
-                            <small class="d-block mb-3 lh-1-85">اینجا میتونی فایلهات رو با جزییات کامل ثبت کنی</small>
+                            <h1 class="display-6 text-primary mb-2 pt-3 pb-2">ثبت محصول</h1>
+                            <small class="d-block mb-3 lh-1-85">اینجا میتونی منابع شرکت رو مدیریت کنی</small>
 
-                            <a href="#" class="btn btn-sm btn-primary">ادامه</a>
+                            <a href="{% url 'panel:product-list' %}" class="btn btn-sm btn-primary">ادامه</a>
                         </div>
                         <div class="col-6 text-end">
                             <img src="{% static 'assets/img/illustrations/prize-light.png' %}" width="140"
@@ -37,7 +38,7 @@
 
         <!-- Multi Radial Chart -->
         <div class="col-lg-4 col-md-6 col-12 mb-4">
-            <div class="card h-100" style="cursor: pointer" onclick="window.open('{% url 'panel:role-list' %}', '_self')">
+            <div class="card h-100" style="cursor: pointer" onclick="window.open('{% url 'panel:permission-list' %}', '_self')">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h2 class="card-title mb-0 text-center">برای شبکه سازی</h2>
                 </div>
@@ -54,38 +55,38 @@
             <div class="row">
                 <!-- Statistics Cards -->
                 <div class="col-6 col-md-3 col-lg-6 mb-4">
-                    <div class="card h-100" style="cursor: pointer" onclick="window.open('#', '_self')">
+                    <div class="card h-100" style="cursor: pointer" onclick="window.open('{% url 'panel:product-list' %}', '_self')">
                         <div class="card-body text-center">
                             <div class="avatar mx-auto mb-2">
                                 <span class="avatar-initial rounded-circle bg-label-success"><i
                                         class="bx bx-purchase-tag fs-4"></i></span>
                             </div>
-                            <h2 class="d-block text-nowrap pt-1">خرید</h2>
-                            <h6 class="mb-n3">فایلهای خرید و فروش رو اینجا پیدا کن</h6>
+                            <h2 class="d-block text-nowrap pt-1">محصول</h2>
+                            <h6 class="mb-n3">محصولات رو اینجا پیدا کن</h6>
                         </div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3 col-lg-6 mb-4">
-                    <div class="card h-100" style="cursor: pointer" onclick="window.open('#', '_self')">
+                    <div class="card h-100" style="cursor: pointer" onclick="window.open('{% url 'panel:teaser-maker-list' %}', '_self')">
                         <div class="card-body text-center">
                             <div class="avatar mx-auto mb-2">
                                 <span class="avatar-initial rounded-circle bg-label-danger"><i
                                         class="bx bx-cart fs-4"></i></span>
                             </div>
-                            <h2 class="d-block text-nowrap pt-1">اجاره</h2>
-                            <h6 class="mb-n3">فایلهای رهن و اجاره رو اینجا پیدا کن</h6>
+                            <h2 class="d-block text-nowrap pt-1">تیزر ساز</h2>
+                            <h6 class="mb-n3">تیزر ساز ها رو اینجا پیدا کن</h6>
                         </div>
                     </div>
                 </div>
                 <!--/ Statistics Cards -->
                 <!-- Revenue Growth Chart -->
                 <div class="col-12 col-md-6 col-lg-12 mb-4">
-                    <div class="card" style="cursor: pointer" onclick="window.open('#', '_self')">
+                    <div class="card" style="cursor: pointer" onclick="window.open('{% url 'panel:communication-channel-list' %}', '_self')">
                         <div class="card-header d-flex justify-content-between align-items-center pb-0">
-                            <h5 class="card-title mb-0">همه</h5>
+                            <h5 class="card-title mb-0">کانال های ارتباطی</h5>
                         </div>
                         <div class="card-body pb-0">
-                            دسترسی به کل فایل ها
+                            دسترسی به لیست کانال های ارتباطی
                             <div id="revenueGrowthChart"></div>
                         </div>
                     </div>
@@ -99,7 +100,7 @@
         <div class="col-sm-12 col-md-6 col-lg-6 col-xl-6 mb-4">
             <div class="card h-100">
                 <div class="card-header d-flex align-items-center justify-content-between mb-3">
-                    <h2 class="card-title mb-0">چرا فایلام؟</h2>
+                    <h2 class="card-title mb-0">چرا پورتال شخصی؟</h2>
                 </div>
                 <div class="card-body">
                     <ul class="p-0 m-0">
@@ -110,7 +111,7 @@
                             </div>
                             <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
                                 <div class="me-2">
-                                    <h4 class="mb-0">زحمتهای فایل یابی از بین نمیره</h4>
+                                    <h4 class="mb-0">زحمتهای ثبت محصول از بین نمیره</h4>
                                 </div>
                             </div>
                         </li>
@@ -121,14 +122,14 @@
                             </div>
                             <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
                                 <div class="me-2">
-                                    <h4 class="mb-0">هیچ فایلی فراموش نمیشه</h4>
+                                    <h4 class="mb-0">هیچ محصولی فراموش نمیشه</h4>
                                 </div>
                             </div>
                         </li>
                         <li class="d-flex mb-5 align-items-center">
                             <div class="avatar avatar-sm flex-shrink-0 me-3">
                                 <span class="avatar-initial rounded-circle bg-label-danger"><i
-                                        class="bx bx-credit-card"></i></span>
+                                        class="bx bx-data"></i></span>
                             </div>
                             <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
                                 <div class="me-2">
@@ -139,11 +140,11 @@
                         <li class="d-flex align-items-center">
                             <div class="avatar avatar-sm flex-shrink-0 me-3">
                                 <span class="avatar-initial rounded-circle bg-label-success"><i
-                                        class="bx bx-dollar"></i></span>
+                                        class="bx bxl-android"></i></span>
                             </div>
                             <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
                                 <div class="me-2">
-                                    <h4 class="mb-0">یه رزومه جذاب برای خودت ایجاد میکنی</h4>
+                                    <h4 class="mb-0">یه ربات خلاق برای خودت ایجاد میکنی</h4>
                                 </div>
                             </div>
                         </li>
@@ -158,7 +159,7 @@
             <div class="card h-100">
                 <div class="card-header">
                     <h5 class="card-title mb-3">کل کاربران</h5>
-                    <h1 class="display-6 fw-normal mb-0 primary-font">863,482</h1>
+                    <h1 class="display-6 fw-normal mb-0 primary-font">{{ request|object_count:'user'}}</h1>
                 </div>
                 <div class="card-body">
                     <span class="d-block mb-2">فعالیت کنونی</span>
