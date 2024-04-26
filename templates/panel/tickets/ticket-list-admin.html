@@ -1,0 +1,309 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load account_custom_tag %}
+{% load panel_custom_tag %}
+{% load tickets_custom_tag %}
+
+{% block extra_head %}
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/typeahead-js/typeahead.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'assets/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/flatpickr/flatpickr.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/sweetalert2/sweetalert2.css' %}">
+    <!-- Row Group CSS -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css' %}">
+    <!-- Form Validation -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/formvalidation/dist/css/formValidation.min.css' %}">
+{% endblock %}
+
+
+{% block content %}
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <h4 class="py-3 breadcrumb-wrapper mb-4">
+            <span class="text-muted fw-light">پشتیبانی / <span class="text-black">تیکت ها</span></span>
+        </h4>
+        <div class="card mb-3">
+            <h5 class="card-header heading-color">
+                فیلتر تیکت ها
+            </h5>
+            <div class="card-body">
+                <div class="row">
+                    <form method="get" action="{% url 'ticket:ticket-list' %}">
+                        <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
+                            <label class="form-label" for="search">جستجو</label>
+                            <div class="input-group">
+                                <input type="text" id="search" name="search" class="form-control text-start"
+                                       placeholder="جستجو" dir="rtl">
+                                <button type="submit" class="input-group-text"><i class="fa fa-search"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            {% if request.user|ticket_is_allowed:'create' %}
+                <h5 class="card-header heading-color">
+                    <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
+                        <i class="ti-plus m-r-5"></i> ایجاد تیکت جدید
+                    </button>
+                    {% if err %}
+                        <strong class="text-danger">{{ err }}</strong>
+                    {% endif %}
+                    {% if message %}
+                        <strong class="text-success">{{ message }}</strong>
+                    {% endif %}
+                    <div class="offcanvas offcanvas-end" id="add-new-record">
+                        <div class="offcanvas-header border-bottom">
+                            <h5 class="offcanvas-title" id="exampleModalLabel">تیکت جدید</h5>
+                            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
+                                    aria-label="Close"></button>
+                        </div>
+                        {% if request|ticket_is_allowed:'modify,delete' %}
+                        <div class="col-md-6">
+                            <label class="form-label" for="user_id">تیکت متعلق به</label>
+                            <select id="user_id" name="user_id" class="select2 form-select" data-allow-clear="true">
+                                {% for user in user_list  %}
+                                    <option {% if user.id == user_id %}selected{% endif %} value="{{ user.id }}">{{ user.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}    
+                        <div class="offcanvas-body flex-grow-1">
+                            <form class="add-new-record pt-0 row g-2" method="post"
+                                  action="{% url 'ticket:ticket-create' %}">
+                                {% csrf_token %}
+                                <div class="col-sm-12">
+                                    <label class="form-label" for="title">عنوان</label>
+                                    <div class="input-group input-group-merge">
+                                    <span id="title" class="input-group-text"><i
+                                            class="bx bx-star"></i></span>
+                                        <input type="text" id="title" class="form-control"
+                                               name="title"
+                                               placeholder="عنوان" aria-label="عنوان"
+                                               aria-describedby="title"
+                                               value="{{ title|default:'' }}">
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <label for="defaultSelect" class="form-label">دپارتمان دریافت کننده</label>
+                                    <select id="defaultSelect" name="department"
+                                            class="form-select dt-department" required>
+                                        <option {% if department == "پشتیبانی فنی" %} selected {% endif %}
+                                                                                    value="پشتیبانی فنی">پشتیبانی فنی
+                                        </option>
+                                        <option {% if department == "امور مالی" %} selected {% endif %} value="امور مالی">
+                                            امور مالی
+                                        </option>
+                                        <option {% if department == "مدیریت" %} selected {% endif %} value="مدیریت">
+                                            مدیریت
+                                        </option>
+                                        <option {% if department == "فروش" %} selected {% endif %} value="فروش">فروش
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-12">
+                                    <label class="form-label" for="national_code">پیام</label>
+                                    <div class="input-group input-group-merge">
+                                    <span id="message" class="input-group-text"><i
+                                            class="bx bx-message"></i></span>
+                                        <textarea type="text" rows="4" id="message" class="form-control"
+                                                  name="message"
+                                                  placeholder="پیام" aria-label="پیام"
+                                                  aria-describedby="message">{{ message|default:'' }}</textarea>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-12">
+                                    <label class="form-label" for="mobile_phone_number">فایل ضمیمه</label>
+                                    <div class="input-group input-group-merge">
+                                        <span id="file" class="input-group-text"><i class="bx bxs-file"></i></span>
+                                        <input type="file" id="file" class="form-control dt-file"
+                                               name="file"
+                                               placeholder="فایل" aria-label="فایل"
+                                               aria-describedby="file">
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <button type="submit" class="btn btn-primary data-submit me-sm-3 me-1">ثبت</button>
+                                    <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">
+                                        انصراف
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </h5>
+            {% endif %}
+            <div class="card-body">
+                <div class="table-responsive text-nowrap" style="min-height: 200px">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>کد رهگیری</th>
+                            <th>سازنده</th>
+                            <th>عنوان</th>
+                            <th>بخش</th>
+                            <th>وضعیت</th>
+                            <th>عمل‌ها</th>
+                        </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                        {% for ticket in page %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ ticket.id }}</td>
+                                <td>{{ ticket.user.username }}</td>
+                                <td>
+                                    <strong><a href="
+                                            {% url 'ticket:ticket-detail-with-id' ticket_id=ticket.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+                                               target="_self">{{ ticket.title }}</a></strong>
+                                </td>
+                                <td>{{ ticket.receiver }}</td>
+                                <td>{{ ticket.ticket_stage }}</td>
+                                <td>
+                                    {% if request.user|ticket_is_allowed:'modify' %}
+                                        <div class="dropdown">
+                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                    data-bs-toggle="dropdown">
+                                                <i class="bx bx-dots-vertical-rounded"></i>
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                {% if request.user|user_section_is_allowed:'modify' %}
+                                                    <a class="dropdown-item" href="javascript:void(0);"
+                                                       data-bs-toggle="modal"
+                                                       data-bs-target="#deleteUserModal_{{ forloop.counter }}"><i
+                                                            class="bx bx-trash me-1"></i> بستن</a>
+                                                {% endif %}
+                                            </div>
+                                            <div class="modal fade" id="deleteUserModal_{{ forloop.counter }}"
+                                                 tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-simple modal-enable-otp modal-dialog-centered">
+                                                    <div class="modal-content p-3 p-md-5">
+                                                        <div class="modal-body">
+                                                            <button type="button" class="btn-close"
+                                                                    data-bs-dismiss="modal"
+                                                                    aria-label="Close"></button>
+                                                            <div class="text-center mb-4 mt-0 mt-md-n2">
+                                                                <h3 class="mb-4 secondary-font">تایید بستن</h3>
+                                                            </div>
+                                                            <h6>آیا از بستن تیکت {{ ticket.title }} مطمئن هستید؟</h6>
+                                                            <form class="row g-3 mt-3" method="post" action="
+                                                                    {% url 'ticket:ticket-close-with-id' ticket_id=ticket.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                                {% csrf_token %}
+                                                                <div class="col-12">
+                                                                    <button type="submit"
+                                                                            class="btn btn-primary me-sm-3 me-1">
+                                                                        بله
+                                                                    </button>
+                                                                    <button type="reset" class="btn btn-label-secondary"
+                                                                            data-bs-dismiss="modal" aria-label="Close">
+                                                                        انصراف
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="demo-inline-spacing">
+                            <!-- Display page links -->
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination justify-content-center">
+                                    {% if page.has_previous %}
+                                        <li class="page-item prev">
+                                            <a class="page-link" href="?page={{ page.previous_page_number }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"><i
+                                                    class="tf-icon bx bx-chevrons-left"></i></a>
+                                        </li>
+                                    {% endif %}
+                                    {% for num in page.paginator.page_range %}
+                                        {% if num == page.number %}
+                                            <li class="page-item active">
+                                                <a class="page-link" href="?page={{ num }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">{{ num }}</a>
+                                            </li>
+                                        {% elif num == page.paginator.page_range.0 or num == page.paginator.page_range.1 or num == page.paginator.page_range.2 or num == page.paginator.page_range.3 or num == page.paginator.page_range.4 %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">{{ num }}</a>
+                                            </li>
+                                        {% elif num == page.paginator.page_range.5 %}
+                                            <li class="page-item">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if page.has_next %}
+                                        <li class="page-item next">
+                                            <a class="page-link" href="?page={{ page.next_page_number }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"><i
+                                                    class="tf-icon bx bx-chevrons-right"></i></a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_body %}
+    <!-- Main JS -->
+    <script src="{% static 'assets/js/main.js' %}"></script>
+
+    <!-- Page JS -->
+
+    <script>
+        'use strict';
+        var dt_complex_header_table = $('.dt-complex-header')
+        let fv, offCanvasEl;
+        document.addEventListener('DOMContentLoaded', function (e) {
+            (function () {
+                const formAddNewRecord = document.getElementById('form-add-new-record');
+
+                setTimeout(() => {
+                    const newRecord = document.querySelector('#create-new'),
+                        offCanvasElement = document.querySelector('#add-new-record');
+
+                    // To open offCanvas, to add new record
+                    if (newRecord) {
+                        newRecord.addEventListener('click', function () {
+                            offCanvasEl = new bootstrap.Offcanvas(offCanvasElement);
+                            offCanvasEl.show();
+                        });
+                    }
+                }, 200);
+            })();
+        });
+    </script>
+{% endblock %}

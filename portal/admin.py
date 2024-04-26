@@ -38,7 +38,7 @@ class ProductAdmin(admin.ModelAdmin):
         'created_by',
         'updated_by',
 
-        'disabled',
+        'is_active',
     )
 
     @admin.display(description="تاریخ ایجاد", empty_value='???')

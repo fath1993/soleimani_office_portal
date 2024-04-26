@@ -31,6 +31,9 @@ INSTALLED_APPS = [
     'gallery',
     'portal',
     'panel',
+    'tickets',
+    'automation',
+    'conversation',
 ]
 
 MIDDLEWARE = [

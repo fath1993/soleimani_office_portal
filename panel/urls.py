@@ -40,8 +40,8 @@ urlpatterns = [
     path('product/detail&id=<int:product_id>/', ProductView().detail, name='product-detail-with-id'),
     path('product/modify&id=<int:product_id>/', ProductView().modify, name='product-modify-with-id'),
     path('product/delete&id=<int:product_id>/', ProductView().delete, name='product-delete-with-id'),
-    path('product/change-state&id=<int:product_id>/', ProductView().delete, name='product-change_state-with-id'),
-
+    path('product/delete-file&file-id=<int:file_id>/', ProductView().delete_file, name='product-delete-file-with-file-id'),
+    path('product/change-state&id=<int:product_id>/', ProductView().change_state, name='product-change_state-with-id'),
 
     # Teaser Maker
     path('teaser-maker/list/', TeaserMakerView().list, name='teaser-maker-list'),

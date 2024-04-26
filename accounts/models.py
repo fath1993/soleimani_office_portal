@@ -5,11 +5,16 @@ from django.dispatch import receiver
 from django_jalali.db import models as jmodel
 
 
-HAS_ACCESS_TO_SECTION = (('user', 'کاربر'), ('permission', 'مجوز'), ('role', 'نقش'), ('resource', 'منابع'),
-                         ('product', 'محصولات'), ('teaser_maker', 'تیزر ساز'), ('reseller_network', 'شبکه'),
+HAS_ACCESS_TO_SECTION = (('user', 'کاربر'), ('permission', 'مجوز'), ('role', 'نقش'), ('ticket_admin', 'تیکت ادمین'),
+                         ('resource', 'منابع'), ('product', 'محصولات'), ('teaser_maker', 'تیزر ساز'), ('reseller_network', 'شبکه'),
                          ('receiver', 'دریافت کننده'), ('advertise_content', 'محتوای تبلیغاتی'),
                          ('forward_to_portal', 'انتقال دهنده'), ('communication_channel', 'کانال ارتباطی'),
-                         ('registrar', 'تخصیص دهنده'),)
+                         ('registrar', 'تخصیص دهنده'),
+                         ('automation', 'اتوماسیون'),
+                         ('automation_project', 'اتوماسیون - ساخت پروژه'),
+                         ('automation_task', 'اتوماسیون - ایجاد وظیفه'),
+                         ('automation_communicate', 'اتوماسیون - مکاتبات'),
+                         ('conversation', 'چت'),)
 
 
 class Permission(models.Model):

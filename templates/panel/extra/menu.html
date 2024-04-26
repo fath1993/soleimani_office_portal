@@ -1,5 +1,7 @@
 {% load static %}
 {% load panel_custom_tag %}
+{% load tickets_custom_tag %}
+{% load automation_custom_tag %}
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme"
        data-bg-class="bg-menu-theme">
@@ -162,7 +164,54 @@
         </li>
         {% endif %}
     
-
+        {% if request.user|automation_is_allowed %}
+        <li class="menu-item">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-building-house"></i>
+                <div>اداری</div>
+            </a>
+            <ul class="menu-sub">
+                <li id="latest-property" class="menu-item">
+                    <a href="#" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-album"></i>
+                        <div>تیم ها</div>
+                    </a>
+                </li>
+                <li id="advance-filter" class="menu-item">
+                    <a href="#" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-search"></i>
+                        <div>دعوت نامه ها</div>
+                    </a>
+                </li>
+                <li id="advance-filter" class="menu-item">
+                    <a href="#" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-search"></i>
+                        <div>پروژه ها</div>
+                    </a>
+                </li>
+                <li id="advance-filter" class="menu-item">
+                    <a href="#" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-search"></i>
+                        <div>وظایف</div>
+                    </a>
+                </li>
+                <li id="advance-filter" class="menu-item">
+                    <a href="#" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-search"></i>
+                        <div>مکاتبات</div>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        {% endif %}
+    
+        <li id="dashboard" class="menu-item">
+            <a href="{% url 'chat:chat' %}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-home"></i>
+                <div>چت</div>
+            </a>
+        </li>
+    
         <li class="menu-header small text-uppercase"><span class="menu-header-text">گزارشات</span></li>
         <li id="latest-property" class="menu-item">
             <a href="#" class="menu-link">
@@ -180,10 +229,24 @@
         <!-- Misc -->
         <li class="menu-header small text-uppercase"><span class="menu-header-text">متفرقه</span></li>
         <li id="support" class="menu-item">
-            <a href="javascript:void(0)" class="menu-link">
+            <a href="javascript:void(0)" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-support"></i>
                 <div>پشتیبانی</div>
             </a>
+            <ul class="menu-sub">
+                <li id="ticket-list" class="menu-item">
+                    <a href="{% url 'ticket:ticket-list' %}" class="menu-link">
+                        <div><span>تیکت های من </span><span class="text-muted">({{ request|ticket_count:'self' }})</span></div>
+                    </a>
+                </li>
+                {% if request.user|ticket_admin_is_allowed:'read' %}
+                <li id="ticket-admin-list" class="menu-item">
+                    <a href="{% url 'ticket:ticket-admin-list' %}" class="menu-link">
+                        <div><span>تیکت های کاربران </span><span class="text-muted">({{ request|ticket_count:'all' }})</span></div>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
         </li>
         <li id="documentation" class="menu-item">
             <a href="javascript:void(0)" class="menu-link">

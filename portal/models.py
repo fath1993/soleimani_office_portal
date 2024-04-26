@@ -50,7 +50,7 @@ class Product(models.Model):
     updated_by = models.ForeignKey(User, related_name='updated_by_product', on_delete=models.CASCADE, null=False,
                                    blank=False, editable=False, verbose_name='بروز شده توسط')
 
-    disabled = models.BooleanField(default=False, verbose_name='غیر فعال')
+    is_active = models.BooleanField(default=False, verbose_name='فعال')
 
     def __str__(self):
         return f'name: {self.name} | code: {self.code}'
@@ -267,3 +267,6 @@ class Registrar(models.Model):
         ordering = ['created_at', ]
         verbose_name = 'تخصیص دهنده'
         verbose_name_plural = 'تخصیص دهنده ها'
+
+
+

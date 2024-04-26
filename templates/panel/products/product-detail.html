@@ -10,7 +10,8 @@
 {% block content %}
     <div class="container-xxl flex-grow-1 container-p-y">
         <h4 class="py-3 breadcrumb-wrapper mb-4">
-            <span class="text-muted fw-light">مدیریت منابع / محصولات / <span class="text-black">مشخصات محصول : {{ product.name }}</span></span>
+            <span class="text-muted fw-light">مدیریت منابع / محصولات / <span
+                    class="text-black">مشخصات محصول : {{ product.name }}</span></span>
         </h4>
         <div class="row gy-4">
             <div class="col-md-12">
@@ -32,12 +33,12 @@
                                     <span>{{ product.code|default:"-" }}</span>
                                 </li>
                                 <li class="mb-3">
-                                    <span class="fw-bold me-2">وزن - گرم:</span>
-                                    <span>{{ product.weight|default:"-" }}</span>
+                                    <span class="fw-bold me-2">وزن:</span>
+                                    <span>{{ product.weight|default:"-" }} گرم</span>
                                 </li>
                                 <li class="mb-3">
-                                    <span class="fw-bold me-2">سایز - اینچ:</span>
-                                    <span>{{ product.size|default:"-" }}</span>
+                                    <span class="fw-bold me-2">سایز:</span>
+                                    <span>{{ product.size|default:"-" }} اینچ</span>
                                 </li>
                                 <li class="mb-3">
                                     <span class="fw-bold me-2">رنگ:</span>
@@ -45,49 +46,59 @@
                                 </li>
                                 <li class="mb-3">
                                     <span class="fw-bold me-2">تصاویر:</span>
-                                    {% for image in product.images.all %}
-                                    <a href="{{ image.url }}" target="_blank">{{ forloop.counter }}</a>
-                                    <hr>
-                                    {% empty %}
-                                        -
-                                    {% endfor %}
+                                    <div class="d-flex align-items-center flex-wrap my-2">
+                                        {% for image in product.images.all %}
+                                            <div class="avatar avatar-xl mx-1 my-1">
+                                                <img src="{{ image.file.url }}" alt="Img"
+                                                     class="rounded"
+                                                     onclick="window.open('{{ image.file.url }}', '_blank')">
+                                            </div>
+                                        {% empty %}
+                                            -
+                                        {% endfor %}
+                                    </div>
                                 </li>
                                 <li class="mb-3">
                                     <span class="fw-bold me-2">ویدیو ها:</span>
-                                    {% for video in product.videos.all %}
-                                    <a href="{{ video.url }}" target="_blank">{{ forloop.counter }}</a>
-                                    <hr>
-                                    {% empty %}
-                                        -
-                                    {% endfor %}
+                                    <div class="d-flex align-items-center flex-wrap my-2">
+                                        {% for video in product.videos.all %}
+                                            <div class="avatar avatar-xl mx-1 my-1">
+                                                <img src="{% static 'assets/img/icons/unicons/cube.png' %}" alt="Video"
+                                                     class="rounded"
+                                                     onclick="window.open('{{ video.file.url }}', '_blank')">
+                                            </div>
+                                        {% empty %}
+                                            -
+                                        {% endfor %}
+                                    </div>
                                 </li>
                                 <li class="mb-3">
-                                    <span class="fw-bold me-2">هزینه خام محصول - ریال:</span>
-                                    <span>{{ product.product_price|default:"-" }}</span>
+                                    <span class="fw-bold me-2">هزینه خام محصول:</span>
+                                    <span>{{ product.product_price|default:"-" }} ریال</span>
                                 </li>
                                 <li class="mb-3">
-                                    <span class="fw-bold me-2">هزینه حمل - ریال:</span>
-                                    <span>{{ product.shipping_price|default:"-" }}</span>
+                                    <span class="fw-bold me-2">هزینه حمل:</span>
+                                    <span>{{ product.shipping_price|default:"-" }} ریال</span>
                                 </li>
                                 <li class="mb-3">
-                                    <span class="fw-bold me-2">هزینه ارسال لینک - ریال:</span>
-                                    <span>{{ product.send_link_price|default:"-" }}</span>
+                                    <span class="fw-bold me-2">هزینه ارسال لینک:</span>
+                                    <span>{{ product.send_link_price|default:"-" }} ریال</span>
                                 </li>
                                 <li class="mb-3">
-                                    <span class="fw-bold me-2">هزینه بسته بندی - ریال:</span>
-                                    <span>{{ product.packing_price|default:"-" }}</span>
+                                    <span class="fw-bold me-2">هزینه بسته بندی:</span>
+                                    <span>{{ product.packing_price|default:"-" }} ریال</span>
                                 </li>
                                 <li class="mb-3">
-                                    <span class="fw-bold me-2">کمیسیون فروشنده - درصد:</span>
-                                    <span>{{ product.seller_commission|default:"-" }}</span>
+                                    <span class="fw-bold me-2">کمیسیون فروشنده:</span>
+                                    <span>{{ product.seller_commission|default:"-" }} درصد</span>
                                 </li>
                                 <li class="mb-3">
                                     <span class="fw-bold me-2">تاریخ و زمان ایجاد:</span>
-                                    <span>{{ product.created_at|date:'Y-m-d H:i' }}</span>
+                                    <span>{{ product.created_at|date:'d-m-Y H:i' }}</span>
                                 </li>
                                 <li class="mb-3">
                                     <span class="fw-bold me-2">تاریخ و زمان بروزرسانی:</span>
-                                    <span>{{ product.updated_at|date:'Y-m-d H:i' }}</span>
+                                    <span>{{ product.updated_at|date:'d-m-Y H:i' }}</span>
                                 </li>
                                 <li class="mb-3">
                                     <span class="fw-bold me-2">ایجاد شده توسط:</span>
@@ -99,10 +110,10 @@
                                 </li>
                                 <li class="mb-3">
                                     <span class="fw-bold me-2">وضعیت:</span>
-                                    {% if product.disabled %}
-                                        <span class="badge bg-danger">غیر فعال</span>
-                                    {% else %}
+                                    {% if product.is_active %}
                                         <span class="badge bg-success">فعال</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">غیر فعال</span>
                                     {% endif %}
                                 </li>
                             </ul>
@@ -116,37 +127,41 @@
                                        class="btn btn-outline-gray me-3">بازگشت</a>
                                 </div>
                                 {% if request.user|product_is_allowed:'delete' %}
-                                <div class="text-left">
-                                    <a href="javascript:void(0)" class="btn btn-label-danger suspend-user"
-                                       data-bs-toggle="modal" data-bs-target="#deleteModal">حذف</a>
-                                    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
-                                        <div class="modal-dialog modal-simple modal-enable-otp modal-dialog-centered">
-                                            <div class="modal-content p-3 p-md-5">
-                                                <div class="modal-body">
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                            aria-label="Close"></button>
-                                                    <div class="text-center mb-4 mt-0 mt-md-n2">
-                                                        <h3 class="mb-4 secondary-font">تایید حذف</h3>
-                                                    </div>
-                                                    <h6>آیا از حذف محصول <strong class="bg-warning">{{ product.name }}</strong> مطمئن هستید؟</h6>
-                                                    <form class="row g-3 mt-3" method="post" action="{% url 'panel:product-delete-with-id' product_id=product.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
-                                                        {% csrf_token %}
-                                                        <div class="col-12">
-                                                            <button type="submit" class="btn btn-primary me-sm-3 me-1">
-                                                                بله
-                                                            </button>
-                                                            <button type="reset" class="btn btn-label-secondary"
-                                                                    data-bs-dismiss="modal" aria-label="Close">
-                                                                انصراف
-                                                            </button>
+                                    <div class="text-left">
+                                        <a href="javascript:void(0)" class="btn btn-label-danger suspend-user"
+                                           data-bs-toggle="modal" data-bs-target="#deleteModal">حذف</a>
+                                        <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-simple modal-enable-otp modal-dialog-centered">
+                                                <div class="modal-content p-3 p-md-5">
+                                                    <div class="modal-body">
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                                aria-label="Close"></button>
+                                                        <div class="text-center mb-4 mt-0 mt-md-n2">
+                                                            <h3 class="mb-4 secondary-font">تایید حذف</h3>
                                                         </div>
-                                                    </form>
+                                                        <h6>آیا از حذف محصول <strong
+                                                                class="bg-warning">{{ product.name }}</strong> مطمئن
+                                                            هستید؟</h6>
+                                                        <form class="row g-3 mt-3" method="post" action="
+                                                                {% url 'panel:product-delete-with-id' product_id=product.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                            {% csrf_token %}
+                                                            <div class="col-12">
+                                                                <button type="submit"
+                                                                        class="btn btn-primary me-sm-3 me-1">
+                                                                    بله
+                                                                </button>
+                                                                <button type="reset" class="btn btn-label-secondary"
+                                                                        data-bs-dismiss="modal" aria-label="Close">
+                                                                    انصراف
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                {% endif %}   
+                                {% endif %}
                             </div>
                         </div>
                     </div>
