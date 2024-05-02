@@ -130,7 +130,7 @@
                                         <a href="{% url 'panel:product-list' %}{% if get_params %}?{{ get_params }}{% endif %}"
                                                class="btn btn-outline-gray me-3">بازگشت</a>
                                     {% endif %}
-                                    
+
                                 </div>
                                 {% if request.user|product_is_allowed:'delete' %}
                                     <div class="text-left">

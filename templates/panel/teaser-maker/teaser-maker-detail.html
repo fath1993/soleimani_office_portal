@@ -10,8 +10,8 @@
 {% block content %}
     <div class="container-xxl flex-grow-1 container-p-y">
         <h4 class="py-3 breadcrumb-wrapper mb-4">
-            <span class="text-muted fw-light">مدیریت منابع / محصولات / <span
-                    class="text-black">مشخصات محصول : {{ product.name }}</span></span>
+            <span class="text-muted fw-light">مدیریت منابع / تیزر سازها / <span
+                    class="text-black">مشخصات تیزر ساز : {{ teaser_maker.name }}</span></span>
         </h4>
         <div class="row gy-4">
             <div class="col-md-12">
@@ -21,96 +21,52 @@
                         <div class="info-container">
                             <ul class="list-unstyled">
                                 <li class="mb-3">
-                                    <span class="fw-bold me-2">نام:</span>
-                                    <span>{{ product.name|default:"-" }}</span>
+                                    <span class="fw-bold me-2">نام تیزر ساز:</span>
+                                    <span>{{ teaser_maker.name|default:"-" }}</span>
                                 </li>
                                 <li class="mb-3">
-                                    <span class="fw-bold me-2">نوع:</span>
-                                    <span>{{ product.type|default:"-" }}</span>
+                                    <span class="fw-bold me-2">نوع محتوا:</span>
+                                    <span>{{ teaser_maker.content_type|default:"-" }}</span>
                                 </li>
                                 <li class="mb-3">
                                     <span class="fw-bold me-2">کد:</span>
-                                    <span>{{ product.code|default:"-" }}</span>
+                                    <span>{{ teaser_maker.code|default:"-" }}</span>
                                 </li>
                                 <li class="mb-3">
-                                    <span class="fw-bold me-2">وزن:</span>
-                                    <span>{{ product.weight|default:"-" }} گرم</span>
+                                    <span class="fw-bold me-2">آدرس:</span>
+                                    <span>{{ teaser_maker.address|default:"-" }}</span>
                                 </li>
                                 <li class="mb-3">
-                                    <span class="fw-bold me-2">سایز:</span>
-                                    <span>{{ product.size|default:"-" }} اینچ</span>
+                                    <span class="fw-bold me-2">شماره تماس:</span>
+                                    <span>{{ teaser_maker.phone_number|default:"-" }}</span>
                                 </li>
                                 <li class="mb-3">
-                                    <span class="fw-bold me-2">رنگ:</span>
-                                    <span>{{ product.color|default:"-" }}</span>
+                                    <span class="fw-bold me-2">هزینه ساخت:</span>
+                                    <span>{{ teaser_maker.creation_price|default:"-" }} ریال</span>
                                 </li>
                                 <li class="mb-3">
-                                    <span class="fw-bold me-2">تصاویر:</span>
-                                    <div class="d-flex align-items-center flex-wrap my-2">
-                                        {% for image in product.images.all %}
-                                            <div class="avatar avatar-xl mx-1 my-1">
-                                                <img src="{{ image.file.url }}" alt="Img"
-                                                     class="rounded"
-                                                     onclick="window.open('{{ image.file.url }}', '_blank')">
-                                            </div>
-                                        {% empty %}
-                                            -
-                                        {% endfor %}
-                                    </div>
-                                </li>
-                                <li class="mb-3">
-                                    <span class="fw-bold me-2">ویدیو ها:</span>
-                                    <div class="d-flex align-items-center flex-wrap my-2">
-                                        {% for video in product.videos.all %}
-                                            <div class="avatar avatar-xl mx-1 my-1">
-                                                <img src="{% static 'assets/img/icons/unicons/cube.png' %}" alt="Video"
-                                                     class="rounded"
-                                                     onclick="window.open('{{ video.file.url }}', '_blank')">
-                                            </div>
-                                        {% empty %}
-                                            -
-                                        {% endfor %}
-                                    </div>
-                                </li>
-                                <li class="mb-3">
-                                    <span class="fw-bold me-2">هزینه خام محصول:</span>
-                                    <span>{{ product.product_price|default:"-" }} ریال</span>
-                                </li>
-                                <li class="mb-3">
-                                    <span class="fw-bold me-2">هزینه حمل:</span>
-                                    <span>{{ product.shipping_price|default:"-" }} ریال</span>
-                                </li>
-                                <li class="mb-3">
-                                    <span class="fw-bold me-2">هزینه ارسال لینک:</span>
-                                    <span>{{ product.send_link_price|default:"-" }} ریال</span>
-                                </li>
-                                <li class="mb-3">
-                                    <span class="fw-bold me-2">هزینه بسته بندی:</span>
-                                    <span>{{ product.packing_price|default:"-" }} ریال</span>
-                                </li>
-                                <li class="mb-3">
-                                    <span class="fw-bold me-2">کمیسیون فروشنده:</span>
-                                    <span>{{ product.seller_commission|default:"-" }} درصد</span>
+                                    <span class="fw-bold me-2">هزینه ویرایش:</span>
+                                    <span>{{ teaser_maker.editing_price|default:"-" }} ریال</span>
                                 </li>
                                 <li class="mb-3">
                                     <span class="fw-bold me-2">تاریخ و زمان ایجاد:</span>
-                                    <span>{{ product.created_at|date:'d-m-Y H:i' }}</span>
+                                    <span>{{ teaser_maker.created_at|date:'d-m-Y H:i' }}</span>
                                 </li>
                                 <li class="mb-3">
                                     <span class="fw-bold me-2">تاریخ و زمان بروزرسانی:</span>
-                                    <span>{{ product.updated_at|date:'d-m-Y H:i' }}</span>
+                                    <span>{{ teaser_maker.updated_at|date:'d-m-Y H:i' }}</span>
                                 </li>
                                 <li class="mb-3">
                                     <span class="fw-bold me-2">ایجاد شده توسط:</span>
-                                    <span>{{ product.created_by }}</span>
+                                    <span>{{ teaser_maker.created_by }}</span>
                                 </li>
                                 <li class="mb-3">
                                     <span class="fw-bold me-2">بروز شده توسط:</span>
-                                    <span>{{ product.updated_by }}</span>
+                                    <span>{{ teaser_maker.updated_by }}</span>
                                 </li>
                                 <li class="mb-3">
                                     <span class="fw-bold me-2">وضعیت:</span>
-                                    {% if product.is_active %}
+                                    {% if teaser_maker.is_active %}
                                         <span class="badge bg-success">فعال</span>
                                     {% else %}
                                         <span class="badge bg-danger">غیر فعال</span>
@@ -119,20 +75,20 @@
                             </ul>
                             <div class="d-flex justify-content-between pt-3">
                                 <div class="text-right">
-                                    {% if request.user|product_is_allowed:'modify' %}
-                                        <a href="{% url 'panel:product-modify-with-id' product_id=product.id %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                    {% if request.user|teaser_maker_is_allowed:'modify' %}
+                                        <a href="{% url 'panel:teaser-maker-modify-with-id' teaser_maker_id=teaser_maker.id %}{% if get_params %}?{{ get_params }}{% endif %}"
                                            class="btn btn-primary me-3">ویرایش</a>
                                     {% endif %}
                                     {% if get_params %}
-                                        <a href="{% url 'panel:product-filter' %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                        <a href="{% url 'panel:teaser-maker-filter' %}{% if get_params %}?{{ get_params }}{% endif %}"
                                                        class="btn btn-outline-gray me-3">بازگشت</a>
                                     {% else %}
-                                        <a href="{% url 'panel:product-list' %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                        <a href="{% url 'panel:teaser-maker-list' %}{% if get_params %}?{{ get_params }}{% endif %}"
                                                class="btn btn-outline-gray me-3">بازگشت</a>
                                     {% endif %}
                                     
                                 </div>
-                                {% if request.user|product_is_allowed:'delete' %}
+                                {% if request.user|teaser_maker_is_allowed:'delete' %}
                                     <div class="text-left">
                                         <a href="javascript:void(0)" class="btn btn-label-danger suspend-user"
                                            data-bs-toggle="modal" data-bs-target="#deleteModal">حذف</a>
@@ -145,11 +101,11 @@
                                                         <div class="text-center mb-4 mt-0 mt-md-n2">
                                                             <h3 class="mb-4 secondary-font">تایید حذف</h3>
                                                         </div>
-                                                        <h6>آیا از حذف محصول <strong
-                                                                class="bg-warning">{{ product.name }}</strong> مطمئن
+                                                        <h6>آیا از حذف تیزر ساز <strong
+                                                                class="bg-warning">{{ teaser_maker.name }}</strong> مطمئن
                                                             هستید؟</h6>
                                                         <form class="row g-3 mt-3" method="post" action="
-                                                                {% url 'panel:product-delete-with-id' product_id=product.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                                {% url 'panel:teaser-maker-delete-with-id' teaser_maker_id=teaser_maker.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
                                                             {% csrf_token %}
                                                             <div class="col-12">
                                                                 <button type="submit"

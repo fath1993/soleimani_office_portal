@@ -7,7 +7,7 @@ from django.urls import reverse
 from accounts.models import Role, Permission
 from gallery.models import FileGallery
 from panel.custom_decorator import CheckLogin, CheckPermissions, RequireMethod
-from portal.models import Product
+from portal.models import Product, TeaserMaker
 from utilities.http_metod import fetch_data_from_http_post, fetch_files_from_http_post_data, fetch_data_from_http_get
 
 
@@ -671,11 +671,15 @@ class ProductView:
         q = Q()
         if search:
             page_title += f'search: {search}, '
-            q &= (
-                Q(**{'name__icontains': search}) |
-                Q(**{'id': search}) |
-                Q(**{'code': search})
-            )
+            if search.isdigit():
+                q &= (
+                    Q(**{'id__exact': search})
+                )
+            else:
+                q &= (
+                        Q(**{'name__icontains': search}) |
+                        Q(**{'code': search})
+                )
 
         if product_type:
             page_title += f'product_type: {product_type}, '
@@ -726,61 +730,61 @@ class ProductView:
         if product_price_from:
             page_title += f'product_price_from: {product_price_from}, '
             q &= (
-                Q(**{'product_price_gte': int(product_price_from)})
+                Q(**{'product_price__gte': int(product_price_from)})
             )
 
         if product_price_to:
             page_title += f'product_price_to: {product_price_to}, '
             q &= (
-                Q(**{'product_price_lte': int(product_price_to)})
+                Q(**{'product_price__lte': int(product_price_to)})
             )
 
         if shipping_price_from:
             page_title += f'shipping_price_from: {shipping_price_from}, '
             q &= (
-                Q(**{'shipping_price_gte': int(shipping_price_from)})
+                Q(**{'shipping_price__gte': int(shipping_price_from)})
             )
 
         if shipping_price_to:
             page_title += f'shipping_price_to: {shipping_price_to}, '
             q &= (
-                Q(**{'shipping_price_lte': int(shipping_price_to)})
+                Q(**{'shipping_price__lte': int(shipping_price_to)})
             )
 
         if send_link_price_from:
             page_title += f'send_link_price_from: {send_link_price_from}, '
             q &= (
-                Q(**{'send_link_price_gte': int(send_link_price_from)})
+                Q(**{'send_link_price__gte': int(send_link_price_from)})
             )
 
         if send_link_price_to:
             page_title += f'send_link_price_to: {send_link_price_to}, '
             q &= (
-                Q(**{'send_link_price_lte': int(send_link_price_to)})
+                Q(**{'send_link_price__lte': int(send_link_price_to)})
             )
 
         if packing_price_from:
             page_title += f'packing_price_from: {packing_price_from}, '
             q &= (
-                Q(**{'packing_price_gte': int(packing_price_from)})
+                Q(**{'packing_price__gte': int(packing_price_from)})
             )
 
         if packing_price_to:
             page_title += f'packing_price_to: {packing_price_to}, '
             q &= (
-                Q(**{'packing_price_lte': int(packing_price_to)})
+                Q(**{'packing_price__lte': int(packing_price_to)})
             )
 
         if seller_commission_from:
             page_title += f'seller_commission_from: {seller_commission_from}, '
             q &= (
-                Q(**{'seller_commission_gte': int(seller_commission_from)})
+                Q(**{'seller_commission__gte': int(seller_commission_from)})
             )
 
         if seller_commission_to:
             page_title += f'seller_commission_to: {seller_commission_to}, '
             q &= (
-                Q(**{'seller_commission_lte': int(seller_commission_to)})
+                Q(**{'seller_commission__lte': int(seller_commission_to)})
             )
         context['page_title'] = f'لیست محصولات شامل *{page_title}*'
         context['get_params'] = request.GET.urlencode()
@@ -816,7 +820,6 @@ class ProductView:
         packing_price = fetch_data_from_http_post(request, 'packing_price', context)
         seller_commission = fetch_data_from_http_post(request, 'seller_commission', context)
         is_active = fetch_data_from_http_post(request, 'is_active', context)
-
 
         if not name:
             context['err'] = 'نام محصول بدرستی وارد نشده است'
@@ -1046,182 +1049,262 @@ class TeaserMakerView:
     @CheckLogin()
     @CheckPermissions(section='teaser_maker', allowed_actions='read')
     def list(self, request, *args, **kwargs):
-        context = {'page_title': 'لیست مجوز ها', 'get_params': request.GET.urlencode()}
-        search = request.GET.get('search')
-        if search:
-            context = {'page_title': f'لیست مجوز ها شامل *{search}*', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'لیست تیزر ساز ها', 'get_params': request.GET.urlencode()}
 
-        q = Q()
-        if search:
-            q &= (
-                Q(**{'title__icontains': search})
-            )
-
-        permissions = Permission.objects.filter(q).order_by('id')
-        context['permissions'] = permissions
+        teaser_makers = TeaserMaker.objects.filter().order_by('id')
+        context['teaser_makers'] = teaser_makers
 
         items_per_page = 50
-        paginator = Paginator(permissions, items_per_page)
+        paginator = Paginator(teaser_makers, items_per_page)
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         context['page'] = page
 
-        return render(request, 'panel/permissions/permission-list.html', context)
+        return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
 
     @CheckLogin()
     @CheckPermissions(section='teaser_maker', allowed_actions='read')
-    def detail(self, request, permission_id, *args, **kwargs):
+    def detail(self, request, teaser_maker_id, *args, **kwargs):
         try:
-            permission = Permission.objects.get(id=permission_id)
-            context = {'page_title': f'اطلاعات مجوز *{permission.title}*',
-                       'permission': permission, 'get_params': request.GET.urlencode()}
-            return render(request, 'panel/permissions/permission-detail.html', context)
-        except:
+            teaser_maker = TeaserMaker.objects.get(id=teaser_maker_id)
+            context = {'page_title': f'اطلاعات تیزر ساز *{teaser_maker.name}*',
+                       'teaser_maker': teaser_maker, 'get_params': request.GET.urlencode()}
+            return render(request, 'panel/teaser-maker/teaser-maker-detail.html', context)
+        except Exception as e:
             return render(request, 'panel/err/err-not-found.html')
 
     @CheckLogin()
     @CheckPermissions(section='teaser_maker', allowed_actions='read')
     def filter(self, request, *args, **kwargs):
-        search = request.GET.get('search')
-        context = {'page_title': f'لیست مجوز ها شامل *{search}*', 'get_params': request.GET.urlencode()}
+        context = {}
+        search = fetch_data_from_http_get(request, 'search', context)
+        content_type = fetch_data_from_http_get(request, 'content_type', context)
+        is_active = fetch_data_from_http_get(request, 'is_active', context)
+        address = fetch_data_from_http_get(request, 'address', context)
+        phone_number = fetch_data_from_http_get(request, 'phone_number', context)
+        creation_price_from = fetch_data_from_http_get(request, 'creation_price_from', context)
+        creation_price_to = fetch_data_from_http_get(request, 'creation_price_to', context)
+        editing_price_from = fetch_data_from_http_get(request, 'editing_price_from', context)
+        editing_price_to = fetch_data_from_http_get(request, 'editing_price_to', context)
 
+        page_title = f''''''
         q = Q()
         if search:
+            page_title += f'search: {search}, '
+            if search.isdigit():
+                q &= (
+                    Q(**{'id': search})
+                )
+            else:
+                q &= (
+                        Q(**{'name__icontains': search}) |
+                        Q(**{'code': search})
+                )
+
+        if content_type:
+            page_title += f'content_type: {content_type}, '
             q &= (
-                Q(**{'title__icontains': search})
+                Q(**{'content_type': content_type})
             )
-        permissions = Permission.objects.filter(q).order_by('id')
-        context['permissions'] = permissions
+
+        if is_active:
+            page_title += f'is_active: {is_active}, '
+            if is_active == 'فعال':
+                is_active = True
+            else:
+                is_active = False
+            q &= (
+                Q(**{'is_active': is_active})
+            )
+
+        if address:
+            page_title += f'address: {address}, '
+            q &= (
+                Q(**{'address__icontains': address})
+            )
+
+        if phone_number:
+            page_title += f'phone_number: {phone_number}, '
+            q &= (
+                Q(**{'phone_number__icontains': phone_number})
+            )
+
+        if creation_price_from:
+            page_title += f'creation_price_from: {creation_price_from}, '
+            q &= (
+                Q(**{'creation_price__gte': int(creation_price_from)})
+            )
+
+        if creation_price_to:
+            page_title += f'creation_price_to: {creation_price_to}, '
+            q &= (
+                Q(**{'creation_price__lte': int(creation_price_to)})
+            )
+
+        if editing_price_from:
+            page_title += f'editing_price_from: {editing_price_from}, '
+            q &= (
+                Q(**{'editing_price__gte': int(editing_price_from)})
+            )
+
+        if editing_price_to:
+            page_title += f'editing_price_to: {editing_price_to}, '
+            q &= (
+                Q(**{'editing_price__lte': int(editing_price_to)})
+            )
+
+        context['page_title'] = f'لیست تیزر ساز ها شامل *{page_title}*'
+        context['get_params'] = request.GET.urlencode()
+
+        teaser_makers = TeaserMaker.objects.filter(q).order_by('id')
+        context['teaser_makers'] = teaser_makers
 
         items_per_page = 50
-        paginator = Paginator(permissions, items_per_page)
+        paginator = Paginator(teaser_makers, items_per_page)
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         context['page'] = page
 
-        return render(request, 'panel/permissions/permission-list.html', context)
+        return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
 
     @CheckLogin()
     @CheckPermissions(section='teaser_maker', allowed_actions='create')
+    @RequireMethod(allowed_method='POST')
     def create(self, request, *args, **kwargs):
-        context = {'page_title': 'ساخت مجوز جدید', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'ساخت تیزر ساز جدید', 'get_params': request.GET.urlencode()}
 
-        title = fetch_data_from_http_post(request, 'first_name', context)
-        has_access_to_section = fetch_data_from_http_post(request, 'last_name', context)
-        read = fetch_data_from_http_post(request, 'national_code', context)
-        create = fetch_data_from_http_post(request, 'email', context)
-        modify = fetch_data_from_http_post(request, 'mobile_phone_number', context)
-        delete = fetch_data_from_http_post(request, 'landline', context)
+        name = fetch_data_from_http_post(request, 'name', context)
+        content_type = fetch_data_from_http_post(request, 'content_type', context)
+        code = fetch_data_from_http_post(request, 'code', context)
+        address = fetch_data_from_http_post(request, 'address', context)
+        phone_number = fetch_data_from_http_post(request, 'phone_number', context)
+        creation_price = fetch_data_from_http_post(request, 'creation_price', context)
+        editing_price = fetch_data_from_http_post(request, 'editing_price', context)
+        is_active = fetch_data_from_http_post(request, 'is_active', context)
 
-        if not title:
-            context['err'] = 'عنوان بدرستی وارد نشده است'
-            return render(request, 'panel/permissions/permission-list.html', context)
-        if not has_access_to_section:
-            context['err'] = 'بخش دسترسی بدرستی وارد نشده است'
-            return render(request, 'panel/permissions/permission-list.html', context)
-        if read == 'true':
-            read = True
+        if not name:
+            context['err'] = 'نام تیزر ساز بدرستی وارد نشده است'
+            return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
+        if not content_type:
+            context['err'] = 'نوع محتوا تیزر ساز بدرستی وارد نشده است'
+            return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
+        if not code:
+            context['err'] = 'کد تیزر ساز بدرستی وارد نشده است'
+            return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
+        if not address:
+            context['err'] = 'آدرس تیزر ساز بدرستی وارد نشده است'
+            return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
+        if not phone_number:
+            context['err'] = 'شماره تماس تیزر ساز بدرستی وارد نشده است'
+            return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
+        if not creation_price:
+            context['err'] = 'هزینه ساخت تیزر ساز بدرستی وارد نشده است'
+            return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
+        if not editing_price:
+            context['err'] = 'هزینه ویرایش تیزر ساز محصول بدرستی وارد نشده است'
+            return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
+        if is_active == 'true':
+            is_active = True
         else:
-            read = False
-        if create == 'true':
-            create = True
-        else:
-            create = False
-        if modify == 'true':
-            modify = True
-        else:
-            modify = False
-        if delete == 'true':
-            delete = True
-        else:
-            delete = False
+            is_active = False
 
         try:
-            User.objects.get(title=title)
-            context['err'] = 'مجوز از قبل موجود است'
+            TeaserMaker.objects.get(code=code)
+            context['err'] = f'تیزر ساز با کد {code} از قبل موجود است'
+            return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
         except:
-            Permission.objects.create(
-                title=title,
-                has_access_to_section=has_access_to_section,
-                read=read,
-                create=create,
-                modify=modify,
-                delete=delete,
+            new_teaser_maker = TeaserMaker.objects.create(
+                name=name,
+                content_type=content_type,
+                code=code,
+                address=address,
+                phone_number=phone_number,
+                creation_price=creation_price,
+                editing_price=editing_price,
+                created_by=request.user,
+                updated_by=request.user,
+                is_active=is_active,
             )
-            context['message'] = f'مجوز با عنوان {title} ایجاد گردید'
 
-        return redirect('panel:permission-list')
+            context['message'] = f'تیزر ساز با کد {code} ایجاد گردید'
+            return redirect('panel:teaser-maker-list')
 
     @CheckLogin()
     @CheckPermissions(section='teaser_maker', allowed_actions='modify')
-    def modify(self, request, permission_id, *args, **kwargs):
+    def modify(self, request, teaser_maker_id, *args, **kwargs):
         try:
-            permission = Permission.objects.get(id=permission_id)
-            context = {'page_title': f'ویرایش اطلاعات مجوز *{permission.title}*',
-                       'permission': permission, 'get_params': request.GET.urlencode()}
+            teaser_maker = TeaserMaker.objects.get(id=teaser_maker_id)
+            context = {'page_title': f'ویرایش اطلاعات تیزر ساز *{teaser_maker.name}*',
+                       'teaser_maker': teaser_maker, 'get_params': request.GET.urlencode()}
+
             if request.method == 'GET':
-                return render(request, 'panel/permissions/permission-edit.html', context)
+                return render(request, 'panel/teaser-maker/teaser-maker-edit.html', context)
             else:
-                title = fetch_data_from_http_post(request, 'first_name', context)
-                has_access_to_section = fetch_data_from_http_post(request, 'last_name', context)
-                read = fetch_data_from_http_post(request, 'national_code', context)
-                create = fetch_data_from_http_post(request, 'email', context)
-                modify = fetch_data_from_http_post(request, 'mobile_phone_number', context)
-                delete = fetch_data_from_http_post(request, 'landline', context)
+                name = fetch_data_from_http_post(request, 'name', context)
+                content_type = fetch_data_from_http_post(request, 'content_type', context)
+                code = fetch_data_from_http_post(request, 'code', context)
+                address = fetch_data_from_http_post(request, 'address', context)
+                phone_number = fetch_data_from_http_post(request, 'phone_number', context)
+                creation_price = fetch_data_from_http_post(request, 'creation_price', context)
+                editing_price = fetch_data_from_http_post(request, 'editing_price', context)
+                is_active = fetch_data_from_http_post(request, 'is_active', context)
 
-                if not title:
-                    context['err'] = 'عنوان بدرستی وارد نشده است'
-                    return render(request, 'panel/permissions/permission-edit.html', context)
-                if not has_access_to_section:
-                    context['err'] = 'بخش دسترسی بدرستی وارد نشده است'
-                    return render(request, 'panel/permissions/permission-edit.html', context)
-                if read == 'true':
-                    read = True
-                else:
-                    read = False
-                if create == 'true':
-                    create = True
-                else:
-                    create = False
-                if modify == 'true':
-                    modify = True
-                else:
-                    modify = False
-                if delete == 'true':
-                    delete = True
-                else:
-                    delete = False
-
-                if title:
-                    permission.title = title
-                if has_access_to_section:
-                    permission.has_access_to_section = has_access_to_section
-
-                if read:
-                    permission.read = read
-                if create:
-                    permission.create = create
-                if modify:
-                    permission.modify = modify
-                if delete:
-                    permission.delete = delete
-
-                permission.save()
-                context['message'] = f'مجوز با عنوان {title} ویرایش گردید'
-                return redirect(
-                    reverse('panel:permission-modify-with-id',
-                            kwargs={'permission_id': permission_id}) + f'?{request.GET.urlencode()}')
-        except:
+                try:
+                    if name:
+                        teaser_maker.name = name
+                    if content_type:
+                        teaser_maker.content_type = content_type
+                    if code:
+                        teaser_maker.code = code
+                    if address:
+                        teaser_maker.address = address
+                    if phone_number:
+                        teaser_maker.phone_number = phone_number
+                    if creation_price:
+                        teaser_maker.creation_price = creation_price
+                    if editing_price:
+                        teaser_maker.editing_price = editing_price
+                    if is_active == 'true':
+                        is_active = True
+                    else:
+                        is_active = False
+                    teaser_maker.is_active = is_active
+                    teaser_maker.save()
+                    context['message'] = f'تیزر ساز با شناسه یکتا {teaser_maker.id} ویرایش گردید'
+                    return redirect(
+                        reverse('panel:teaser-maker-detail-with-id',
+                                kwargs={'teaser_maker_id': teaser_maker_id}) + f'?{request.GET.urlencode()}')
+                except:
+                    return render(request, 'panel/err/err-not-found.html')
+        except Exception as e:
             return render(request, 'panel/err/err-not-found.html')
 
     @CheckLogin()
     @CheckPermissions(section='teaser_maker', allowed_actions='delete')
-    def delete(self, request, permission_id, *args, **kwargs):
+    def delete(self, request, teaser_maker_id, *args, **kwargs):
         try:
-            permission = Permission.objects.get(id=permission_id)
-            context = {'page_title': f'حذف مجوز {permission.title}', 'get_params': request.GET.urlencode()}
-            permission.delete()
-            return redirect(reverse('panel:permission-list') + f'?{request.GET.urlencode()}')
+            teaser_maker = TeaserMaker.objects.get(id=teaser_maker_id)
+            context = {'page_title': f'حذف تیزر ساز {teaser_maker.name}', 'get_params': request.GET.urlencode()}
+            teaser_maker.delete()
+            return redirect(reverse('panel:teaser-maker-list') + f'?{request.GET.urlencode()}')
+        except Exception as e:
+            print(e)
+            return render(request, 'panel/err/err-not-found.html')
+
+    @CheckLogin()
+    @CheckPermissions(section='teaser_maker', allowed_actions='modify')
+    def change_state(self, request, teaser_maker_id, *args, **kwargs):
+        try:
+            teaser_maker = TeaserMaker.objects.get(id=teaser_maker_id)
+            context = {'page_title': f'تغییر وضعیت تیزر ساز {teaser_maker.name}', 'get_params': request.GET.urlencode()}
+            if teaser_maker.is_active:
+                teaser_maker.is_active = False
+                teaser_maker_is_active = 'false'
+            else:
+                teaser_maker.is_active = True
+                teaser_maker_is_active = 'true'
+            teaser_maker.save()
+            return JsonResponse({"teaser_maker_is_active": teaser_maker_is_active})
         except:
             return render(request, 'panel/err/err-not-found.html')
 

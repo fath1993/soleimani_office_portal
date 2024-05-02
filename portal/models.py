@@ -5,7 +5,7 @@ from django_jalali.db import models as jmodel
 from gallery.models import FileGallery
 
 PRODUCT_TYPE = (('کالا', 'کالا'), ('خدمات', 'خدمات'),)
-CREATOR_CONTENT_TYPE = (('صوتی', 'صوتی'), ('تصویری', 'تصویری'), ('ویدئویی', 'ویدئویی'), ('متنی', 'متنی'),
+CREATOR_CONTENT_TYPE = (('صوتی', 'صوتی'), ('تصویری', 'تصویری'), ('ویدیویی', 'ویدیویی'), ('متنی', 'متنی'),
                         ('تلفیقی', 'تلفیقی'), ('اینستاگرامی', 'اینستاگرامی'),)
 RESELLER_NETWORK_TYPE = (('ماهواره', 'ماهواره'), ('تلویزیون', 'تلویزیون'), ('شبکه اجتماعی', 'شبکه اجتماعی'),)
 RESELLER_NETWORK_BROADCAST_DIRECTION = (('یاه ست', 'یاه ست'), ('هات برد', 'هات برد'),
@@ -67,7 +67,7 @@ class TeaserMaker(models.Model):
                                     blank=False,
                                     verbose_name='نوع محتوا')
     code = models.CharField(max_length=255, null=False, blank=False, verbose_name='کد')
-    address = models.CharField(max_length=2000, null=False, blank=False, verbose_name='ادرس')
+    address = models.CharField(max_length=2000, null=False, blank=False, verbose_name='آدرس')
     phone_number = models.CharField(max_length=255, null=False, blank=False, verbose_name='شماره تماس')
 
     creation_price = models.IntegerField(default=0, null=False, blank=False, verbose_name='هزینه ساخت - ریال')
@@ -79,6 +79,8 @@ class TeaserMaker(models.Model):
                                    blank=False, editable=False, verbose_name='ایجاد شده توسط')
     updated_by = models.ForeignKey(User, related_name='updated_by_creator', on_delete=models.CASCADE, null=False,
                                    blank=False, editable=False, verbose_name='بروز شده توسط')
+
+    is_active = models.BooleanField(default=False, verbose_name='فعال')
 
     def __str__(self):
         return f'name: {self.name} | code: {self.code}'
@@ -116,6 +118,8 @@ class ResellerNetwork(models.Model):
                                    null=False,
                                    blank=False, editable=False, verbose_name='بروز شده توسط')
 
+    is_active = models.BooleanField(default=False, verbose_name='فعال')
+
     def __str__(self):
         return f'name: {self.name} | code: {self.code}'
 
@@ -142,6 +146,8 @@ class Receiver(models.Model):
                                    blank=False, editable=False, verbose_name='ایجاد شده توسط')
     updated_by = models.ForeignKey(User, related_name='updated_by_receiver', on_delete=models.CASCADE, null=False,
                                    blank=False, editable=False, verbose_name='بروز شده توسط')
+
+    is_active = models.BooleanField(default=False, verbose_name='فعال')
 
     def __str__(self):
         return f'name: {self.name} | code: {self.code}'
@@ -180,6 +186,8 @@ class AdvertiseContent(models.Model):
                                    null=False,
                                    blank=False, editable=False, verbose_name='بروز شده توسط')
 
+    is_active = models.BooleanField(default=False, verbose_name='فعال')
+
     def __str__(self):
         return f'name: {self.name} | code: {self.code}'
 
@@ -207,6 +215,8 @@ class ForwardToPortal(models.Model):
     updated_by = models.ForeignKey(User, related_name='updated_by_forward_to_portal', on_delete=models.CASCADE,
                                    null=False,
                                    blank=False, editable=False, verbose_name='بروز شده توسط')
+
+    is_active = models.BooleanField(default=False, verbose_name='فعال')
 
     def __str__(self):
         return f'name: {self.name} | code: {self.code}'
@@ -236,6 +246,8 @@ class CommunicationChannel(models.Model):
                                    null=False,
                                    blank=False, editable=False, verbose_name='بروز شده توسط')
 
+    is_active = models.BooleanField(default=False, verbose_name='فعال')
+
     def __str__(self):
         return f'name: {self.name} | code: {self.code}'
 
@@ -259,6 +271,8 @@ class Registrar(models.Model):
                                    blank=False, editable=False, verbose_name='ایجاد شده توسط')
     updated_by = models.ForeignKey(User, related_name='updated_by_registrar', on_delete=models.CASCADE, null=False,
                                    blank=False, editable=False, verbose_name='بروز شده توسط')
+
+    is_active = models.BooleanField(default=False, verbose_name='فعال')
 
     def __str__(self):
         return f'name: {self.name} | code: {self.code}'

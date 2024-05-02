@@ -50,6 +50,7 @@ urlpatterns = [
     path('teaser-maker/detail&id=<int:teaser_maker_id>/', TeaserMakerView().detail, name='teaser-maker-detail-with-id'),
     path('teaser-maker/modify&id=<int:teaser_maker_id>/', TeaserMakerView().modify, name='teaser-maker-modify-with-id'),
     path('teaser-maker/delete&id=<int:teaser_maker_id>/', TeaserMakerView().delete, name='teaser-maker-delete-with-id'),
+    path('teaser-maker/change-state&id=<int:teaser_maker_id>/', TeaserMakerView().change_state, name='teaser-maker-change_state-with-id'),
 
     # Reseller Network
     path('reseller-network/list/', ResellerNetworkView().list, name='reseller-network-list'),

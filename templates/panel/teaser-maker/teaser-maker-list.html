@@ -23,15 +23,15 @@
 {% block content %}
     <div class="container-xxl flex-grow-1 container-p-y">
         <h4 class="py-3 breadcrumb-wrapper mb-4">
-            <span class="text-muted fw-light">مدیریت منابع / <span class="text-black">محصولات</span></span>
+            <span class="text-muted fw-light">مدیریت منابع / <span class="text-black">تیزر سازها</span></span>
         </h4>
         <div class="card mb-3">
             <h5 class="card-header heading-color">
-                فیلتر محصولات
+                فیلتر تیزر ساز
             </h5>
             <div class="card-body">
                 <div class="row">
-                    <form method="get" action="{% url 'panel:product-filter' %}">
+                    <form method="get" action="{% url 'panel:teaser-maker-filter' %}">
                         <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="search">جستجو <span class="text-muted">(نام, کد, شناسه)</span></label>
                             <div class="input-group">
@@ -43,14 +43,18 @@
                     </form>
                 </div>
                 <div class="row">
-                    <form method="get" action="{% url 'panel:product-filter' %}">
+                    <form method="get" action="{% url 'panel:teaser-maker-filter' %}">
                         <div class="row">
                             <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label for="defaultSelect" class="form-label">نوع محصول</label>
-                                <select id="defaultSelect" name="type" class="form-select dt-user-role">
-                                    <option {% if type != 'کالا' and type != 'خدمات' %} selected {% endif %} value="">انتخاب</option>
-                                    <option {% if type == 'کالا' %} selected {% endif %} value="کالا">کالا</option>
-                                    <option {% if type == 'خدمات' %} selected {% endif %}value="خدمات">خدمات</option>
+                                <label for="defaultSelect" class="form-label">نوع محتوا</label>
+                                <select id="defaultSelect" name="content_type" class="form-select dt-user-role">
+                                    <option {% if not content_type %} selected {% endif %} value="">انتخاب</option>
+                                    <option {% if content_type == 'صوتی' %} selected {% endif %} value="صوتی">صوتی</option>
+                                    <option {% if content_type == 'تصویری' %} selected {% endif %}value="تصویری">تصویری</option>
+                                    <option {% if content_type == 'ویدیویی' %} selected {% endif %} value="ویدیویی">ویدیویی</option>
+                                    <option {% if content_type == 'متنی' %} selected {% endif %}value="متنی">متنی</option>
+                                    <option {% if content_type == 'تلفیقی' %} selected {% endif %} value="تلفیقی">تلفیقی</option>
+                                    <option {% if content_type == 'اینستاگرامی' %} selected {% endif %}value="اینستاگرامی">اینستاگرامی</option>
                                 </select>
                             </div>
                             <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
@@ -62,122 +66,69 @@
                                 </select>
                             </div>
                             <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label class="form-label" for="color">
-                                    رنگ</label>
+                                <label class="form-label" for="address">
+                                    آدرس</label>
                                 <div class="input-group input-group-merge">
-                                    <input type="text" id="color"
-                                           class="form-control dt-color"
-                                           name="color"
-                                           placeholder="" aria-label="color"
-                                           aria-describedby="color"
-                                           value="{{ color|default:'' }}">
+                                    <input type="text" id="address"
+                                           class="form-control dt-address"
+                                           name="address"
+                                           placeholder="" aria-label="address"
+                                           aria-describedby="address"
+                                           value="{{ address|default:'' }}">
                                 </div>
                             </div>
                             <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label class="form-label" for="weight_from">
-                                    وزن از...تا</label>
+                                <label class="form-label" for="phone_number">
+                                    شماره تماس</label>
                                 <div class="input-group input-group-merge">
-                                    <input class="form-control d-inline-block" type="number"
-                                           id="weight_from"
-                                           name="weight_from"
-                                           value="{{ weight_from|default:'' }}">
-                                    <input class="form-control d-inline-block" type="number"
-                                           id="weight_to" name="weight_to"
-                                           value="{{ weight_to|default:'' }}">
+                                    <input type="text" id="phone_number"
+                                           class="form-control dt-phone_number"
+                                           name="phone_number"
+                                           placeholder="" aria-label="phone_number"
+                                           aria-describedby="phone_number"
+                                           value="{{ phone_number|default:'' }}">
                                 </div>
                             </div>
                             <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label class="form-label" for="size_from">
-                                    سایز از...تا</label>
+                                <label class="form-label" for="creation_price_from">
+                                    هزینه ساخت از...تا</label>
                                 <div class="input-group input-group-merge">
                                     <input class="form-control d-inline-block" type="number"
-                                           id="size_from"
-                                           name="size_from"
-                                           value="{{ size_from|default:'' }}">
+                                           id="creation_price_from"
+                                           name="creation_price_from"
+                                           value="{{ creation_price_from|default:'' }}">
                                     <input class="form-control d-inline-block" type="number"
-                                           id="size_to" name="size_to"
-                                           value="{{ size_to|default:'' }}">
+                                           id="creation_price_to" name="creation_price_to"
+                                           value="{{ creation_price_to|default:'' }}">
                                 </div>
                             </div>
                             <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label class="form-label" for="product_price_from">
-                                    هزینه خام محصول از...تا</label>
+                                <label class="form-label" for="editing_price_from">
+                                    هزینه ویرایش از...تا</label>
                                 <div class="input-group input-group-merge">
                                     <input class="form-control d-inline-block" type="number"
-                                           id="product_price_from"
-                                           name="product_price_from"
-                                           value="{{ product_price_from|default:'' }}">
+                                           id="editing_price_from"
+                                           name="editing_price_from"
+                                           value="{{ editing_price_from|default:'' }}">
                                     <input class="form-control d-inline-block" type="number"
-                                           id="product_price_to" name="product_price_to"
-                                           value="{{ product_price_to|default:'' }}">
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label class="form-label" for="shipping_price_from">
-                                    هزینه حمل از...تا</label>
-                                <div class="input-group input-group-merge">
-                                    <input class="form-control d-inline-block" type="number"
-                                           id="shipping_price_from"
-                                           name="shipping_price_from"
-                                           value="{{ shipping_price_from|default:'' }}">
-                                    <input class="form-control d-inline-block" type="number"
-                                           id="shipping_price_to" name="shipping_price_to"
-                                           value="{{ shipping_price_to|default:'' }}">
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label class="form-label" for="send_link_price_from">
-                                    هزینه ارسال لینک از...تا</label>
-                                <div class="input-group input-group-merge">
-                                    <input class="form-control d-inline-block" type="number"
-                                           id="send_link_price_from"
-                                           name="send_link_price_from"
-                                           value="{{ send_link_price_from|default:'' }}">
-                                    <input class="form-control d-inline-block" type="number"
-                                           id="send_link_price_to" name="send_link_price_to"
-                                           value="{{ send_link_price_to|default:'' }}">
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label class="form-label" for="packing_price_from">
-                                    هزینه بسته بندی از...تا</label>
-                                <div class="input-group input-group-merge">
-                                    <input class="form-control d-inline-block" type="number"
-                                           id="packing_price_from"
-                                           name="packing_price_from"
-                                           value="{{ packing_price_from|default:'' }}">
-                                    <input class="form-control d-inline-block" type="number"
-                                           id="packing_price_to" name="packing_price_to"
-                                           value="{{ packing_price_to|default:'' }}">
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label class="form-label" for="seller_commission_from">
-                                    کمیسیون فروشنده از...تا</label>
-                                <div class="input-group input-group-merge">
-                                    <input class="form-control d-inline-block" type="number"
-                                           id="seller_commission_from"
-                                           name="seller_commission_from"
-                                           value="{{ seller_commission_from|default:'' }}">
-                                    <input class="form-control d-inline-block" type="number"
-                                           id="seller_commission_to" name="seller_commission_to"
-                                           value="{{ seller_commission_to|default:'' }}">
+                                           id="editing_price_to" name="editing_price_to"
+                                           value="{{ editing_price_to|default:'' }}">
                                 </div>
                             </div>
                         </div>
                         <div class="mt-3">
                             <button type="submit" class="btn btn-outline-secondary"><i class="fa fa-search"> فیلتر</i></button>
-                            <a href="{% url 'panel:product-filter' %}" target="_self" class="btn btn-outline-gray"><i class="fa fa-refresh"> ریست</i></a>
+                            <a href="{% url 'panel:teaser-maker-filter' %}" target="_self" class="btn btn-outline-gray"><i class="fa fa-refresh"> ریست</i></a>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
         <div class="card">
-            {% if request.user|product_is_allowed:'create' %}
+            {% if request.user|teaser_maker_is_allowed:'create' %}
                 <h5 class="card-header heading-color">
                     <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
-                        <i class="ti-plus m-r-5"></i> ایجاد محصول جدید
+                        <i class="ti-plus m-r-5"></i> ایجاد تیزر ساز جدید
                     </button>
                     {% if err %}
                         <strong class="text-danger">{{ err }}</strong>
@@ -187,13 +138,13 @@
                     {% endif %}
                     <div class="offcanvas offcanvas-end" id="add-new-record">
                         <div class="offcanvas-header border-bottom">
-                            <h5 class="offcanvas-title" id="exampleModalLabel">محصول جدید</h5>
+                            <h5 class="offcanvas-title" id="exampleModalLabel">تیزر ساز جدید</h5>
                             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
                                     aria-label="Close"></button>
                         </div>
                         <div class="offcanvas-body flex-grow-1">
                             <form class="add-new-record pt-0 row g-2" method="post"
-                                  action="{% url 'panel:product-create' %}" enctype="multipart/form-data">
+                                  action="{% url 'panel:teaser-maker-create' %}" enctype="multipart/form-data">
                                 {% csrf_token %}
                                 <div class="col-sm-12 col-md-12 col-lg-12">
                                     <label class="form-label" for="name">نام</label>
@@ -203,21 +154,21 @@
                                                name="name" required
                                                oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
                                                oninput="setCustomValidity('')"
-                                               placeholder="کفش طبی" aria-label="نام"
+                                               placeholder="" aria-label="نام"
                                                aria-describedby="نام"
                                                value="{{ name|default:'' }}">
                                     </div>
                                 </div>
                                 <div class="col-sm-12 col-md-12 col-lg-12">
                                     <label for="defaultSelect" class="form-label">نوع محصول</label>
-                                    <select id="defaultSelect" name="type"
-                                            class="form-select dt-user-role" required>
-                                        <option {% if type == 'کالا' %} selected {% endif %}
-                                                                                         value="کالا">کالا
-                                        </option>
-                                        <option {% if type == 'خدمات' %} selected {% endif %}
-                                                                                               value="خدمات">خدمات
-                                        </option>
+                                    <select id="defaultSelect" name="content_type"
+                                            class="form-select dt-content_type" required>
+                                        <option {% if content_type == 'صوتی' %} selected {% endif %} value="صوتی">صوتی</option>
+                                        <option {% if content_type == 'تصویری' %} selected {% endif %} value="تصویری">تصویری</option>
+                                        <option {% if content_type == 'ویدیویی' %} selected {% endif %} value="ویدیویی">ویدیویی</option>
+                                        <option {% if content_type == 'متنی' %} selected {% endif %} value="متنی">متنی</option>
+                                        <option {% if content_type == 'تلفیقی' %} selected {% endif %} value="تلفیقی">تلفیقی</option>
+                                        <option {% if content_type == 'اینستاگرامی' %} selected {% endif %} value="اینستاگرامی">اینستاگرامی</option>
                                     </select>
                                 </div>
                                 <div class="col-sm-12 col-md-12 col-lg-12">
@@ -234,129 +185,55 @@
                                     </div>
                                 </div>
                                 <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="weight">وزن</label>
+                                    <label class="form-label" for="address">آدرس</label>
                                     <div class="input-group input-group-merge">
-                                    <span id="weight" class="input-group-text"></span>
-                                        <input type="number" min="0" id="weight" class="form-control"
-                                               name="weight" required
+                                    <span id="address" class="input-group-text"></span>
+                                        <input type="text" id="address" class="form-control"
+                                               name="address" required
                                                oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
                                                oninput="setCustomValidity('')"
-                                               placeholder="گرم" aria-label="وزن"
-                                               aria-describedby="وزن"
-                                               value="{{ weight|default:'' }}">
+                                               placeholder="آدرس" aria-label="آدرس"
+                                               aria-describedby="آدرس"
+                                               value="{{ address|default:'' }}">
                                     </div>
                                 </div>
                                 <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="size">سایز</label>
+                                    <label class="form-label" for="phone_number">شماره تماس</label>
                                     <div class="input-group input-group-merge">
-                                    <span id="size" class="input-group-text"></span>
-                                        <input type="number" min="0" id="size" class="form-control"
-                                               name="size" required
+                                    <span id="phone_number" class="input-group-text"></span>
+                                        <input type="text" id="phone_number" class="form-control"
+                                               name="phone_number" required
                                                oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
                                                oninput="setCustomValidity('')"
-                                               placeholder="اینچ" aria-label="سایز"
-                                               aria-describedby="سایز"
-                                               value="{{ size|default:'' }}">
+                                               placeholder="شماره تماس" aria-label="شماره تماس"
+                                               aria-describedby="شماره تماس"
+                                               value="{{ phone_number|default:'' }}">
                                     </div>
                                 </div>
                                 <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="color">رنگ</label>
+                                    <label class="form-label" for="creation_price">هزینه ساخت</label>
                                     <div class="input-group input-group-merge">
-                                    <span id="color" class="input-group-text"></span>
-                                        <input type="text" id="color" class="form-control"
-                                               name="color" required
+                                    <span id="creation_price" class="input-group-text"></span>
+                                        <input type="number" min="0" id="creation_price" class="form-control"
+                                               name="creation_price" required
                                                oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
                                                oninput="setCustomValidity('')"
-                                               placeholder="بنفش" aria-label="رنگ"
-                                               aria-describedby="رنگ"
-                                               value="{{ color|default:'' }}">
-                                    </div>
-                                </div>
-                            
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="images">تصاویر</label>
-                                    <div class="input-group input-group-merge">
-                                        <span id="images" class="input-group-text"><i class="bx bxs-file"></i></span>
-                                        <input type="file" id="images" class="form-control dt-files"
-                                               name="images" multiple
-                                               placeholder="تصاویر" aria-label="تصاویر"
-                                               aria-describedby="images">
+                                               placeholder="ریال" aria-label="هزینه ساخت"
+                                               aria-describedby="هزینه ساخت"
+                                               value="{{ creation_price|default:'' }}">
                                     </div>
                                 </div>
                                 <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="videos">ویدیو ها</label>
+                                    <label class="form-label" for="editing_price">هزینه ویرایش</label>
                                     <div class="input-group input-group-merge">
-                                        <span id="videos" class="input-group-text"><i class="bx bxs-file"></i></span>
-                                        <input type="file" id="videos" class="form-control dt-files"
-                                               name="videos" multiple
-                                               placeholder="ویدیو ها" aria-label="ویدیو ها"
-                                               aria-describedby="videos">
-                                    </div>
-                                </div>
-                            
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="product_price">هزینه خام محصول</label>
-                                    <div class="input-group input-group-merge">
-                                    <span id="product_price" class="input-group-text"></span>
-                                        <input type="number" min="0" id="product_price" class="form-control"
-                                               name="product_price" required
+                                    <span id="editing_price" class="input-group-text"></span>
+                                        <input type="number" min="0" id="editing_price" class="form-control"
+                                               name="editing_price" required
                                                oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
                                                oninput="setCustomValidity('')"
-                                               placeholder="ریال" aria-label="هزینه خام محصول"
-                                               aria-describedby="هزینه خام محصول"
-                                               value="{{ product_price|default:'' }}">
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="shipping_price">هزینه حمل</label>
-                                    <div class="input-group input-group-merge">
-                                    <span id="shipping_price" class="input-group-text"></span>
-                                        <input type="number" min="0" id="shipping_price" class="form-control"
-                                               name="shipping_price" required
-                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                               oninput="setCustomValidity('')"
-                                               placeholder="ریال" aria-label="هزینه حمل"
-                                               aria-describedby="هزینه حمل"
-                                               value="{{ shipping_price|default:'' }}">
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="send_link_price">هزینه ارسال لینک</label>
-                                    <div class="input-group input-group-merge">
-                                    <span id="send_link_price" class="input-group-text"></span>
-                                        <input type="number" min="0" id="send_link_price" class="form-control"
-                                               name="send_link_price" required
-                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                               oninput="setCustomValidity('')"
-                                               placeholder="ریال" aria-label="هزینه ارسال لینک"
-                                               aria-describedby="هزینه ارسال لینک"
-                                               value="{{ send_link_price|default:'' }}">
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="packing_price">هزینه بسته بندی</label>
-                                    <div class="input-group input-group-merge">
-                                    <span id="packing_price" class="input-group-text"></span>
-                                        <input type="number" min="0" id="packing_price" class="form-control"
-                                               name="packing_price" required
-                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                               oninput="setCustomValidity('')"
-                                               placeholder="ریال" aria-label="هزینه بسته بندی"
-                                               aria-describedby="هزینه بسته بندی"
-                                               value="{{ packing_price|default:'' }}">
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="seller_commission">کمیسیون فروشنده</label>
-                                    <div class="input-group input-group-merge">
-                                    <span id="seller_commission" class="input-group-text"></span>
-                                        <input type="number" min="0" id="seller_commission" class="form-control"
-                                               name="seller_commission" required
-                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                               oninput="setCustomValidity('')"
-                                               placeholder="درصد" aria-label="کمیسیون فروشنده"
-                                               aria-describedby="کمیسیون فروشنده"
-                                               value="{{ seller_commission|default:'' }}">
+                                               placeholder="ریال" aria-label="هزینه ویرایش"
+                                               aria-describedby="هزینه ویرایش"
+                                               value="{{ editing_price|default:'' }}">
                                     </div>
                                 </div>
                                 <div class="col-sm-12 col-md-12 col-lg-12">
@@ -384,45 +261,45 @@
                         <tr>
                             <th style="width: 5%">#</th>
                             <th style="width: 50%">نام</th>
-                            <th style="width: 10%">نوع</th>
+                            <th style="width: 10%">نوع محتوا</th>
                             <th style="width: 10%">کد</th>
                             <th style="width: 20%">وضعیت</th>
                             <th style="width: 5%">عملیات</th>
                         </tr>
                         </thead>
                         <tbody class="table-border-bottom-0">
-                        {% for product in page %}
+                        {% for teaser_maker in page %}
                             <tr>
                                 <td>{{ forloop.counter }}</td>
                                 <td>
-                                    <strong><a href="{% url 'panel:product-detail-with-id' product_id=product.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
-                                               target="_self">{{ product.name }}</a></strong>
+                                    <strong><a href="{% url 'panel:teaser-maker-detail-with-id' teaser_maker_id=teaser_maker.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+                                               target="_self">{{ teaser_maker.name }}</a></strong>
                                 </td>
-                                <td>{{ product.type }}</td>
-                                <td>{{ product.code }}</td>
-                                <td id="td_product_is_active_{{ forloop.counter }}">
-                                    {% if product.is_active %}
+                                <td>{{ teaser_maker.content_type }}</td>
+                                <td>{{ teaser_maker.code }}</td>
+                                <td id="td_teaser_maker_is_active_{{ forloop.counter }}">
+                                    {% if teaser_maker.is_active %}
                                         <span class="badge bg-success">فعال</span>
                                     {% else %}
                                         <span class="badge bg-dark">غیر فعال</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if request.user|product_is_allowed:'modify,delete' %}
+                                    {% if request.user|teaser_maker_is_allowed:'modify,delete' %}
                                         <div class="dropdown">
                                             <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
                                                     data-bs-toggle="dropdown">
                                                 <i class="bx bx-dots-vertical-rounded"></i>
                                             </button>
                                             <div class="dropdown-menu">
-                                                {% if request.user|product_is_allowed:'modify' %}
-                                                    <a class="dropdown-item" href="{% url 'panel:product-modify-with-id' product_id=product.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"><i
+                                                {% if request.user|teaser_maker_is_allowed:'modify' %}
+                                                    <a class="dropdown-item" href="{% url 'panel:teaser-maker-modify-with-id' teaser_maker_id=teaser_maker.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"><i
                                                             class="bx bx-edit-alt me-1"></i> ویرایش</a>
-                                                    <a id="product_is_active_change_btn_{{ forloop.counter }}" class="dropdown-item" href="javascript:void(0)" onclick="product_change_state('{{ product.id }}', '{{ forloop.counter }}')"><span>{% if product.is_active %}<i
-                                                            class="bx bx-lock me-1"></i>غیر فعال{% else %}<i class="bx bx-lock-open me-1"></i>فعال{% endif %}</span></a>
+                                                    <a id="teaser_maker_is_active_change_btn_{{ forloop.counter }}" class="dropdown-item" href="javascript:void(0)" onclick="teaser_maker_change_state('{{ teaser_maker.id }}', '{{ forloop.counter }}')"><span>{% if teaser_maker.is_active %}<i
+                                                            class="bx bx-lock me-1"></i> غیر فعال{% else %}<i class="bx bx-lock-open me-1"></i> فعال{% endif %}</span></a>
                                                     
                                                 {% endif %}
-                                                {% if request.user|product_is_allowed:'delete' %}
+                                                {% if request.user|teaser_maker_is_allowed:'delete' %}
                                                     <a class="dropdown-item" href="javascript:void(0);"
                                                        data-bs-toggle="modal"
                                                        data-bs-target="#deleteModal_{{ forloop.counter }}"><i
@@ -440,8 +317,8 @@
                                                             <div class="text-center mb-4 mt-0 mt-md-n2">
                                                                 <h3 class="mb-4 secondary-font">تایید حذف</h3>
                                                             </div>
-                                                            <h6>آیا از حذف محصول <strong class="bg-warning">{{ product.name }}</strong> مطمئن هستید؟</h6>
-                                                            <form class="row g-3 mt-3" method="post" action="{% url 'panel:product-delete-with-id' product_id=product.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                            <h6>آیا از حذف تیزر ساز <strong class="bg-warning">{{ teaser_maker.name }}</strong> مطمئن هستید؟</h6>
+                                                            <form class="row g-3 mt-3" method="post" action="{% url 'panel:teaser-maker-delete-with-id' teaser_maker_id=teaser_maker.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
                                                                 {% csrf_token %}
                                                                 <div class="col-12">
                                                                     <button type="submit"
@@ -550,14 +427,14 @@
             })();
         });
         
-        function product_change_state(product_id, forloop_counter) {
+        function teaser_maker_change_state(teaser_maker_id, forloop_counter) {
             const formData = new FormData();
             formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
             const options = {
                 method: 'POST',
                 body: formData,
             }
-            fetch('{% url 'panel:product-change_state-with-id' product_id=0 %}'.replace('0', product_id).replace('amp;', ''), options)
+            fetch('{% url 'panel:teaser-maker-change_state-with-id' teaser_maker_id=0 %}'.replace('0', teaser_maker_id).replace('amp;', ''), options)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -565,16 +442,16 @@
                     return response.json();
                 })
                 .then(data => {
-                    if (data['product_is_active'] === 'false') {
-                        document.getElementById('td_product_is_active_' + forloop_counter).innerHTML = '<span class="badge bg-dark">غیر فعال</span>'
-                        document.getElementById('product_is_active_change_btn_' + forloop_counter).innerHTML = '<span><i class="bx bx-lock-open me-1"></i>فعال</span>'
+                    if (data['teaser_maker_is_active'] === 'false') {
+                        document.getElementById('td_teaser_maker_is_active_' + forloop_counter).innerHTML = '<span class="badge bg-dark">غیر فعال</span>'
+                        document.getElementById('teaser_maker_is_active_change_btn_' + forloop_counter).innerHTML = '<span><i class="bx bx-lock-open me-1"></i> فعال</span>'
                     } else {
-                        document.getElementById('td_product_is_active_' + forloop_counter).innerHTML = '<span class="badge bg-success">فعال</span>'
-                        document.getElementById('product_is_active_change_btn_' + forloop_counter).innerHTML = '<span><i class="bx bx-lock me-1"></i>غیر فعال</span>'
+                        document.getElementById('td_teaser_maker_is_active_' + forloop_counter).innerHTML = '<span class="badge bg-success">فعال</span>'
+                        document.getElementById('teaser_maker_is_active_change_btn_' + forloop_counter).innerHTML = '<span><i class="bx bx-lock me-1"></i> غیر فعال</span>'
                     }
                 })
                 .catch(error => {
-                    console.error('Error change product state:', error);
+                    console.error('Error change teaser_maker state:', error);
                 });
             }
     </script>
