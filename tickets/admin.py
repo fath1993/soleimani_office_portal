@@ -86,8 +86,7 @@ class MessageAdmin(admin.ModelAdmin):
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
     list_display = (
-        'ticket',
-        'content',
+        'subject',
         'created_at',
         'created_by',
     )

@@ -164,6 +164,43 @@
         </li>
         {% endif %}
     
+        {% if request.user|ticket_is_allowed:'read' or request.user|ticket_admin_is_allowed:'read' %}
+        <li id="support" class="menu-item">
+            <a href="javascript:void(0)" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-message"></i>
+                <div>پیام رسانی</div>
+            </a>
+            <ul class="menu-sub">
+                {% if request.user|ticket_is_allowed:'create' %}
+                <li id="ticket-sent-list" class="menu-item">
+                    <a href="{% url 'ticket:ticket-list-with-box-status' box_status='sent' %}" class="menu-link">
+                        <div><span>صندوق ارسال </span><span class="text-muted">({{ request|ticket_count:'send_box' }})</span></div>
+                    </a>
+                </li>
+                {% endif %}  
+                {% if request.user|ticket_is_allowed:'read' %}
+                <li id="ticket-received-list" class="menu-item">
+                    <a href="{% url 'ticket:ticket-list-with-box-status' box_status='received' %}" class="menu-link">
+                        <div><span>صندوق دریافت </span><span class="text-muted">({{ request|ticket_count:'receive_box' }})</span></div>
+                    </a>
+                </li>
+                {% endif %}
+                <li id="notification-list" class="menu-item">
+                    <a href="{% url 'ticket:notification-list' %}" class="menu-link">
+                        <div><span>اطلاعیه ها </span><span class="text-muted">({{ request|notification_count }})</span></div>
+                    </a>
+                </li>
+                {% if request.user|ticket_admin_is_allowed:'read' %}
+                <li id="ticket-admin-list" class="menu-item">
+                    <a href="{% url 'ticket:ticket-list-with-box-status' box_status='all' %}" class="menu-link">
+                        <div><span>پیام های کاربران </span><span class="text-muted">({{ request|ticket_count:'all' }})</span></div>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </li>
+        {% endif %}
+    
         {% if request.user|automation_is_allowed %}
         <li class="menu-item">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
@@ -228,26 +265,6 @@
 
         <!-- Misc -->
         <li class="menu-header small text-uppercase"><span class="menu-header-text">متفرقه</span></li>
-        <li id="support" class="menu-item">
-            <a href="javascript:void(0)" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-support"></i>
-                <div>پشتیبانی</div>
-            </a>
-            <ul class="menu-sub">
-                <li id="ticket-list" class="menu-item">
-                    <a href="{% url 'ticket:ticket-list' %}" class="menu-link">
-                        <div><span>تیکت های من </span><span class="text-muted">({{ request|ticket_count:'self' }})</span></div>
-                    </a>
-                </li>
-                {% if request.user|ticket_admin_is_allowed:'read' %}
-                <li id="ticket-admin-list" class="menu-item">
-                    <a href="{% url 'ticket:ticket-admin-list' %}" class="menu-link">
-                        <div><span>تیکت های کاربران </span><span class="text-muted">({{ request|ticket_count:'all' }})</span></div>
-                    </a>
-                </li>
-                {% endif %}
-            </ul>
-        </li>
         <li id="documentation" class="menu-item">
             <a href="javascript:void(0)" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-file"></i>

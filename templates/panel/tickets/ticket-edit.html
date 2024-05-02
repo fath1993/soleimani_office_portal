@@ -10,154 +10,41 @@
 {% block content %}
     <div class="container-xxl flex-grow-1 container-p-y">
         <h4 class="py-3 breadcrumb-wrapper mb-4">
-            <span class="text-muted fw-light">مدیریت کاربران / کاربران من / <span class="text-black">ویرایش کاربر : {{ user.username }}</span></span>
+            <span class="text-muted fw-light">پیام رسانی / صندوق ارسال / <span class="text-black">ویرایش <span class="text-warning">محدود</span> تیکت با شناسه یکتای {{ ticket.id }}</span></span>
         </h4>
         <div class="card">
             <div class="card-body">
-                <h4 class="card-header">ویرایش کاربر <span class="text-info">{{ user.username }}</span></h4>
-                <form class="add-new-record pt-0 row g-2" method="post" action="{% url 'panel:user-edit-with-id' user_id=user.id %}{% if get_params %}?{{ get_params }}{% endif %}">
+                <h4 class="card-header">ویرایش تیکت با شناسه یکتای <span class="text-info">{{ ticket.id }}</span></h4>
+                <form class="add-new-record pt-0 row g-2" method="post" enctype="multipart/form-data"
+                      action="{% url 'ticket:ticket-modify-with-id' ticket_id=ticket.id %}{% if get_params %}?{{ get_params }}{% endif %}">
                     {% csrf_token %}
-                    <div class="col-sm-12">
-                        <label class="form-label" for="first_name">نام</label>
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <label class="form-label" for="title">موضوع</label>
                         <div class="input-group input-group-merge">
-                        <span id="first_name" class="input-group-text"><i
-                                class="bx bx-user"></i></span>
-                            <input type="text" id="first_name" class="form-control"
-                                   name="first_name"
-                                   placeholder="نام" aria-label="نام"
-                                   aria-describedby="first_name" dir="rtl"
-                                   value="{{ user.user_profile.first_name|default:'' }}">
+                        <span id="subject" class="input-group-text"></span>
+                            <input type="text" id="subject" class="form-control"
+                                   name="موضوع"
+                                   placeholder="موضوع" aria-label="موضوع"
+                                   aria-describedby="subject"
+                                   value="{{ ticket.subject|default:'' }}">
                         </div>
                     </div>
-                    <div class="col-sm-12">
-                        <label class="form-label" for="last_name">نام خانوادگی</label>
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <label class="form-label" for="receiver">شناسه پیام رسانی گیرنده</label>
                         <div class="input-group input-group-merge">
-                        <span id="last_name" class="input-group-text"><i
-                                class="bx bx-user"></i></span>
-                            <input type="text" id="last_name" class="form-control"
-                                   name="last_name"
-                                   placeholder="نام خانوادگی" aria-label="نام خانوادگی"
-                                   aria-describedby="last_name" dir="rtl"
-                                   value="{{ user.user_profile.last_name|default:'' }}">
+                        <span id="receiver" class="input-group-text"></span>
+                            <input type="text" id="receiver" class="form-control"
+                                   name="شناسه پیام رسانی گیرنده"
+                                   placeholder="#admin" aria-label="شناسه پیام رسانی گیرنده"
+                                   aria-describedby="receiver"
+                                   value="{{ ticket.receiver|default:'' }}">
                         </div>
                     </div>
-                    <div class="col-sm-12">
-                        <label class="form-label" for="national_code">کد ملی</label>
-                        <div class="input-group input-group-merge">
-                        <span id="national_code" class="input-group-text"><i
-                                class="bx bx-code"></i></span>
-                            <input type="text" id="national_code" class="form-control"
-                                   name="national_code"
-                                   placeholder="کد ملی" aria-label="کد ملی"
-                                   aria-describedby="national_code" dir="rtl"
-                                   value="{{ user.user_profile.national_code|default:'' }}">
-                        </div>
-                    </div>
-                    <div class="col-sm-12">
-                        <label class="form-label" for="email">ایمیل</label>
-                        <div class="input-group input-group-merge">
-                        <span id="email" class="input-group-text"><i
-                                class="bx bx-envelope"></i></span>
-                            <input type="text" id="email" class="form-control dt-email" name="email"
-                                   placeholder="ایمیل" aria-label="ایمیل" aria-describedby="email" dir="rtl"
-                                   value="{{ user.email|default:'' }}">
-                        </div>
-                    </div>
-                    <div class="col-sm-12">
-                        <label class="form-label" for="mobile_phone_number">شماره موبایل<span class="badge bg-label-danger mx-1"> غیر قابل تغییر </span></label>
-                        <div class="input-group input-group-merge">
-                            <span id="mobile_phone_number" class="input-group-text"><i class="bx bxs-phone"></i></span>
-                            <input type="text" id="mobile_phone_number" class="form-control dt-mobile-number"
-                                   name="mobile_phone_number"
-                                   placeholder="شماره موبایل" aria-label="شماره موبایل"
-                                   aria-describedby="mobile_phone_number" dir="rtl"
-                                   readonly
-                                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                   oninput="setCustomValidity('')"
-                                   value="{{ user.username|default:'' }}" required>
-                        </div>
-                    </div>
-                    <div class="col-sm-12">
-                        <label class="form-label" for="landline">شماره ثابت</label>
-                        <div class="input-group input-group-merge">
-                        <span id="landline" class="input-group-text"><i
-                                class="bx bx-phone-call"></i></span>
-                            <input type="text" id="landline" class="form-control dt-landline"
-                                   name="landline"
-                                   placeholder="شماره ثابت" aria-label="شماره ثابت"
-                                   aria-describedby="landline" dir="rtl"
-                                   value="{{ user.user_profile.landline|default:'' }}">
-                        </div>
-                    </div>
-                    <div class="col-sm-12">
-                        <label class="form-label" for="card_number">شماره کارت</label>
-                        <div class="input-group input-group-merge">
-                        <span id="card_number" class="input-group-text"><i
-                                class="bx bx-dollar"></i></span>
-                            <input type="text" id="card_number" class="form-control dt-card_number"
-                                   name="card_number"
-                                   placeholder="شماره کارت" aria-label="شماره کارت"
-                                   aria-describedby="card_number" dir="rtl"
-                                   value="{{ user.user_profile.card_number|default:'' }}">
-                        </div>
-                    </div>
-                    <div class="col-sm-12">
-                        <label class="form-label" for="isbn">شماره شبا</label>
-                        <div class="input-group input-group-merge">
-                        <span id="isbn" class="input-group-text"><i
-                                class="bx bx-money"></i></span>
-                            <input type="text" id="isbn" class="form-control dt-isbn"
-                                   name="isbn"
-                                   placeholder="شماره شبا" aria-label="شماره شبا"
-                                   aria-describedby="isbn" dir="rtl"
-                                   value="{{ user.user_profile.isbn|default:'' }}">
-                        </div>
-                    </div>
-                    <div class="col-sm-12">
-                        <label class="form-label" for="address">ادرس</label>
-                        <div class="input-group input-group-merge">
-                        <span id="address" class="input-group-text"><i
-                                class="bx bx-location-plus"></i></span>
-                            <input type="text" id="address" class="form-control dt-address"
-                                   name="address"
-                                   placeholder="ادرس" aria-label="ادرس"
-                                   aria-describedby="address" dir="rtl"
-                                   value="{{ user.user_profile.address|default:'' }}">
-                        </div>
-                    </div>
-                    <div class="col-sm-12">
-                        <label for="defaultSelect" class="form-label">نقش</label>
-                        <select id="defaultSelect" name="role_id"
-                                class="form-select dt-user-role" required>
-                            {% for role in request|role_list %}
-                                <option {% if role_id == role.id %} selected {% endif %} value="{{ role.id }}">{{ role.title }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3 form-password-toggle">
-                        <label class="form-label" for="password1">رمز عبور</label>
-                        <div class="input-group input-group-merge">
-                            <input type="password" id="password1" class="form-control text-start"
-                                   name="password1"
-                                   placeholder="············" aria-describedby="password" dir="rtl"
-                                   autocomplete="new-password">
-                            <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
-                        </div>
-                    </div>
-                    <div class="mb-3 form-password-toggle">
-                        <label class="form-label" for="password2">تکرار رمز عبور</label>
-                        <div class="input-group input-group-merge">
-                            <input type="password" id="password2" class="form-control text-start"
-                                   name="password2"
-                                   placeholder="············" aria-describedby="password" dir="rtl">
-                            <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
-                        </div>
-                    </div>
-                    <div class="col-sm-12">
-                        <button type="submit" class="btn btn-primary data-submit me-sm-3 me-1">ویرایش</button>
-                        <a href="{% url 'panel:user-detail-with-id' user_id=user.id %}{% if get_params %}?{{ get_params }}{% endif %}" class="btn btn-outline-secondary">
+                    <div class="col-sm-12 col-md-12 col-lg-12 mt-3">
+                        <button type="submit" class="btn btn-primary data-submit me-sm-3 me-1">ثبت</button>
+                        <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">
                             انصراف
-                        </a>
+                        </button>
                     </div>
                 </form>
             </div>

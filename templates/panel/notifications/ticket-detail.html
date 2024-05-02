@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load panel_custom_tag %}
-{% load tickets_custom_tag %}
+
 {% block extra_head %}
 
 {% endblock %}
@@ -10,21 +10,14 @@
 {% block content %}
     <div class="container-xxl flex-grow-1 container-p-y">
         <h4 class="py-3 breadcrumb-wrapper mb-2">
-            <span class="text-muted fw-light">پیام رسانی / {{ page_title}} / </span>{{ ticket.title }}
+            <span class="text-muted fw-light">پشتیبانی / تیکت های من / </span>{{ ticket.title }}
         </h4>
-        {% if request.user|message_is_allowed:'create' %}
         <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
-            <i class="ti-plus m-r-5"></i>ارسال پاسخ
+            <i class="ti-plus m-r-5"></i> پیام جدید
         </button>
-        {% if err %}
-            <strong class="text-danger">{{ err }}</strong>
-        {% endif %}
-        {% if message %}
-            <strong class="text-success">{{ message }}</strong>
-        {% endif %}    
         <div class="offcanvas offcanvas-end" id="add-new-record">
             <div class="offcanvas-header border-bottom">
-                <h5 class="offcanvas-title" id="exampleModalLabel">ارسال پاسخ</h5>
+                <h5 class="offcanvas-title" id="exampleModalLabel">تیکت جدید</h5>
                 <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
                         aria-label="Close"></button>
             </div>
@@ -33,10 +26,10 @@
                       action="{% url 'ticket:message-create' ticket_id=ticket.id %}" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="col-sm-12">
-                        <label class="form-label" for="content">پیام</label>
+                        <label class="form-label" for="national_code">پیام</label>
                         <div class="input-group input-group-merge">
                             <span id="content" class="input-group-text"></span>
-                            <textarea type="text" rows="4" id="content" class="form-control"
+                            <textarea type="text" rows="4" id="message" class="form-control"
                                       name="content"
                                       placeholder="پیام" aria-label="پیام"
                                       aria-describedby="content">{{ content|default:'' }}</textarea>
@@ -62,39 +55,16 @@
                 </form>
             </div>
         </div>
-        {% endif %}
         <div class="row overflow-hidden">
             <div class="col-12">
                 <ul class="timeline timeline-center mt-5 mb-0">
                     {% for message in messages %}
-                        <li class="timeline-item mb-md-4 mb-5
-                            {% if request.user == message.ticket.owner %}
-                                {% if message.created_by == request.user %}
-                                    timeline-item-right
-                                {% else %}
-                                    timeline-item-left
-                                {% endif %}
-                            {% elif request.user == message.ticket.receiver %}
-                                {% if message.created_by == request.user %}
-                                    timeline-item-right
-                                {% else %}
-                                    timeline-item-left
-                                {% endif %}    
-                            {% else %}
-                                {% if message.created_by == message.ticket.owner %}
-                                    timeline-item-right
-                                {% else %}
-                                    timeline-item-left
-                                {% endif %}
-                            {% endif %}">
+                        <li class="timeline-item mb-md-4 mb-5 {% if message.created_by == message.ticket.belong_to %}timeline-item-right{% else %}timeline-item-left{% endif %}">
                             <span class="timeline-indicator timeline-indicator-primary" data-aos="zoom-in"
                                 data-aos-delay="200">
                                 <i class="bx bx-paint"></i>
                             </span>
                             <div class="timeline-event card p-0" data-aos="fade-right">
-                                <div class="card-header">
-                                    <span class="text-gray">ارسال توسط: <span class="text-success">{{ message.created_by.username }}</span></span><hr>
-                                </div>
                                 <div class="card-body">
                                     <p class="mb-2">
                                         {{ message.content }}

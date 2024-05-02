@@ -48,15 +48,65 @@
         </div>
         <div class="card">
             <h5 class="card-header heading-color">
-                {% if request.user|ticket_is_allowed:'create' %}
-                    {% if request.path != '/tickets/list&box-status=received/' and request.path != '/tickets/list&box-status=all/' %}
-                    <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
-                        <i class="ti-plus m-r-5"></i> ایجاد پیام جدید
-                    </button>
-                    {% endif %}
-                {% endif %}
-                {% if request.path == '/tickets/list&box-status=received/' %}
-                <span class="text-left">شناسه پیام رسانی شما: <span class="text-success">#{{ request.user.username }}</span></span>
+                <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
+                    <i class="ti-plus m-r-5"></i> ایجاد پیام جدید
+                </button>
+                {% if request.user|notification_is_allowed:'create' %}
+                <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
+                    <i class="ti-plus m-r-5"></i> ایجاد اطلاعیه جدید
+                </button>
+                <div class="offcanvas offcanvas-end" id="add-new-record">
+                    <div class="offcanvas-header border-bottom">
+                        <h5 class="offcanvas-title" id="exampleModalLabel">اطلاعیه جدید</h5>
+                        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
+                                aria-label="Close"></button>
+                    </div>
+                    <div class="offcanvas-body flex-grow-1">
+                        <form class="add-new-record pt-0 row g-2" method="post"
+                              action="{% url 'ticket:notification-create' %}" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="col-sm-12">
+                                <label class="form-label" for="title">عنوان</label>
+                                <div class="input-group input-group-merge">
+                                <span id="title" class="input-group-text"><i
+                                        class="bx bx-star"></i></span>
+                                    <input type="text" id="title" class="form-control"
+                                           name="title"
+                                           placeholder="عنوان" aria-label="عنوان"
+                                           aria-describedby="title"
+                                           value="{{ title|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <label class="form-label" for="national_code">پیام</label>
+                                <div class="input-group input-group-merge">
+                                <span id="content" class="input-group-text"></span>
+                                    <textarea type="text" rows="4" id="message" class="form-control"
+                                              name="content"
+                                              placeholder="پیام" aria-label="پیام"
+                                              aria-describedby="content">{{ content|default:'' }}</textarea>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-12">
+                                <label class="form-label" for="files">فایل های ضمیمه</label>
+                                <div class="input-group input-group-merge">
+                                    <span id="files" class="input-group-text"><i class="bx bxs-file"></i></span>
+                                    <input type="file" id="files" class="form-control dt-files"
+                                           name="files" multiple
+                                           placeholder="فایل ها" aria-label="فایل ها"
+                                           aria-describedby="files">
+                                </div>
+                            </div>
+                            <div class="col-sm-12 mt-3">
+                                <button type="submit" class="btn btn-primary data-submit me-sm-3 me-1">ثبت</button>
+                                <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">
+                                    انصراف
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>    
                 {% endif %}
                 {% if err %}
                     <strong class="text-danger">{{ err }}</strong>
@@ -75,42 +125,23 @@
                               action="{% url 'ticket:ticket-create' %}" enctype="multipart/form-data">
                             {% csrf_token %}
                             <div class="col-sm-12">
-                                <label class="form-label" for="subject">موضوع</label>
+                                <label class="form-label" for="title">عنوان</label>
                                 <div class="input-group input-group-merge">
-                                <span id="subject" class="input-group-text"></span>
-                                    <input type="text" id="subject" class="form-control"
-                                           name="subject"
-                                           required
-                                           oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                           oninput="setCustomValidity('')"
-                                           placeholder="" aria-label="موضوع"
-                                           aria-describedby="subject"
-                                           value="{{ subject|default:'' }}">
+                                <span id="title" class="input-group-text"><i
+                                        class="bx bx-star"></i></span>
+                                    <input type="text" id="title" class="form-control"
+                                           name="title"
+                                           placeholder="عنوان" aria-label="عنوان"
+                                           aria-describedby="title"
+                                           value="{{ title|default:'' }}">
                                 </div>
                             </div>
                             <div class="col-sm-12">
-                                <label class="form-label" for="receiver">شناسه پیام رسانی گیرنده</label>
+                                <label class="form-label" for="national_code">پیام</label>
                                 <div class="input-group input-group-merge">
-                                <span id="receiver" class="input-group-text"></span>
-                                    <input type="text" id="receiver" class="form-control"
-                                           name="receiver"
-                                           required
-                                           oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                           oninput="setCustomValidity('')"
-                                           placeholder="#admin" aria-label="شناسه پیام رسانی گیرنده"
-                                           aria-describedby="receiver"
-                                           value="{{ receiver|default:'' }}">
-                                </div>
-                            </div>
-                            <div class="col-sm-12">
-                                <label class="form-label" for="content">پیام</label>
-                                <div class="input-group input-group-merge">
-                                    <span id="content" class="input-group-text"></span>
+                                <span id="content" class="input-group-text"></span>
                                     <textarea type="text" rows="4" id="message" class="form-control"
                                               name="content"
-                                              required
-                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                               oninput="setCustomValidity('')"
                                               placeholder="پیام" aria-label="پیام"
                                               aria-describedby="content">{{ content|default:'' }}</textarea>
                                 </div>
@@ -137,24 +168,16 @@
                 </div>
             </h5>
             <div class="card-body">
-                <div class="table-responsive text-nowrap" style="min-height: 250px">
+                <div class="table-responsive text-nowrap" style="min-height: 200px">
                     <table class="table table-bordered">
                         <thead>
                         <tr>
-                            <th style="width: 10%">#</th>
-                            <th style="width: 10%">شناسه</th>
-                            <th style="width: 40%">موضوع</th>
-                            {% if request.path == '/tickets/list&box-status=received/' %}
-                                <th style="width: 15%">فرستنده</th>
-                            {% elif request.path == '/tickets/list&box-status=sent/' %}
-                                <th style="width: 15%">گیرنده</th>
-                            {% else %}
-                                <th style="width: 7%">فرستنده</th>
-                                <th style="width: 7%">گیرنده</th>
-                            {% endif %}
-                            <th style="width: 10%">وضعیت</th>
-                            <th style="width: 10%">تاریخ بروزرسانی</th>
-                            <th style="width: 5%">عمل‌ها</th>
+                            <th>#</th>
+                            <th>کد رهگیری</th>
+                            <th>عنوان</th>
+                            <th>وضعیت</th>
+                            <th>تاریخ اخرین اقدام</th>
+                            <th>عمل‌ها</th>
                         </tr>
                         </thead>
                         <tbody class="table-border-bottom-0">
@@ -164,88 +187,67 @@
                                 <td>{{ ticket.id }}</td>
                                 <td>
                                     <strong><a href="{% url 'ticket:ticket-detail-with-id' ticket_id=ticket.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
-                                               target="_self">{{ ticket.subject }}</a></strong>
+                                               target="_self">{{ ticket.title }}</a></strong>
                                 </td>
-                                {% if request.path == '/tickets/list&box-status=received/' %}
-                                    <td>#{{ ticket.owner.username }}</td>
-                                {% elif request.path == '/tickets/list&box-status=sent/' %}
-                                    <td>#{{ ticket.receiver.username }}</td>
-                                {% else %}
-                                    <td>#{{ ticket.owner.username }}</td>
-                                    <td>#{{ ticket.receiver.username }}</td>
-                                {% endif %}
                                 <td>
                                     {% if ticket.status == 'created' %}
-                                        <span class="badge bg-success">ایجاد شده</span>
+                                    <span class="badge bg-success">ایجاد شده</span>
                                     {% elif ticket.status == 'pending' %}
-                                        <span class="badge bg-info">در حال بررسی</span>
+                                    <span class="badge bg-info">در حال بررسی</span>
                                     {% elif ticket.status == 'admin_response' %}
-                                        <span class="badge bg-danger">پاسخ ادمین</span>
-                                    {% elif ticket.status == 'receiver_response' %}
-                                        <span class="badge bg-warning">پاسخ گیرنده</span>
-                                    {% elif ticket.status == 'owner_response' %}
-                                        <span class="badge bg-primary">پاسخ فرستنده</span>    
+                                    <span class="badge bg-warning">پاسخ ادمین</span>
                                     {% elif ticket.status == 'closed' %}
-                                        <span class="badge bg-gray">بسته شده</span>
+                                    <span class="badge bg-gray">بسته شده</span>
                                     {% else %}
-                                        <span class="badge bg-primary">پاسخ فرستنده</span>
+                                    <span class="badge bg-primary">پاسخ کاربر</span>
                                     {% endif %}
                                 </td>
                                 <td>{{ ticket.updated_at|date:'Y-m-d | H:i' }}</td>
                                 <td>
-                                    {% if request.user|ticket_is_allowed:'modify,delete' %}
-                                        <div class="dropdown">
-                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                    data-bs-toggle="dropdown">
-                                                <i class="bx bx-dots-vertical-rounded"></i>
-                                            </button>
-                                            <div class="dropdown-menu">
-                                                {% if request.user|ticket_is_allowed:'modify' %}
-                                                    <a class="dropdown-item" href="{% url 'ticket:ticket-modify-with-id' ticket_id=ticket.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"><i
-                                                            class="bx bx-edit-alt me-1"></i> ویرایش</a>
-                                                    <a id="ticket_status_change_btn_{{ forloop.counter }}" class="dropdown-item" href="javascript:void(0)" onclick="ticket_change_state('{{ ticket.id }}', '{{ forloop.counter }}')"><span>{% if ticket.status == 'closed' %}<i
-                                                            class="bx bx-lock me-1"></i> بستن{% else %}<i class="bx bx-lock-open me-1"></i> بازکردن{% endif %}</span></a>
-                                                    
-                                                {% endif %}
-                                                {% if request.user|ticket_is_allowed:'delete' %}
-                                                    <a class="dropdown-item" href="javascript:void(0);"
-                                                       data-bs-toggle="modal"
-                                                       data-bs-target="#deleteModal_{{ forloop.counter }}"><i
-                                                            class="bx bx-trash me-1"></i> حذف</a>
-                                                {% endif %}
-                                            </div>
-                                            <div class="modal fade" id="deleteModal_{{ forloop.counter }}"
-                                                 tabindex="-1" aria-hidden="true">
-                                                <div class="modal-dialog modal-simple modal-enable-otp modal-dialog-centered">
-                                                    <div class="modal-content p-3 p-md-5">
-                                                        <div class="modal-body">
-                                                            <button type="button" class="btn-close"
-                                                                    data-bs-dismiss="modal"
-                                                                    aria-label="Close"></button>
-                                                            <div class="text-center mb-4 mt-0 mt-md-n2">
-                                                                <h3 class="mb-4 secondary-font">تایید حذف</h3>
-                                                            </div>
-                                                            <h6>آیا از حذف پیام <strong class="bg-warning">{{ product.name }}</strong> مطمئن هستید؟</h6>
-                                                            <form class="row g-3 mt-3" method="post" action="{% url 'ticket:ticket-delete-with-id' ticket_id=ticket.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
-                                                                {% csrf_token %}
-                                                                <div class="col-12">
-                                                                    <button type="submit"
-                                                                            class="btn btn-primary me-sm-3 me-1">
-                                                                        بله
-                                                                    </button>
-                                                                    <button type="reset" class="btn btn-label-secondary"
-                                                                            data-bs-dismiss="modal" aria-label="Close">
-                                                                        انصراف
-                                                                    </button>
-                                                                </div>
-                                                            </form>
+                                    {% if not ticket.status == 'closed' %}
+                                    <div class="dropdown">
+                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                data-bs-toggle="dropdown">
+                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a class="dropdown-item" href="javascript:void(0);"
+                                                   data-bs-toggle="modal"
+                                                   data-bs-target="#closeModal_{{ forloop.counter }}"><i
+                                                        class="bx bxs-exit me-1"></i> بستن</a>
+                                        </div>
+                                        <div class="modal fade" id="closeModal_{{ forloop.counter }}"
+                                             tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-simple modal-enable-otp modal-dialog-centered">
+                                                <div class="modal-content p-3 p-md-5">
+                                                    <div class="modal-body">
+                                                        <button type="button" class="btn-close"
+                                                                data-bs-dismiss="modal"
+                                                                aria-label="Close"></button>
+                                                        <div class="text-center mb-4 mt-0 mt-md-n2">
+                                                            <h3 class="mb-4 secondary-font">تایید بستن</h3>
                                                         </div>
+                                                        <h6>آیا از بستن تیکت <strong class="bg-warning">{{ ticket.title }}</strong> مطمئن هستید؟</h6>
+                                                        <form class="row g-3 mt-3" method="post" action="{% url 'ticket:ticket-close-with-id' ticket_id=ticket.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                            {% csrf_token %}
+                                                            <div class="col-12">
+                                                                <button type="submit"
+                                                                        class="btn btn-primary me-sm-3 me-1">
+                                                                    بله
+                                                                </button>
+                                                                <button type="reset" class="btn btn-label-secondary"
+                                                                        data-bs-dismiss="modal" aria-label="Close">
+                                                                    انصراف
+                                                                </button>
+                                                            </div>
+                                                        </form>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
                                     {% else %}
-                                        -
+                                    -
                                     {% endif %}
                                 </td>
                             </tr>
@@ -254,14 +256,6 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                {% if request.path == '/tickets/list&box-status=received/' %}
-                                    <td></td>
-                                {% elif request.path == '/tickets/list&box-status=sent/' %}
-                                    <td></td>
-                                {% else %}
-                                    <td></td>
-                                    <td></td>
-                                {% endif %}
                                 <td></td>
                                 <td></td>
                                 <td></td>
