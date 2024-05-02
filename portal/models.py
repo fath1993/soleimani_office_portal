@@ -31,7 +31,7 @@ class Product(models.Model):
                             verbose_name='نوع محصول')
     code = models.CharField(max_length=255, null=False, blank=False, verbose_name='کد')
     weight = models.IntegerField(default=0, null=False, blank=False, verbose_name='وزن - گرم')
-    size = models.IntegerField(default=0, null=False, blank=False, verbose_name='سایز - اینچ')
+    size = models.FloatField(default=0, null=False, blank=False, verbose_name='سایز - اینچ')
     color = models.CharField(max_length=255, null=False, blank=False, verbose_name='رنگ')
     images = models.ManyToManyField(FileGallery, related_name='images_product', blank=True, verbose_name='تصاویر')
     videos = models.ManyToManyField(FileGallery, related_name='videos_product', blank=True, verbose_name='ویدیو ها')

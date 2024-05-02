@@ -8,7 +8,7 @@ from accounts.models import Role, Permission
 from gallery.models import FileGallery
 from panel.custom_decorator import CheckLogin, CheckPermissions, RequireMethod
 from portal.models import Product
-from utilities.http_metod import fetch_data_from_http_post, fetch_files_from_http_post_data
+from utilities.http_metod import fetch_data_from_http_post, fetch_files_from_http_post_data, fetch_data_from_http_get
 
 
 class DashboardView:
@@ -622,17 +622,7 @@ class ProductView:
     def list(self, request, *args, **kwargs):
         context = {'page_title': 'لیست محصولات', 'get_params': request.GET.urlencode()}
 
-        search = request.GET.get('search')
-        q = Q()
-        if search:
-            context = {'page_title': f'لیست محصولات شامل *{search}*', 'get_params': request.GET.urlencode()}
-
-            if search:
-                q &= (
-                    Q(**{'name__icontains': search})
-                )
-
-        products = Product.objects.filter(q).order_by('id')
+        products = Product.objects.filter().order_by('id')
         context['products'] = products
 
         items_per_page = 50
@@ -657,14 +647,144 @@ class ProductView:
     @CheckLogin()
     @CheckPermissions(section='product', allowed_actions='read')
     def filter(self, request, *args, **kwargs):
-        search = request.GET.get('search')
-        context = {'page_title': f'لیست محصولات شامل *{search}*', 'get_params': request.GET.urlencode()}
+        context = {}
+        search = fetch_data_from_http_get(request, 'search', context)
+        product_type = fetch_data_from_http_get(request, 'type', context)
+        is_active = fetch_data_from_http_get(request, 'is_active', context)
+        color = fetch_data_from_http_get(request, 'color', context)
+        weight_from = fetch_data_from_http_get(request, 'weight_from', context)
+        weight_to = fetch_data_from_http_get(request, 'weight_to', context)
+        size_from = fetch_data_from_http_get(request, 'size_from', context)
+        size_to = fetch_data_from_http_get(request, 'size_to', context)
+        product_price_from = fetch_data_from_http_get(request, 'product_price_from', context)
+        product_price_to = fetch_data_from_http_get(request, 'product_price_to', context)
+        shipping_price_from = fetch_data_from_http_get(request, 'shipping_price_from', context)
+        shipping_price_to = fetch_data_from_http_get(request, 'shipping_price_to', context)
+        send_link_price_from = fetch_data_from_http_get(request, 'send_link_price_from', context)
+        send_link_price_to = fetch_data_from_http_get(request, 'send_link_price_to', context)
+        packing_price_from = fetch_data_from_http_get(request, 'packing_price_from', context)
+        packing_price_to = fetch_data_from_http_get(request, 'packing_price_to', context)
+        seller_commission_from = fetch_data_from_http_get(request, 'seller_commission_from', context)
+        seller_commission_to = fetch_data_from_http_get(request, 'seller_commission_to', context)
 
+        page_title = f''''''
         q = Q()
         if search:
+            page_title += f'search: {search}, '
             q &= (
-                    Q(**{'name__icontains': search})
+                Q(**{'name__icontains': search}) |
+                Q(**{'id': search}) |
+                Q(**{'code': search})
             )
+
+        if product_type:
+            page_title += f'product_type: {product_type}, '
+            q &= (
+                Q(**{'type': product_type})
+            )
+
+        if is_active:
+            page_title += f'is_active: {is_active}, '
+            if is_active == 'فعال':
+                is_active = True
+            else:
+                is_active = False
+            q &= (
+                Q(**{'is_active': is_active})
+            )
+
+        if color:
+            page_title += f'color: {color}, '
+            q &= (
+                Q(**{'color': color})
+            )
+
+        if weight_from:
+            page_title += f'weight_from: {weight_from}, '
+            q &= (
+                Q(**{'weight__gte': int(weight_from)})
+            )
+
+        if weight_to:
+            page_title += f'weight_to: {weight_to}, '
+            q &= (
+                Q(**{'weight__lte': int(weight_to)})
+            )
+
+        if size_from:
+            page_title += f'size_from: {size_from}, '
+            q &= (
+                Q(**{'size__gte': float(size_from)})
+            )
+
+        if size_to:
+            page_title += f'size_to: {size_to}, '
+            q &= (
+                Q(**{'size__lte': float(size_to)})
+            )
+
+        if product_price_from:
+            page_title += f'product_price_from: {product_price_from}, '
+            q &= (
+                Q(**{'product_price_gte': int(product_price_from)})
+            )
+
+        if product_price_to:
+            page_title += f'product_price_to: {product_price_to}, '
+            q &= (
+                Q(**{'product_price_lte': int(product_price_to)})
+            )
+
+        if shipping_price_from:
+            page_title += f'shipping_price_from: {shipping_price_from}, '
+            q &= (
+                Q(**{'shipping_price_gte': int(shipping_price_from)})
+            )
+
+        if shipping_price_to:
+            page_title += f'shipping_price_to: {shipping_price_to}, '
+            q &= (
+                Q(**{'shipping_price_lte': int(shipping_price_to)})
+            )
+
+        if send_link_price_from:
+            page_title += f'send_link_price_from: {send_link_price_from}, '
+            q &= (
+                Q(**{'send_link_price_gte': int(send_link_price_from)})
+            )
+
+        if send_link_price_to:
+            page_title += f'send_link_price_to: {send_link_price_to}, '
+            q &= (
+                Q(**{'send_link_price_lte': int(send_link_price_to)})
+            )
+
+        if packing_price_from:
+            page_title += f'packing_price_from: {packing_price_from}, '
+            q &= (
+                Q(**{'packing_price_gte': int(packing_price_from)})
+            )
+
+        if packing_price_to:
+            page_title += f'packing_price_to: {packing_price_to}, '
+            q &= (
+                Q(**{'packing_price_lte': int(packing_price_to)})
+            )
+
+        if seller_commission_from:
+            page_title += f'seller_commission_from: {seller_commission_from}, '
+            q &= (
+                Q(**{'seller_commission_gte': int(seller_commission_from)})
+            )
+
+        if seller_commission_to:
+            page_title += f'seller_commission_to: {seller_commission_to}, '
+            q &= (
+                Q(**{'seller_commission_lte': int(seller_commission_to)})
+            )
+        context['page_title'] = f'لیست محصولات شامل *{page_title}*'
+        context['get_params'] = request.GET.urlencode()
+
         products = Product.objects.filter(q).order_by('id')
         context['products'] = products
 
