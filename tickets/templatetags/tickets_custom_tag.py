@@ -1,5 +1,7 @@
 from django import template
 from django.db.models import Q
+
+from accounts.models import UserNotification
 from tickets.models import Ticket, Notification
 
 register = template.Library()
@@ -114,4 +116,7 @@ def ticket_count(request, count_type):
 
 @register.filter
 def notification_count(request):
-    return Notification.objects.all().count()
+    if request.user.is_superuser or notification_is_allowed(request.user, 'create'):
+        return UserNotification.objects.all().count()
+    else:
+        return UserNotification.objects.filter(user=request.user).count()

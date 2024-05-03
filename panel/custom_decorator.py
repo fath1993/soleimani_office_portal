@@ -6,6 +6,8 @@ from panel.templatetags.panel_custom_tag import user_section_is_allowed, permiss
     role_section_is_allowed, resource_section_is_allowed, product_is_allowed, teaser_maker_is_allowed, \
     reseller_network_is_allowed, receiver_is_allowed, advertise_content_is_allowed, forward_to_portal_is_allowed, \
     communication_channel_is_allowed, registrar_is_allowed
+from tickets.templatetags.tickets_custom_tag import notification_is_allowed, ticket_admin_is_allowed, ticket_is_allowed, \
+    message_is_allowed
 
 
 class CheckLogin:
@@ -123,6 +125,34 @@ class CheckPermissions:
                 if (allowed_actions.find('read') != -1 or allowed_actions.find('create') != -1 or
                         allowed_actions.find('modify') != -1 or allowed_actions.find('delete') != -1):
                     if not registrar_is_allowed(request.user, class_self.allowed_actions):
+                        return render(request, 'panel/err/err-not-authorized.html')
+
+            if class_self.section == 'ticket_admin':
+                allowed_actions = str(class_self.allowed_actions)
+                if (allowed_actions.find('read') != -1 or allowed_actions.find('create') != -1 or
+                        allowed_actions.find('modify') != -1 or allowed_actions.find('delete') != -1):
+                    if not ticket_admin_is_allowed(request.user, class_self.allowed_actions):
+                        return render(request, 'panel/err/err-not-authorized.html')
+
+            if class_self.section == 'ticket':
+                allowed_actions = str(class_self.allowed_actions)
+                if (allowed_actions.find('read') != -1 or allowed_actions.find('create') != -1 or
+                        allowed_actions.find('modify') != -1 or allowed_actions.find('delete') != -1):
+                    if not ticket_is_allowed(request.user, class_self.allowed_actions):
+                        return render(request, 'panel/err/err-not-authorized.html')
+
+            if class_self.section == 'message':
+                allowed_actions = str(class_self.allowed_actions)
+                if (allowed_actions.find('read') != -1 or allowed_actions.find('create') != -1 or
+                        allowed_actions.find('modify') != -1 or allowed_actions.find('delete') != -1):
+                    if not message_is_allowed(request.user, class_self.allowed_actions):
+                        return render(request, 'panel/err/err-not-authorized.html')
+
+            if class_self.section == 'notification':
+                allowed_actions = str(class_self.allowed_actions)
+                if (allowed_actions.find('read') != -1 or allowed_actions.find('create') != -1 or
+                        allowed_actions.find('modify') != -1 or allowed_actions.find('delete') != -1):
+                    if not notification_is_allowed(request.user, class_self.allowed_actions):
                         return render(request, 'panel/err/err-not-authorized.html')
             return view_func(self, request, *args, **kwargs)
 

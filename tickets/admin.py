@@ -86,7 +86,7 @@ class MessageAdmin(admin.ModelAdmin):
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
     list_display = (
-        'subject',
+        'content',
         'created_at',
         'created_by',
     )
@@ -97,7 +97,6 @@ class NotificationAdmin(admin.ModelAdmin):
     )
 
     fields = (
-        'subject',
         'content',
         'attachments',
         'created_at',

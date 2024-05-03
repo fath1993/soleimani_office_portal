@@ -4,9 +4,11 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django_jalali.db import models as jmodel
 
+from tickets.models import Notification
 
 HAS_ACCESS_TO_SECTION = (('user', 'کاربر'), ('permission', 'مجوز'), ('role', 'نقش'),
-                         ('resource', 'منابع'), ('product', 'محصولات'), ('teaser_maker', 'تیزر ساز'), ('reseller_network', 'شبکه'),
+                         ('resource', 'منابع'), ('product', 'محصولات'), ('teaser_maker', 'تیزر ساز'),
+                         ('reseller_network', 'شبکه'),
                          ('receiver', 'دریافت کننده'), ('advertise_content', 'محتوای تبلیغاتی'),
                          ('forward_to_portal', 'انتقال دهنده'), ('communication_channel', 'کانال ارتباطی'),
                          ('registrar', 'تخصیص دهنده'),
@@ -21,7 +23,8 @@ HAS_ACCESS_TO_SECTION = (('user', 'کاربر'), ('permission', 'مجوز'), ('r
 
 class Permission(models.Model):
     title = models.CharField(max_length=255, null=False, blank=False, verbose_name='عنوان')
-    has_access_to_section = models.CharField(max_length=255, choices=HAS_ACCESS_TO_SECTION, null=False, blank=False, verbose_name='دسترسی به بخش')
+    has_access_to_section = models.CharField(max_length=255, choices=HAS_ACCESS_TO_SECTION, null=False, blank=False,
+                                             verbose_name='دسترسی به بخش')
     read = models.BooleanField(default=True, verbose_name='خواندن')
     create = models.BooleanField(default=True, verbose_name='ایجاد')
     modify = models.BooleanField(default=True, verbose_name='ویرایش')
@@ -60,7 +63,8 @@ class Profile(models.Model):
     isbn = models.CharField(max_length=255, null=True, blank=True, verbose_name='شماره شبا')
     address = models.CharField(max_length=1000, null=True, blank=True, verbose_name='آدرس')
 
-    role = models.ForeignKey(Role, related_name='profile_roles', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='نقش')
+    role = models.ForeignKey(Role, related_name='profile_roles', on_delete=models.SET_NULL, null=True, blank=True,
+                             verbose_name='نقش')
 
     def __str__(self):
         return self.user.username
@@ -83,3 +87,21 @@ def auto_create_user_profile(sender, instance, created, **kwargs):
             Profile.objects.create(user=instance)
 
 
+class UserNotification(models.Model):
+    user = models.ForeignKey(User, related_name='user_user_notification', on_delete=models.CASCADE, null=False,
+                             blank=False,
+                             editable=False, verbose_name='کاربر')
+    notification = models.ForeignKey(Notification, related_name='notification_user_notification',
+                                     on_delete=models.CASCADE, null=False,
+                                     blank=False,
+                                     editable=False, verbose_name='اطلاعیه')
+    has_seen_by_user = models.BooleanField(default=False, verbose_name='دیده شده توسط کاربر')
+    created_at = jmodel.jDateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    updated_at = jmodel.jDateTimeField(auto_now=True, verbose_name='تاریخ بروز رسانی')
+
+    def __str__(self):
+        return self.user.username
+
+    class Meta:
+        verbose_name = 'اطلاعیه کاربر'
+        verbose_name_plural = 'اطلاعیه های کاربران'

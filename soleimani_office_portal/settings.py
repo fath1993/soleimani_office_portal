@@ -65,7 +65,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'soleimani_office_portal.wsgi.application'
+# WSGI_APPLICATION = 'soleimani_office_portal.wsgi.application'
+ASGI_APPLICATION = 'soleimani_office_portal.asgi.application'
 
 DATABASES = {}
 

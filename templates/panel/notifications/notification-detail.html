@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load panel_custom_tag %}
+
+{% block extra_head %}
+
+{% endblock %}
+
+
+{% block content %}
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <h4 class="py-3 breadcrumb-wrapper mb-2">
+            <span class="text-muted fw-light">پیامرسانی / اطلاعیه ها / <span
+                    class="text-black">جزئیات اطلاعیه به شماره : {{ user_notification.notification.id }}</span></span>
+        </h4>
+        <div class="row gy-4">
+            <div class="col-md-12">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="pb-2 border-bottom mb-4 secondary-font">جزئیات</h5>
+                        <div class="info-container">
+                            <ul class="list-unstyled">
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">پیام:</span>
+                                    <span>{{ user_notification.notification.content|default:"-" }}</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">ضمائم:</span>
+                                    <div class="d-flex align-items-center flex-wrap my-2">
+                                        {% for attachment in user_notification.notification.attachments.all %}
+                                            <div class="avatar avatar-xl mx-1 my-1">
+                                                <img src="{% static 'assets/img/icons/unicons/cube.png' %}" alt="attachment"
+                                                     class="rounded"
+                                                     onclick="window.open('{{ attachment.file.url }}', '_blank')">
+                                            </div>
+                                        {% empty %}
+                                            -
+                                        {% endfor %}
+                                    </div>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">تاریخ و زمان ایجاد:</span>
+                                    <span>{{ user_notification.created_at|date:'d-m-Y H:i' }}</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">تاریخ و زمان بروزرسانی:</span>
+                                    <span>{{ user_notification.updated_at|date:'d-m-Y H:i' }}</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">وضعیت:</span>
+                                    {% if user_notification.has_seen_by_user %}
+                                        <span class="badge bg-success">دیده شده</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">دیده نشده</span>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                            <div class="d-flex justify-content-between pt-3">
+                                <div class="text-right">
+                                    {% if not user_notification.has_seen_by_user %}
+                                        <a href="javascript:void(0)" onclick="notification_change_state('{{ user_notification.id }}')"
+                                           class="btn btn-primary me-3">دیدم</a>
+                                    {% endif %}
+                                    {% if get_params %}
+                                        <a href="{% url 'ticket:notification-filter' %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                                       class="btn btn-outline-gray me-3">بازگشت</a>
+                                    {% else %}
+                                        <a href="{% url 'ticket:notification-list' %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                               class="btn btn-outline-gray me-3">بازگشت</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_body %}
+    <script src="{% static 'assets/vendor/libs/animate-on-scroll/animate-on-scroll.js' %}"></script>
+    <script src="{% static 'assets/js/main.js' %}"></script>
+    <script src="{% static 'assets/js/extended-ui-timeline.js' %}"></script>
+    <script>
+        function notification_change_state(notification_id) {
+            const formData = new FormData();
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+            const options = {
+                method: 'POST',
+                body: formData,
+            }
+            fetch('{% url 'ticket:notification-change_state-with-id' notification_id=0 %}'.replace('0', notification_id).replace('amp;', ''), options)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data['notification_has_seen_by_user'] === 'true') {
+                        window.location.reload()
+                    }
+                })
+                .catch(error => {
+                    console.error('Error change product state:', error);
+                });
+            }
+    </script>
+{% endblock %}

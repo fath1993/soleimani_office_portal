@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 {% load account_custom_tag %}
 {% load panel_custom_tag %}
 {% load tickets_custom_tag %}
@@ -29,11 +30,11 @@
         </h4>
         <div class="card mb-3">
             <h5 class="card-header heading-color">
-                فیلتر پیام ها
+                فیلتر اطلاعیه ها
             </h5>
             <div class="card-body">
                 <div class="row">
-                    <form method="get" action="{% url 'ticket:ticket-filter' %}">
+                    <form method="get" action="{% url 'ticket:notification-filter' %}">
                         <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="search">جستجو</label>
                             <div class="input-group">
@@ -48,13 +49,16 @@
         </div>
         <div class="card">
             <h5 class="card-header heading-color">
-                <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
-                    <i class="ti-plus m-r-5"></i> ایجاد پیام جدید
-                </button>
                 {% if request.user|notification_is_allowed:'create' %}
                 <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
                     <i class="ti-plus m-r-5"></i> ایجاد اطلاعیه جدید
                 </button>
+                {% if err %}
+                    <strong class="text-danger">{{ err }}</strong>
+                {% endif %}
+                {% if message %}
+                    <strong class="text-success">{{ message }}</strong>
+                {% endif %}
                 <div class="offcanvas offcanvas-end" id="add-new-record">
                     <div class="offcanvas-header border-bottom">
                         <h5 class="offcanvas-title" id="exampleModalLabel">اطلاعیه جدید</h5>
@@ -66,28 +70,15 @@
                               action="{% url 'ticket:notification-create' %}" enctype="multipart/form-data">
                             {% csrf_token %}
                             <div class="col-sm-12">
-                                <label class="form-label" for="title">عنوان</label>
-                                <div class="input-group input-group-merge">
-                                <span id="title" class="input-group-text"><i
-                                        class="bx bx-star"></i></span>
-                                    <input type="text" id="title" class="form-control"
-                                           name="title"
-                                           placeholder="عنوان" aria-label="عنوان"
-                                           aria-describedby="title"
-                                           value="{{ title|default:'' }}">
-                                </div>
-                            </div>
-                            <div class="col-sm-12">
-                                <label class="form-label" for="national_code">پیام</label>
+                                <label class="form-label" for="content">پیام</label>
                                 <div class="input-group input-group-merge">
                                 <span id="content" class="input-group-text"></span>
-                                    <textarea type="text" rows="4" id="message" class="form-control"
+                                    <textarea type="text" rows="4" id="content" class="form-control"
                                               name="content"
                                               placeholder="پیام" aria-label="پیام"
                                               aria-describedby="content">{{ content|default:'' }}</textarea>
                                 </div>
                             </div>
-
                             <div class="col-sm-12">
                                 <label class="form-label" for="files">فایل های ضمیمه</label>
                                 <div class="input-group input-group-merge">
@@ -99,7 +90,7 @@
                                 </div>
                             </div>
                             <div class="col-sm-12 mt-3">
-                                <button type="submit" class="btn btn-primary data-submit me-sm-3 me-1">ثبت</button>
+                                <button type="submit" class="btn btn-primary data-submit me-sm-3 me-1">ایجاد</button>
                                 <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">
                                     انصراف
                                 </button>
@@ -108,142 +99,56 @@
                     </div>
                 </div>    
                 {% endif %}
-                {% if err %}
-                    <strong class="text-danger">{{ err }}</strong>
-                {% endif %}
-                {% if message %}
-                    <strong class="text-success">{{ message }}</strong>
-                {% endif %}
-                <div class="offcanvas offcanvas-end" id="add-new-record">
-                    <div class="offcanvas-header border-bottom">
-                        <h5 class="offcanvas-title" id="exampleModalLabel">پیام جدید</h5>
-                        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
-                                aria-label="Close"></button>
-                    </div>
-                    <div class="offcanvas-body flex-grow-1">
-                        <form class="add-new-record pt-0 row g-2" method="post"
-                              action="{% url 'ticket:ticket-create' %}" enctype="multipart/form-data">
-                            {% csrf_token %}
-                            <div class="col-sm-12">
-                                <label class="form-label" for="title">عنوان</label>
-                                <div class="input-group input-group-merge">
-                                <span id="title" class="input-group-text"><i
-                                        class="bx bx-star"></i></span>
-                                    <input type="text" id="title" class="form-control"
-                                           name="title"
-                                           placeholder="عنوان" aria-label="عنوان"
-                                           aria-describedby="title"
-                                           value="{{ title|default:'' }}">
-                                </div>
-                            </div>
-                            <div class="col-sm-12">
-                                <label class="form-label" for="national_code">پیام</label>
-                                <div class="input-group input-group-merge">
-                                <span id="content" class="input-group-text"></span>
-                                    <textarea type="text" rows="4" id="message" class="form-control"
-                                              name="content"
-                                              placeholder="پیام" aria-label="پیام"
-                                              aria-describedby="content">{{ content|default:'' }}</textarea>
-                                </div>
-                            </div>
-
-                            <div class="col-sm-12">
-                                <label class="form-label" for="files">فایل های ضمیمه</label>
-                                <div class="input-group input-group-merge">
-                                    <span id="files" class="input-group-text"><i class="bx bxs-file"></i></span>
-                                    <input type="file" id="files" class="form-control dt-files"
-                                           name="files" multiple
-                                           placeholder="فایل ها" aria-label="فایل ها"
-                                           aria-describedby="files">
-                                </div>
-                            </div>
-                            <div class="col-sm-12 mt-3">
-                                <button type="submit" class="btn btn-primary data-submit me-sm-3 me-1">ثبت</button>
-                                <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">
-                                    انصراف
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
             </h5>
             <div class="card-body">
                 <div class="table-responsive text-nowrap" style="min-height: 200px">
                     <table class="table table-bordered">
                         <thead>
                         <tr>
-                            <th>#</th>
-                            <th>کد رهگیری</th>
-                            <th>عنوان</th>
-                            <th>وضعیت</th>
-                            <th>تاریخ اخرین اقدام</th>
-                            <th>عمل‌ها</th>
+                            <th style="width: 10%">#</th>
+                            <th style="width: 10%">شماره</th>
+                            {% if request.user|notification_is_allowed:'create' %}
+                            <th style="width: 15%">پیام</th>    
+                            <th style="width: 25%">کاربر دریافت کننده</th>
+                            {% else %}
+                            <th style="width: 40%">کاربر دریافت کننده</th>   
+                            {% endif %}
+                            <th style="width: 20%">وضعیت</th>
+                            <th style="width: 15%">تاریخ</th>
+                            <th style="width: 5%">عمل‌ها</th>
                         </tr>
                         </thead>
                         <tbody class="table-border-bottom-0">
-                        {% for ticket in page %}
+                        {% for user_notification in page %}
                             <tr>
                                 <td>{{ forloop.counter }}</td>
-                                <td>{{ ticket.id }}</td>
+                                <td>{{ user_notification.notification.id }}</td>
                                 <td>
-                                    <strong><a href="{% url 'ticket:ticket-detail-with-id' ticket_id=ticket.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
-                                               target="_self">{{ ticket.title }}</a></strong>
+                                    <strong><a href="{% url 'ticket:notification-detail-with-id' notification_id=user_notification.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+                                               target="_self" data-toggle="tooltip" data-placement="top"
+                                                title="{{ user_notification.notification.content }}">{{ user_notification.notification.content|truncatechars:20 }}</a></strong>
                                 </td>
-                                <td>
-                                    {% if ticket.status == 'created' %}
-                                    <span class="badge bg-success">ایجاد شده</span>
-                                    {% elif ticket.status == 'pending' %}
-                                    <span class="badge bg-info">در حال بررسی</span>
-                                    {% elif ticket.status == 'admin_response' %}
-                                    <span class="badge bg-warning">پاسخ ادمین</span>
-                                    {% elif ticket.status == 'closed' %}
-                                    <span class="badge bg-gray">بسته شده</span>
+                                {% if request.user|notification_is_allowed:'create' %}
+                                <td>{{ user_notification.user.username }}</td>
+                                {% endif %}
+                                <td id="td_notification_has_seen_by_user_{{ forloop.counter }}">
+                                    {% if user_notification.has_seen_by_user %}
+                                    <span class="badge bg-success">دیده شده</span>
                                     {% else %}
-                                    <span class="badge bg-primary">پاسخ کاربر</span>
+                                    <span class="badge bg-warning">دیده نشده</span>
                                     {% endif %}
                                 </td>
-                                <td>{{ ticket.updated_at|date:'Y-m-d | H:i' }}</td>
-                                <td>
-                                    {% if not ticket.status == 'closed' %}
+                                <td>{{ user_notification.notification.created_at|date:'Y-m-d | H:i' }}</td>
+                                <td id="td_notification_change_state_drop_down_{{ forloop.counter }}">
+                                    {% if not user_notification.has_seen_by_user %}
                                     <div class="dropdown">
                                         <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
                                                 data-bs-toggle="dropdown">
                                             <i class="bx bx-dots-vertical-rounded"></i>
                                         </button>
                                         <div class="dropdown-menu">
-                                            <a class="dropdown-item" href="javascript:void(0);"
-                                                   data-bs-toggle="modal"
-                                                   data-bs-target="#closeModal_{{ forloop.counter }}"><i
-                                                        class="bx bxs-exit me-1"></i> بستن</a>
-                                        </div>
-                                        <div class="modal fade" id="closeModal_{{ forloop.counter }}"
-                                             tabindex="-1" aria-hidden="true">
-                                            <div class="modal-dialog modal-simple modal-enable-otp modal-dialog-centered">
-                                                <div class="modal-content p-3 p-md-5">
-                                                    <div class="modal-body">
-                                                        <button type="button" class="btn-close"
-                                                                data-bs-dismiss="modal"
-                                                                aria-label="Close"></button>
-                                                        <div class="text-center mb-4 mt-0 mt-md-n2">
-                                                            <h3 class="mb-4 secondary-font">تایید بستن</h3>
-                                                        </div>
-                                                        <h6>آیا از بستن تیکت <strong class="bg-warning">{{ ticket.title }}</strong> مطمئن هستید؟</h6>
-                                                        <form class="row g-3 mt-3" method="post" action="{% url 'ticket:ticket-close-with-id' ticket_id=ticket.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
-                                                            {% csrf_token %}
-                                                            <div class="col-12">
-                                                                <button type="submit"
-                                                                        class="btn btn-primary me-sm-3 me-1">
-                                                                    بله
-                                                                </button>
-                                                                <button type="reset" class="btn btn-label-secondary"
-                                                                        data-bs-dismiss="modal" aria-label="Close">
-                                                                    انصراف
-                                                                </button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <a id="notification_change_state_btn_{{ forloop.counter }}" class="dropdown-item" href="javascript:void(0)" onclick="notification_change_state('{{ user_notification.id }}', '{{ forloop.counter }}')"><span>{% if not user_notification.has_seen_by_user %}<i
+                                                        class="fa fa-eye me-1"></i>دیدم{% endif %}</span></a>
                                         </div>
                                     </div>
                                     {% else %}
@@ -253,6 +158,9 @@
                             </tr>
                         {% empty %}
                             <tr>
+                                {% if request.user|notification_is_allowed:'create' %}
+                                <td></td>
+                                {% endif %}
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -337,5 +245,30 @@
                 }, 200);
             })();
         });
+        
+        function notification_change_state(notification_id, forloop_counter) {
+            const formData = new FormData();
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+            const options = {
+                method: 'POST',
+                body: formData,
+            }
+            fetch('{% url 'ticket:notification-change_state-with-id' notification_id=0 %}'.replace('0', notification_id).replace('amp;', ''), options)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data['notification_has_seen_by_user'] === 'true') {
+                        document.getElementById('td_notification_has_seen_by_user_' + forloop_counter).innerHTML = '<span class="badge bg-success">دیده شده</span>'
+                        document.getElementById('td_notification_change_state_drop_down_' + forloop_counter).innerHTML = '-'
+                    }
+                })
+                .catch(error => {
+                    console.error('Error change product state:', error);
+                });
+            }
     </script>
 {% endblock %}

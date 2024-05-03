@@ -23,10 +23,8 @@ urlpatterns = [
     path('notification/list/', NotificationView().list, name='notification-list'),
     path('notification/filter/', NotificationView().filter, name='notification-filter'),
     path('notification/notification-create/', NotificationView().create, name='notification-create'),
-    path('notification/detail&id=<int:ticket_id>/', NotificationView().detail, name='notification-detail-with-id'),
-    path('notification/modify&id=<int:ticket_id>/', NotificationView().modify, name='notification-modify-with-id'),
-    path('notification/delete&id=<int:ticket_id>/', NotificationView().delete, name='notification-delete-with-id'),
-
+    path('notification/detail&id=<int:notification_id>/', NotificationView().detail, name='notification-detail-with-id'),
+    path('notification/change-state&id=<int:notification_id>/', NotificationView().change_state, name='notification-change_state-with-id'),
 
 ]
 

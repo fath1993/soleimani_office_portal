@@ -15,9 +15,9 @@ class Ticket(models.Model):
     subject = models.CharField(max_length=1024, null=True, blank=True, verbose_name='موضوع تیکت')
 
     owner = models.ForeignKey(User, related_name='ticket_owner', on_delete=models.CASCADE, null=False,
-                                  blank=False, editable=True, verbose_name='متعلق به')
+                              blank=False, editable=True, verbose_name='متعلق به')
     receiver = models.ForeignKey(User, related_name='ticket_receiver', on_delete=models.CASCADE, null=False,
-                                  blank=False, editable=True, verbose_name='ارسال شده به')
+                                 blank=False, editable=True, verbose_name='ارسال شده به')
     has_seen_by_owner = models.BooleanField(default=False, verbose_name='دیده شده توسط فرستنده')
 
     has_seen_by_receiver = models.BooleanField(default=False, verbose_name='دیده شده توسط گیرنده')
@@ -56,7 +56,6 @@ class Message(models.Model):
 
 
 class Notification(models.Model):
-    subject = models.CharField(max_length=1024, null=True, blank=True, verbose_name='موضوع اطلاعیه')
     content = models.TextField(null=False, blank=False, verbose_name='محتوا')
     attachments = models.ManyToManyField(FileGallery, blank=True, verbose_name='ضمائم')
     created_at = jmodels.jDateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
@@ -64,7 +63,7 @@ class Notification(models.Model):
                                    blank=False, editable=False, verbose_name='ساخته شده توسط')
 
     def __str__(self):
-        return f'{self.created_by.username} | {self.subject[:20]}'
+        return f'{self.created_by.username}'
 
     class Meta:
         verbose_name = 'اطلاعیه'

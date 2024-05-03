@@ -1,16 +1,20 @@
+import threading
+
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import JsonResponse
 from django.urls import reverse
 from django.shortcuts import render, redirect
+
+from accounts.models import UserNotification
 from gallery.models import FileGallery
 from panel.custom_decorator import RequireMethod
 from panel.views import CheckLogin, CheckPermissions
 
-from tickets.models import Ticket, Message
+from tickets.models import Ticket, Message, Notification
 from tickets.serializer import MessageSerializer
-from tickets.templatetags.tickets_custom_tag import ticket_admin_is_allowed
+from tickets.templatetags.tickets_custom_tag import ticket_admin_is_allowed, notification_is_allowed
 from utilities.http_metod import fetch_data_from_http_post, \
     fetch_files_from_http_post_data
 
@@ -324,50 +328,39 @@ class NotificationView:
         super().__init__()
 
     @CheckLogin()
-    @CheckPermissions(section='ticket', allowed_actions='read')
-    def list(self, request, box_status, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
+        context = {'page_title': 'اطلاعیه ها', 'get_params': request.GET.urlencode()}
         q = Q()
-        if box_status == 'sent':
+        if not notification_is_allowed(request.user, 'create'):
             q &= (
-                Q(**{'owner': request.user})
+                Q(**{'user': request.user})
             )
-            context = {'page_title': 'صندوق پیام های ارسالی', 'get_params': request.GET.urlencode()}
-        elif box_status == 'received':
-            q &= (
-                Q(**{'receiver': request.user})
-            )
-            context = {'page_title': 'صندوق پیام های دریافتی', 'get_params': request.GET.urlencode()}
-        elif box_status == 'all':
-            if not ticket_admin_is_allowed(request.user, 'read'):
-                return render(request, 'panel/err/err-not-authorized.html')
-            context = {'page_title': 'مدیریت پیام های کاربران سامانه', 'get_params': request.GET.urlencode()}
-        else:
-            return render(request, 'panel/err/err-not-found.html')
-
-        tickets = Ticket.objects.filter(q).order_by('-created_at')
-        context['tickets'] = tickets
+        notifications = UserNotification.objects.filter(q).order_by('-created_at')
+        context['notifications'] = notifications
 
         items_per_page = 50
-        paginator = Paginator(tickets, items_per_page)
+        paginator = Paginator(notifications, items_per_page)
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         context['page'] = page
 
-        return render(request, 'panel/tickets/ticket-list.html', context)
+        return render(request, 'panel/notifications/notification-list.html', context)
 
     @CheckLogin()
-    @CheckPermissions(section='ticket', allowed_actions='read')
-    def detail(self, request, ticket_id, *args, **kwargs):
+    def detail(self, request, notification_id, *args, **kwargs):
         try:
-            ticket = Ticket.objects.get(id=ticket_id)
-            context = {'page_title': f'جزئیات پیام با موضوع *{ticket.subject}*',
-                       'ticket': ticket, 'get_params': request.GET.urlencode()}
-            return render(request, 'panel/tickets/ticket-detail.html', context)
+            user_notification = UserNotification.objects.get(id=notification_id)
+            if user_notification.user != request.user:
+                if not notification_is_allowed(request.user, 'create'):
+                    return render(request, 'panel/err/err-not-authorized.html')
+            context = {'page_title': f'جزئیات اطلاعیه با شماره *{user_notification.notification.id}*',
+                       'user_notification': user_notification, 'get_params': request.GET.urlencode()}
+            return render(request, 'panel/notifications/notification-detail.html', context)
         except Exception as e:
             return render(request, 'panel/err/err-not-found.html')
 
     @CheckLogin()
-    @CheckPermissions(section='ticket', allowed_actions='read')
+    @CheckPermissions(section='notification', allowed_actions='read')
     def filter(self, request, *args, **kwargs):
         context = {}
         search = fetch_data_from_http_get(request, 'search', context)
@@ -461,145 +454,69 @@ class NotificationView:
         return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
 
     @CheckLogin()
-    @CheckPermissions(section='ticket', allowed_actions='create')
+    @CheckPermissions(section='notification', allowed_actions='create')
     @RequireMethod(allowed_method='POST')
     def create(self, request, *args, **kwargs):
-        context = {'page_title': 'ساخت تیزر ساز جدید', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'ساخت اطلاعیه جدید', 'get_params': request.GET.urlencode()}
 
-        name = fetch_data_from_http_post(request, 'name', context)
-        content_type = fetch_data_from_http_post(request, 'content_type', context)
-        code = fetch_data_from_http_post(request, 'code', context)
-        address = fetch_data_from_http_post(request, 'address', context)
-        phone_number = fetch_data_from_http_post(request, 'phone_number', context)
-        creation_price = fetch_data_from_http_post(request, 'creation_price', context)
-        editing_price = fetch_data_from_http_post(request, 'editing_price', context)
-        is_active = fetch_data_from_http_post(request, 'is_active', context)
+        content = fetch_data_from_http_post(request, 'content', context)
+        files = fetch_files_from_http_post_data(request, 'files', context)
 
-        if not name:
-            context['err'] = 'نام تیزر ساز بدرستی وارد نشده است'
-            return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
-        if not content_type:
-            context['err'] = 'نوع محتوا تیزر ساز بدرستی وارد نشده است'
-            return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
-        if not code:
-            context['err'] = 'کد تیزر ساز بدرستی وارد نشده است'
-            return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
-        if not address:
-            context['err'] = 'آدرس تیزر ساز بدرستی وارد نشده است'
-            return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
-        if not phone_number:
-            context['err'] = 'شماره تماس تیزر ساز بدرستی وارد نشده است'
-            return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
-        if not creation_price:
-            context['err'] = 'هزینه ساخت تیزر ساز بدرستی وارد نشده است'
-            return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
-        if not editing_price:
-            context['err'] = 'هزینه ویرایش تیزر ساز محصول بدرستی وارد نشده است'
-            return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
-        if is_active == 'true':
-            is_active = True
-        else:
-            is_active = False
+        if not content:
+            context['err'] = 'پیام اطلاعیه بدرستی وارد نشده است'
+            return render(request, 'panel/notifications/notification-list.html', context)
 
-        try:
-            TeaserMaker.objects.get(code=code)
-            context['err'] = f'تیزر ساز با کد {code} از قبل موجود است'
-            return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
-        except:
-            new_teaser_maker = TeaserMaker.objects.create(
-                name=name,
-                content_type=content_type,
-                code=code,
-                address=address,
-                phone_number=phone_number,
-                creation_price=creation_price,
-                editing_price=editing_price,
-                created_by=request.user,
-                updated_by=request.user,
-                is_active=is_active,
-            )
+        new_notification = Notification.objects.create(
+            content=content,
+            created_by=request.user,
+        )
 
-            context['message'] = f'تیزر ساز با کد {code} ایجاد گردید'
-            return redirect('panel:teaser-maker-list')
+        for file in files:
+            try:
+                new_file = FileGallery.objects.create(
+                    alt=file.name,
+                    file=file,
+                    created_by=request.user,
+                )
+                new_notification.attachments.add(new_file)
+            except:
+                pass
+        SendNotificationThread(notification=new_notification).start()
+
+        context['message'] = f'اطلاعیه با شماره {new_notification.id} ایجاد گردید'
+        return redirect('ticket:notification-list')
 
     @CheckLogin()
-    @CheckPermissions(section='ticket', allowed_actions='modify')
-    def modify(self, request, teaser_maker_id, *args, **kwargs):
+    def change_state(self, request, notification_id, *args, **kwargs):
         try:
-            teaser_maker = TeaserMaker.objects.get(id=teaser_maker_id)
-            context = {'page_title': f'ویرایش اطلاعات تیزر ساز *{teaser_maker.name}*',
-                       'teaser_maker': teaser_maker, 'get_params': request.GET.urlencode()}
-
-            if request.method == 'GET':
-                return render(request, 'panel/teaser-maker/teaser-maker-edit.html', context)
+            notification = UserNotification.objects.get(id=notification_id)
+            if notification.user != request.user:
+                return JsonResponse({"notification_has_seen_by_user": 'false'})
+            if not notification.has_seen_by_user:
+                notification.has_seen_by_user = True
+                notification_has_seen_by_user = 'true'
+                notification.save()
             else:
-                name = fetch_data_from_http_post(request, 'name', context)
-                content_type = fetch_data_from_http_post(request, 'content_type', context)
-                code = fetch_data_from_http_post(request, 'code', context)
-                address = fetch_data_from_http_post(request, 'address', context)
-                phone_number = fetch_data_from_http_post(request, 'phone_number', context)
-                creation_price = fetch_data_from_http_post(request, 'creation_price', context)
-                editing_price = fetch_data_from_http_post(request, 'editing_price', context)
-                is_active = fetch_data_from_http_post(request, 'is_active', context)
-
-                try:
-                    if name:
-                        teaser_maker.name = name
-                    if content_type:
-                        teaser_maker.content_type = content_type
-                    if code:
-                        teaser_maker.code = code
-                    if address:
-                        teaser_maker.address = address
-                    if phone_number:
-                        teaser_maker.phone_number = phone_number
-                    if creation_price:
-                        teaser_maker.creation_price = creation_price
-                    if editing_price:
-                        teaser_maker.editing_price = editing_price
-                    if is_active == 'true':
-                        is_active = True
-                    else:
-                        is_active = False
-                    teaser_maker.is_active = is_active
-                    teaser_maker.save()
-                    context['message'] = f'تیزر ساز با شناسه یکتا {teaser_maker.id} ویرایش گردید'
-                    return redirect(
-                        reverse('panel:teaser-maker-detail-with-id',
-                                kwargs={'teaser_maker_id': teaser_maker_id}) + f'?{request.GET.urlencode()}')
-                except:
-                    return render(request, 'panel/err/err-not-found.html')
-        except Exception as e:
-            return render(request, 'panel/err/err-not-found.html')
-
-    @CheckLogin()
-    @CheckPermissions(section='ticket', allowed_actions='delete')
-    def delete(self, request, teaser_maker_id, *args, **kwargs):
-        try:
-            teaser_maker = TeaserMaker.objects.get(id=teaser_maker_id)
-            context = {'page_title': f'حذف تیزر ساز {teaser_maker.name}', 'get_params': request.GET.urlencode()}
-            teaser_maker.delete()
-            return redirect(reverse('panel:teaser-maker-list') + f'?{request.GET.urlencode()}')
-        except Exception as e:
-            print(e)
-            return render(request, 'panel/err/err-not-found.html')
-
-    @CheckLogin()
-    @CheckPermissions(section='ticket', allowed_actions='modify')
-    def change_state(self, request, teaser_maker_id, *args, **kwargs):
-        try:
-            teaser_maker = TeaserMaker.objects.get(id=teaser_maker_id)
-            context = {'page_title': f'تغییر وضعیت تیزر ساز {teaser_maker.name}', 'get_params': request.GET.urlencode()}
-            if teaser_maker.is_active:
-                teaser_maker.is_active = False
-                teaser_maker_is_active = 'false'
-            else:
-                teaser_maker.is_active = True
-                teaser_maker_is_active = 'true'
-            teaser_maker.save()
-            return JsonResponse({"teaser_maker_is_active": teaser_maker_is_active})
+                notification_has_seen_by_user = 'false'
+            return JsonResponse({"notification_has_seen_by_user": notification_has_seen_by_user})
         except:
             return render(request, 'panel/err/err-not-found.html')
+
+
+class SendNotificationThread(threading.Thread):
+    def __init__(self, notification):
+        super().__init__()
+        self.notification = notification
+
+    def run(self):
+        for user in User.objects.all():
+            try:
+                UserNotification.objects.create(
+                    user=user,
+                    notification=self.notification,
+                )
+            except:
+                pass
 
 
 class MessageView:

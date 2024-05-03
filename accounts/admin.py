@@ -1,5 +1,5 @@
 from django.contrib import admin
-from accounts.models import Profile, Permission, Role
+from accounts.models import Profile, Permission, Role, UserNotification
 
 
 @admin.register(Permission)
@@ -80,3 +80,6 @@ class ProfileAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False
+
+
+admin.site.register(UserNotification)
