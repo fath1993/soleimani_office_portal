@@ -3,6 +3,7 @@ from django.urls import path
 from panel.views import DashboardView, UserView, PermissionView, RoleView, ProductView, TeaserMakerView, \
     ResellerNetworkView, ReceiverView, AdvertiseContentView, ForwardToPortalView, CommunicationChannelView, \
     RegistrarView
+from panel.viewsAutomation import CreditCardView, CustomerView, RequestedProductView, RequestedProductProcessingView
 
 app_name = 'panel'
 
@@ -100,5 +101,40 @@ urlpatterns = [
     path('registrar/modify&id=<int:registrar_id>/', RegistrarView().modify, name='registrar-modify-with-id'),
     path('registrar/delete&id=<int:registrar_id>/', RegistrarView().delete, name='registrar-delete-with-id'),
 
+    # Credit Card
+    path('credit-card/list/', CreditCardView().list, name='credit-card-list'),
+    path('credit-card/filter/', CreditCardView().filter, name='credit-card-filter'),
+    path('credit-card/create/', CreditCardView().create, name='credit-card-create'),
+    path('credit-card/detail&id=<int:credit_card_id>/', CreditCardView().detail, name='credit-card-detail-with-id'),
+    path('credit-card/modify&id=<int:credit_card_id>/', CreditCardView().modify, name='credit-card-modify-with-id'),
+    path('credit-card/delete&id=<int:credit_card_id>/', CreditCardView().delete, name='credit-card-delete-with-id'),
+    path('credit-card/change-state&id=<int:credit_card_id>/', CreditCardView().change_state, name='credit-card-change_state-with-id'),
+
+    # Customer
+    path('customer/list/', CustomerView().list, name='customer-list'),
+    path('customer/filter/', CustomerView().filter, name='customer-filter'),
+    path('customer/create/', CustomerView().create, name='customer-create'),
+    path('customer/detail&id=<int:customer_id>/', CustomerView().detail, name='customer-detail-with-id'),
+    path('customer/modify&id=<int:customer_id>/', CustomerView().modify, name='customer-modify-with-id'),
+    path('customer/delete&id=<int:customer_id>/', CustomerView().delete, name='customer-delete-with-id'),
+    path('customer/change-state&id=<int:customer_id>/', CustomerView().change_state, name='customer-change_state-with-id'),
+
+    # Requested Product
+    path('requested-product/list/', RequestedProductView().list, name='requested-product-list'),
+    path('requested-product/filter/', RequestedProductView().filter, name='requested-product-filter'),
+    path('requested-product/create/', RequestedProductView().create, name='requested-product-create'),
+    path('requested-product/detail&id=<int:requested_product_id>/', RequestedProductView().detail, name='requested-product-detail-with-id'),
+    path('requested-product/modify&id=<int:requested_product_id>/', RequestedProductView().modify, name='requested-product-modify-with-id'),
+    path('requested-product/delete&id=<int:requested_product_id>/', RequestedProductView().delete, name='requested-product-delete-with-id'),
+    path('requested-product/change-state&id=<int:requested_product_id>/', RequestedProductView().change_state, name='requested-product-change_state-with-id'),
+
+    # Requested Product Processing
+    path('requested-product-processing/list/', RequestedProductProcessingView().list, name='requested-product-processing-list'),
+    path('requested-product-processing/filter/', RequestedProductProcessingView().filter, name='requested-product-processing-filter'),
+    path('requested-product-processing/create/', RequestedProductProcessingView().create, name='requested-product-processing-create'),
+    path('requested-product-processing/detail&id=<int:requested_product_processing_id>/', RequestedProductProcessingView().detail, name='requested-product-processing-detail-with-id'),
+    path('requested-product-processing/modify&id=<int:requested_product_processing_id>/', RequestedProductProcessingView().modify, name='requested-product-processing-modify-with-id'),
+    path('requested-product-processing/delete&id=<int:requested_product_processing_id>/', RequestedProductProcessingView().delete, name='requested-product-processing-delete-with-id'),
+    path('requested-product-processing/change-state&id=<int:requested_product_processing_id>/', RequestedProductProcessingView().change_state, name='requested-product-processing-change_state-with-id'),
 
 ]

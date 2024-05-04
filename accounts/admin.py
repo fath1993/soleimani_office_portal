@@ -76,6 +76,8 @@ class ProfileAdmin(admin.ModelAdmin):
         'isbn',
         'address',
         'role',
+
+        'daily_allowed_product_processing_number',
     )
 
     def has_add_permission(self, request):

@@ -125,8 +125,8 @@
                                 <td>{{ user_notification.notification.id }}</td>
                                 <td>
                                     <strong><a href="{% url 'ticket:notification-detail-with-id' notification_id=user_notification.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
-                                               target="_self" data-toggle="tooltip" data-placement="top"
-                                                title="{{ user_notification.notification.content }}">{{ user_notification.notification.content|truncatechars:20 }}</a></strong>
+                                               target="_self" data-bs-toggle="tooltip" data-bs-offset="0,4" data-bs-placement="top" data-bs-html="true"
+                                                title="<span>{{ user_notification.notification.content }}</span>">{{ user_notification.notification.content|truncatechars:20 }}</a></strong>
                                 </td>
                                 {% if request.user|notification_is_allowed:'create' %}
                                 <td>{{ user_notification.user.username }}</td>
@@ -222,7 +222,7 @@
     <script src="{% static 'assets/js/main.js' %}"></script>
 
     <!-- Page JS -->
-
+    <script src="{% static 'assets/js/ui-popover.js' %}"></script>
     <script>
         'use strict';
         var dt_complex_header_table = $('.dt-complex-header')

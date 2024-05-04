@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'tickets',
     'automation',
     'conversation',
+    'reports',
 ]
 
 MIDDLEWARE = [

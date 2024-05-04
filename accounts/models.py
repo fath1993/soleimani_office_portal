@@ -66,6 +66,8 @@ class Profile(models.Model):
     role = models.ForeignKey(Role, related_name='profile_roles', on_delete=models.SET_NULL, null=True, blank=True,
                              verbose_name='نقش')
 
+    daily_allowed_product_processing_number = models.IntegerField(default=0, null=False, blank=False, verbose_name='تعداد مجاز فروش محصولات روزانه')
+
     def __str__(self):
         return self.user.username
 

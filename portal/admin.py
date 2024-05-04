@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from portal.models import Product, Registrar, ForwardToPortal, CommunicationChannel, TeaserMaker, ResellerNetwork, \
-    Receiver, AdvertiseContent
+    Receiver, AdvertiseContent, ProductWarehouse
 
 
 @admin.register(Product)
@@ -64,6 +64,7 @@ class ProductAdmin(admin.ModelAdmin):
         return instance
 
 
+admin.site.register(ProductWarehouse)
 admin.site.register(TeaserMaker)
 admin.site.register(ResellerNetwork)
 admin.site.register(Receiver)

@@ -16,7 +16,7 @@ from tickets.models import Ticket, Message, Notification
 from tickets.serializer import MessageSerializer
 from tickets.templatetags.tickets_custom_tag import ticket_admin_is_allowed, notification_is_allowed
 from utilities.http_metod import fetch_data_from_http_post, \
-    fetch_files_from_http_post_data
+    fetch_files_from_http_post_data, fetch_data_from_http_get
 
 
 class TicketView:
