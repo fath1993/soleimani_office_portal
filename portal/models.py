@@ -80,8 +80,8 @@ class ProductWarehouse(models.Model):
 
     class Meta:
         ordering = ['created_at', ]
-        verbose_name = 'محصول'
-        verbose_name_plural = 'محصولات'
+        verbose_name = 'اطلاعات جانبی محصول'
+        verbose_name_plural = 'اطلاعات جانبی محصولات'
 
 
 @receiver(post_save, sender=Product)

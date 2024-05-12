@@ -64,10 +64,53 @@ class ProductAdmin(admin.ModelAdmin):
         return instance
 
 
+@admin.register(Receiver)
+class ReceiverAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'receiving_type',
+        'code',
+        'receiver_phone_number',
+        'price',
+    )
+
+    readonly_fields = (
+        'created_at',
+        'updated_at',
+        'created_by',
+        'updated_by',
+    )
+
+    fields = (
+        'name',
+        'receiving_type',
+        'code',
+        'receiver_phone_number',
+        'price',
+        'created_at',
+        'updated_at',
+        'created_by',
+        'updated_by',
+
+        'is_active',
+    )
+
+    def save_model(self, request, instance, form, change):
+        user = request.user
+        instance = form.save(commit=False)
+        if not change:
+            instance.created_by = user
+            instance.updated_by = user
+        else:
+            instance.updated_by = user
+        instance.save()
+        form.save_m2m()
+        return instance
+
+
 admin.site.register(ProductWarehouse)
 admin.site.register(TeaserMaker)
 admin.site.register(ResellerNetwork)
-admin.site.register(Receiver)
 admin.site.register(AdvertiseContent)
 admin.site.register(ForwardToPortal)
 admin.site.register(CommunicationChannel)

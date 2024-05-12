@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django_jalali.db import models as jmodel
 
-from portal.models import Product
+from portal.models import Product, Receiver
 
 REQUESTED_PRODUCT_PROCESSING_IN_DEPARTMENT_STATUS = (('sales', 'فروش'), ('warehouse', 'انبار'),
                                                      ('delivery', 'ارسال'))
@@ -10,68 +10,35 @@ REQUESTED_PRODUCT_PROCESSING_IN_DEPARTMENT_STATUS = (('sales', 'فروش'), ('wa
 REQUESTED_PRODUCT_SALES_STATUS = (('processing', 'در حال پردازش'), ('soled', 'فروخته شده'),
                                   ('canceled', 'کنسل شده'))
 
-REQUESTED_PRODUCT_WAREHOUSE_STATUS = (('pending', 'در انتظار'), ('processing', 'در حال پردازش'), ('sent_to_delivery', 'تحویل به واحد ارسال'),
-                                      ('return_to_sales', 'بازگشت به واحد فروش'))
+REQUESTED_PRODUCT_WAREHOUSE_STATUS = (
+('pending', 'در انتظار'), ('processing', 'در حال پردازش'), ('sent_to_delivery', 'تحویل به واحد ارسال'),
+('return_to_sales', 'بازگشت به واحد فروش'))
 
-REQUESTED_PRODUCT_DELIVERY_STATUS = (('pending', 'در انتظار'), ('processing', 'در حال پردازش'), ('delivered', 'تحویل شده به مشتری'),
-                                     ('return_to_warehouse', 'بازگشت به واحد انبار'))
+REQUESTED_PRODUCT_DELIVERY_STATUS = (
+('pending', 'در انتظار'), ('processing', 'در حال پردازش'), ('delivered', 'تحویل شده به مشتری'),
+('return_to_warehouse', 'بازگشت به واحد انبار'))
 
 
-class Project(models.Model):
-    name = models.CharField(max_length=255, null=False, blank=False, verbose_name='نام')
+class ProductRelation(models.Model):
+    product = models.ForeignKey(Product, related_name='product_product_relation', on_delete=models.CASCADE, null=False,
+                                blank=False, verbose_name='محصول')
+    receiver = models.ForeignKey(Receiver, related_name='receiver_product_relation',
+                                         on_delete=models.SET_NULL, null=True,
+                                         blank=True, verbose_name='دریافت کننده')
+    number = models.PositiveSmallIntegerField(default=0, null=False, blank=False, verbose_name='شماره مرتبط')
     created_at = jmodel.jDateTimeField(auto_now_add=True, verbose_name='تاریخ و زمان ایجاد')
-    created_by = models.ForeignKey(User, related_name='created_by_project', on_delete=models.CASCADE, null=False,
+    created_by = models.ForeignKey(User, related_name='created_by_product_relation', on_delete=models.CASCADE,
+                                   null=False,
                                    blank=False, editable=False, verbose_name='ایجاد شده توسط')
 
     def __str__(self):
-        return f'name: {self.name}'
+        return f'product name: {self.product.name} | receiver network: {self.receiver.receiver_phone_number}'
 
     class Meta:
+        unique_together = ('product', 'receiver', 'number')
         ordering = ['created_at', ]
-        verbose_name = 'تیم'
-        verbose_name_plural = 'تیم ها'
-
-
-class Task(models.Model):
-    name = models.CharField(max_length=255, null=False, blank=False, verbose_name='نام')
-    description = models.TextField(null=False, blank=False, verbose_name='توضیحات')
-
-    '''
-    detail is json array with the bellow format:
-    {
-        [0]: {
-            'detail_description': 'xxx',
-            'created_at': 'xxx',
-            'created_by': 'xxx',
-            'previous_worker': 'xxx',
-        },
-        [1]: {
-            'detail_description': 'xxx',
-            'created_at': 'xxx',
-            'created_by': 'xxx',
-            'previous_worker': 'xxx',
-        },
-        ...
-    }
-    '''
-    detail = models.TextField(null=True, blank=True, verbose_name='جزئیات')
-    previous_worker = models.ForeignKey(User, related_name='task_previous_worker',
-                                        on_delete=models.CASCADE, null=False,
-                                        blank=False, editable=False, verbose_name='در حال اجرا توسط')
-    current_worker = models.ForeignKey(User, related_name='task_current_worker',
-                                       on_delete=models.CASCADE, null=False,
-                                       blank=False, editable=False, verbose_name='در حال اجرا توسط')
-    created_at = jmodel.jDateTimeField(auto_now_add=True, verbose_name='تاریخ و زمان ایجاد')
-    created_by = models.ForeignKey(User, related_name='created_by_task', on_delete=models.CASCADE, null=False,
-                                   blank=False, editable=False, verbose_name='ایجاد شده توسط')
-
-    def __str__(self):
-        return f'name: {self.name}'
-
-    class Meta:
-        ordering = ['created_at', ]
-        verbose_name = 'وظیفه'
-        verbose_name_plural = 'وظایف'
+        verbose_name = 'ارتباط محصول و دریافت کننده'
+        verbose_name_plural = 'ارتباط محصولات و دریافت کنندگان'
 
 
 class CreditCard(models.Model):
@@ -81,8 +48,7 @@ class CreditCard(models.Model):
     isbn = models.CharField(max_length=255, null=True, blank=True, verbose_name='شماره شبا')
     owner = models.ForeignKey(User, related_name='owner_credit_card', on_delete=models.CASCADE, null=False,
                               blank=False, verbose_name='مالک')
-    broker = models.ForeignKey(User, related_name='broker_credit_card', on_delete=models.SET_NULL, null=True,
-                               blank=True, verbose_name='کارگزار')
+    broker = models.ManyToManyField(User, related_name='broker_credit_card', blank=True, verbose_name='کارگزار')
     created_at = jmodel.jDateTimeField(auto_now_add=True, verbose_name='تاریخ و زمان ایجاد')
     updated_at = jmodel.jDateTimeField(auto_now=True, verbose_name='تاریخ و زمان بروزرسانی')
     created_by = models.ForeignKey(User, related_name='created_by_credit_card', on_delete=models.CASCADE, null=False,
@@ -91,7 +57,7 @@ class CreditCard(models.Model):
                                    blank=False, editable=False, verbose_name='بروز شده توسط')
 
     def __str__(self):
-        return f'id: {self.id} | bank name: {self.bank_name}'
+        return f'{self.id} | {self.bank_name}'
 
     class Meta:
         ordering = ['created_at', ]
@@ -101,15 +67,15 @@ class CreditCard(models.Model):
 
 class Customer(models.Model):
     phone_number = models.CharField(max_length=255, null=False, blank=False, verbose_name='شماره تماس')
-    full_name = models.CharField(max_length=255, null=False, blank=False, verbose_name='نام کامل')
-    age = models.CharField(max_length=255, null=False, blank=False, verbose_name='تاریخ تولد')
-    address = models.CharField(max_length=1000, null=False, blank=False, verbose_name='آدرس')
+    full_name = models.CharField(max_length=255, null=True, blank=True, verbose_name='نام کامل')
+    age = models.CharField(max_length=255, null=True, blank=True, verbose_name='تاریخ تولد')
+    address = models.CharField(max_length=1000, null=True, blank=True, verbose_name='آدرس')
     desired_product = models.ManyToManyField(Product, related_name='desired_product_customer',
                                              blank=True, verbose_name='محصولات مورد علاقه')
     created_at = jmodel.jDateTimeField(auto_now_add=True, verbose_name='تاریخ و زمان ایجاد')
 
     def __str__(self):
-        return f'phone number: {self.phone_number}'
+        return f'{self.phone_number}'
 
     class Meta:
         ordering = ['created_at', ]
@@ -168,8 +134,8 @@ class RequestedProductProcessing(models.Model):
     '''warehouse department'''
     # assign by system
     warehouse_keeper = models.ForeignKey(User, related_name='warehouse_keeper_requested_product_processing',
-                                         on_delete=models.CASCADE, null=False,
-                                         blank=False, editable=False, verbose_name='انباردار')
+                                         on_delete=models.CASCADE, null=True,
+                                         blank=True, editable=False, verbose_name='انباردار')
     # can change by warehouse_keeper
     warehouse_status = models.CharField(max_length=255, default='pending',
                                         choices=REQUESTED_PRODUCT_WAREHOUSE_STATUS,
@@ -184,8 +150,8 @@ class RequestedProductProcessing(models.Model):
     '''delivery department'''
     # assign by system
     delivery_man = models.ForeignKey(User, related_name='delivery_man_requested_product_processing',
-                                     on_delete=models.CASCADE, null=False,
-                                     blank=False, editable=False, verbose_name='اختصاص یافته به')
+                                     on_delete=models.CASCADE, null=True,
+                                     blank=True, editable=False, verbose_name='اختصاص یافته به')
     # can change by delivery_man
     delivery_status = models.CharField(max_length=255, default='pending',
                                        choices=REQUESTED_PRODUCT_DELIVERY_STATUS,
@@ -204,7 +170,7 @@ class RequestedProductProcessing(models.Model):
                                    blank=False, editable=False, verbose_name='بروز شده توسط')
 
     def __str__(self):
-        return f'requested product: {self.requested_product.product.name}'
+        return f'{self.requested_product.product.name}'
 
     class Meta:
         ordering = ['-created_at']
@@ -220,6 +186,7 @@ class RequestedProductProcessingReport(models.Model):
     department = models.CharField(max_length=255,
                                   choices=REQUESTED_PRODUCT_PROCESSING_IN_DEPARTMENT_STATUS,
                                   null=False,
+                                  editable=False,
                                   blank=False, verbose_name='واحد پردازش کننده محصول')
     report = models.TextField(null=True, blank=True, verbose_name='گزارش')
     created_at = jmodel.jDateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
@@ -228,7 +195,7 @@ class RequestedProductProcessingReport(models.Model):
                                    blank=False, editable=False, verbose_name='بروز شده توسط')
 
     def __str__(self):
-        return f'requested product: {self.requested_product_processing.requested_product.product.name}'
+        return f'{self.requested_product_processing.requested_product.product.name}'
 
     class Meta:
         ordering = ['-created_at']

@@ -1725,4 +1725,3 @@ class RequestedProductProcessingView:
             return JsonResponse({"product_is_active": product_is_active})
         except:
             return render(request, 'panel/err/err-not-found.html')
-

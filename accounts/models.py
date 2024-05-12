@@ -82,7 +82,7 @@ def auto_create_user_profile(sender, instance, created, **kwargs):
         if instance.is_superuser:
             permission = Permission.objects.get_or_create(title='همه')
             new_profile = Profile.objects.create(user=instance)
-            new_profile.permissions.add(permission[0])
+            new_profile.role.add(permission[0])
             new_profile.save()
 
         else:

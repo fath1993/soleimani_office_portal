@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'automation',
     'conversation',
     'reports',
+    'webhook',
 ]
 
 MIDDLEWARE = [
