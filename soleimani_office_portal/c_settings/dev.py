@@ -15,3 +15,8 @@ DATABASES['log_db'] = {
     'ENGINE': 'django.db.backends.sqlite3',
     'NAME': BASE_DIR / 'log_db.sqlite3',
 }
+
+DATABASES['robot_db'] = {
+    'ENGINE': 'django.db.backends.sqlite3',
+    'NAME': BASE_DIR / 'robot_db.sqlite3',
+}

@@ -5,7 +5,7 @@ import jdatetime
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 
-from accounts.models import Profile
+from accounts.models import Profile, SellerProfile
 from automation.models import ProductRelation, RequestedProduct, Customer, RequestedProductProcessing
 from panel.custom_decorator import RequireMethod
 from utilities.http_metod import fetch_data_from_http_post
@@ -52,19 +52,18 @@ class WebhookView:
                     requested_product.is_processed = False
                     requested_product.save()
 
-                    sales_allowed_users = Profile.objects.filter(daily_allowed_product_processing_number__gte=0)
-                    sales_allowed_user_with_available_quantity = []
-                    for sales_allowed_user in sales_allowed_users:
-                        user = sales_allowed_user.user
+                    sales_allowed_profiles = SellerProfile.objects.filter(daily_allowed_product_processing_number__gte=0)
+                    sales_allowed_profiles_with_available_quantity = []
+                    for sales_allowed_profile in sales_allowed_profiles:
                         now = jdatetime.datetime.now()
                         start_of_today = jdatetime.datetime(year=now.year, month=now.month, day=now.day, hour=0,
                                                             minute=0, second=0)
                         all_request_product_processing_that_belong_to_user = RequestedProductProcessing.objects.filter(
-                            created_at__gte=start_of_today, seller=user)
-                        if all_request_product_processing_that_belong_to_user.count() < sales_allowed_user.daily_allowed_product_processing_number:
-                            sales_allowed_user_with_available_quantity.append(user)
-                    if len(sales_allowed_user_with_available_quantity) > 0:
-                        seller = random.choice(sales_allowed_user_with_available_quantity)
+                            created_at__gte=start_of_today, seller=sales_allowed_profile)
+                        if all_request_product_processing_that_belong_to_user.count() < sales_allowed_profile.daily_allowed_product_processing_number:
+                            sales_allowed_profiles_with_available_quantity.append(sales_allowed_profile)
+                    if len(sales_allowed_profiles_with_available_quantity) > 0:
+                        seller = random.choice(sales_allowed_profiles_with_available_quantity)
                         RequestedProductProcessing.objects.create(
                             requested_product=requested_product,
                             seller=seller,

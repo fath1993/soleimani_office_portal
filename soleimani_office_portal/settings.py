@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'django_jalali',
     'rest_framework',
     'knox',
+    'robot',
     'custom_logs',
     'accounts',
     'gallery',
@@ -33,7 +34,6 @@ INSTALLED_APPS = [
     'panel',
     'tickets',
     'automation',
-    'conversation',
     'reports',
     'webhook',
 ]

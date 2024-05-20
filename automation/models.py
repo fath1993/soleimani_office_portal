@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django_jalali.db import models as jmodel
 
+from accounts.models import SellerProfile, WarehouseProfile, DeliveryProfile
 from portal.models import Product, Receiver
 
 REQUESTED_PRODUCT_PROCESSING_IN_DEPARTMENT_STATUS = (('sales', 'فروش'), ('warehouse', 'انبار'),
@@ -11,20 +12,20 @@ REQUESTED_PRODUCT_SALES_STATUS = (('processing', 'در حال پردازش'), ('
                                   ('canceled', 'کنسل شده'))
 
 REQUESTED_PRODUCT_WAREHOUSE_STATUS = (
-('pending', 'در انتظار'), ('processing', 'در حال پردازش'), ('sent_to_delivery', 'تحویل به واحد ارسال'),
-('return_to_sales', 'بازگشت به واحد فروش'))
+    ('pending', 'در انتظار'), ('processing', 'در حال پردازش'), ('sent_to_delivery', 'تحویل به واحد ارسال'),
+    ('return_to_sales', 'بازگشت به واحد فروش'))
 
 REQUESTED_PRODUCT_DELIVERY_STATUS = (
-('pending', 'در انتظار'), ('processing', 'در حال پردازش'), ('delivered', 'تحویل شده به مشتری'),
-('return_to_warehouse', 'بازگشت به واحد انبار'))
+    ('pending', 'در انتظار'), ('processing', 'در حال پردازش'), ('delivered', 'تحویل شده به مشتری'),
+    ('return_to_warehouse', 'بازگشت به واحد انبار'))
 
 
 class ProductRelation(models.Model):
     product = models.ForeignKey(Product, related_name='product_product_relation', on_delete=models.CASCADE, null=False,
                                 blank=False, verbose_name='محصول')
     receiver = models.ForeignKey(Receiver, related_name='receiver_product_relation',
-                                         on_delete=models.SET_NULL, null=True,
-                                         blank=True, verbose_name='دریافت کننده')
+                                 on_delete=models.SET_NULL, null=True,
+                                 blank=True, verbose_name='دریافت کننده')
     number = models.PositiveSmallIntegerField(default=0, null=False, blank=False, verbose_name='شماره مرتبط')
     created_at = jmodel.jDateTimeField(auto_now_add=True, verbose_name='تاریخ و زمان ایجاد')
     created_by = models.ForeignKey(User, related_name='created_by_product_relation', on_delete=models.CASCADE,
@@ -116,7 +117,7 @@ class RequestedProductProcessing(models.Model):
                                             blank=False, verbose_name='واحد فعلی پردازش کننده محصول')
     '''sales department'''
     # assign by system
-    seller = models.ForeignKey(User, related_name='seller_requested_product_processing',
+    seller = models.ForeignKey(SellerProfile, related_name='seller_requested_product_processing',
                                on_delete=models.CASCADE, null=False,
                                blank=False, editable=False, verbose_name='اختصاص یافته به')
     # can change by sales department manager
@@ -133,7 +134,7 @@ class RequestedProductProcessing(models.Model):
 
     '''warehouse department'''
     # assign by system
-    warehouse_keeper = models.ForeignKey(User, related_name='warehouse_keeper_requested_product_processing',
+    warehouse_keeper = models.ForeignKey(WarehouseProfile, related_name='warehouse_keeper_requested_product_processing',
                                          on_delete=models.CASCADE, null=True,
                                          blank=True, editable=False, verbose_name='انباردار')
     # can change by warehouse_keeper
@@ -143,13 +144,11 @@ class RequestedProductProcessing(models.Model):
                                         blank=False, verbose_name='وضعیت انبار محصول درخواستی')
     is_confirmed_by_warehouse_keeper = models.BooleanField(default=False, verbose_name='تایید واحد انبار')
 
-    # can change by warehouse department manager
-    is_confirmed_by_warehouse_department = models.BooleanField(default=False, verbose_name='تایید مدیریت واحد انبار')
     '''warehouse department'''
 
     '''delivery department'''
     # assign by system
-    delivery_man = models.ForeignKey(User, related_name='delivery_man_requested_product_processing',
+    delivery_man = models.ForeignKey(DeliveryProfile, related_name='delivery_man_requested_product_processing',
                                      on_delete=models.CASCADE, null=True,
                                      blank=True, editable=False, verbose_name='اختصاص یافته به')
     # can change by delivery_man
@@ -159,8 +158,6 @@ class RequestedProductProcessing(models.Model):
                                        blank=False, verbose_name='وضعیت ارسال محصول درخواستی')
     is_confirmed_by_delivery_man = models.BooleanField(default=False, verbose_name='تایید واحد ارسال')
 
-    # can change by delivery department manager
-    is_confirmed_by_delivery_department = models.BooleanField(default=False, verbose_name='تایید مدیریت واحد ارسال')
     '''delivery department'''
 
     created_at = jmodel.jDateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')

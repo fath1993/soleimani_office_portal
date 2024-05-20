@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class ConversationConfig(AppConfig):
+class RobotConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'conversation'
+    name = 'robot'

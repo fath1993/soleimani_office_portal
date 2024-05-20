@@ -1,53 +1,13 @@
 import random
 import threading
 import time
-
 import jdatetime
+from django.contrib.auth.models import User
 
 from accounts.models import Profile
 from automation.models import RequestedProductProcessing, RequestedProduct
 from custom_logs.models import custom_log
-
-
-class AutomationMainFunctionThread(threading.Thread):
-    def __init__(self, name):
-        super().__init__()
-        self._name = name
-
-    def run(self):
-        active_threads = threading.enumerate()
-        threads_name_list = []
-        for thread in active_threads:
-            if thread.is_alive():
-                threads_name_list.append(str(thread.name))
-        if not 'general_functions_thread' in threads_name_list:
-            custom_log("general_functions: start GeneralFunctionsThread")
-            GeneralFunctionsThread(name='general_functions_thread').start()
-            time.sleep(1)
-        return
-
-
-class GeneralFunctionsThread(threading.Thread):
-    def __init__(self, name):
-        super().__init__()
-        self._name = name
-
-    def run(self):
-        active_threads = threading.enumerate()
-        threads_name_list = []
-        for thread in active_threads:
-            if thread.is_alive():
-                threads_name_list.append(str(thread.name))
-        if not 'check_requested_product_thread' in threads_name_list:
-            custom_log("general_functions: start CheckRequestedProductThread")
-            CheckRequestedProductThread(name='check_requested_product_thread').start()
-            time.sleep(1)
-
-        if not 'check_product_warehouse_thread' in threads_name_list:
-            custom_log("general_functions: start CheckProductWarehouseThread")
-            CheckProductWarehouseThread(name='check_product_warehouse_thread').start()
-            time.sleep(1)
-
+from robot.models import RequestedProductThreadIsActive, ProductWarehouseThreadIsActive
 
 
 class CheckRequestedProductThread(threading.Thread):
@@ -67,6 +27,13 @@ class CheckRequestedProductThread(threading.Thread):
                 custom_log(f"check_requested_product:try/except-> err: {str(e)}.  waiting for 5 seconds")
                 time.sleep(5)
 
+            threads = RequestedProductThreadIsActive.objects.filter()
+            if threads.count() == 0:
+                RequestedProductThreadIsActive.objects.create()
+            else:
+                thread = threads.latest('id')
+                thread.save()
+
 
 class CheckProductWarehouseThread(threading.Thread):
     def __init__(self, name):
@@ -84,6 +51,13 @@ class CheckProductWarehouseThread(threading.Thread):
             except Exception as e:
                 custom_log(f"check_product_warehouse:try/except-> err: {str(e)}.  waiting for 5 seconds")
                 time.sleep(5)
+
+            threads = ProductWarehouseThreadIsActive.objects.filter()
+            if threads.count() == 0:
+                ProductWarehouseThreadIsActive.objects.create()
+            else:
+                thread = threads.latest('id')
+                thread.save()
 
 
 def check_requested_product():
@@ -104,6 +78,7 @@ def check_requested_product():
             RequestedProductProcessing.objects.create(
                 requested_product=requested_product,
                 seller=random.choice(sales_allowed_user_with_available_quantity),
+                updated_by=User.objects.get(username='admin')
             )
         time.sleep(0.1)
 

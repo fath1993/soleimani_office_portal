@@ -8,7 +8,6 @@ urlpatterns = [
     path('', include('panel.urls')),
     path('accounts/', include('accounts.urls')),
     path('tickets/', include('tickets.urls')),
-    path('conversation/', include('conversation.urls')),
     path('webhook/', include('webhook.urls')),
     path('automation/', include('automation.urls')),
 ]

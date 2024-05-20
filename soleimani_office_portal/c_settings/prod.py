@@ -18,9 +18,16 @@ DATABASES['log_db'] = {
     'NAME': BASE_DIR / 'log_db.sqlite3',
 }
 
-# CRONJOBS = [
-#     ('*/59 * * * *', 'account.tasks.refresh_tokens',),
-# ]
+DATABASES['robot_db'] = {
+    'ENGINE': 'django.db.backends.sqlite3',
+    'NAME': BASE_DIR / 'robot_db.sqlite3',
+}
+
+CRONJOBS = [
+    # minute, hours, day of month, month, day of week
+    ('*/15 * * * *', 'robot.cron.check_requested_product_thread_is_active',),
+    ('*/15 * * * *', 'robot.cron.check_product_warehouse_thread_is_active',),
+]
 
 # DATABASES['default'] = {
 #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
