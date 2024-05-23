@@ -8,13 +8,14 @@ from django.urls import reverse
 from django.shortcuts import render, redirect
 
 from accounts.models import UserNotification
+from accounts.templatetags.account_custom_tag import has_access_to_section
 from gallery.models import FileGallery
 from panel.custom_decorator import RequireMethod
 from panel.views import CheckLogin, CheckPermissions
+from portal.models import TeaserMaker
 
 from tickets.models import Ticket, Message, Notification
 from tickets.serializer import MessageSerializer
-from tickets.templatetags.tickets_custom_tag import ticket_admin_is_allowed, notification_is_allowed
 from utilities.http_metod import fetch_data_from_http_post, \
     fetch_files_from_http_post_data, fetch_data_from_http_get
 
@@ -38,7 +39,7 @@ class TicketView:
             )
             context = {'page_title': 'صندوق پیام های دریافتی', 'get_params': request.GET.urlencode()}
         elif box_status == 'all':
-            if not ticket_admin_is_allowed(request.user, 'read'):
+            if not has_access_to_section(request.user, 'read,ticket_admin'):
                 return render(request, 'panel/err/err-not-authorized.html')
             context = {'page_title': 'مدیریت پیام های کاربران سامانه', 'get_params': request.GET.urlencode()}
         else:
@@ -63,7 +64,7 @@ class TicketView:
             q &= Q(
                 Q(**{'id': ticket_id})
             )
-            if not ticket_admin_is_allowed:
+            if not has_access_to_section(request, 'read,create,modify,delete,ticket_admin'):
                 q &= Q(
                     Q(**{'owner': request.user}) |
                     Q(**{'receiver': request.user})
@@ -74,7 +75,7 @@ class TicketView:
             z &= Q(
                 Q(**{'ticket__id': ticket_id})
             )
-            if not ticket_admin_is_allowed:
+            if not has_access_to_section(request, 'read,create,modify,delete,ticket_admin'):
                 z &= Q(
                     Q(**{'ticket__owner': request.user}) |
                     Q(**{'ticket__receiver': request.user})
@@ -331,7 +332,7 @@ class NotificationView:
     def list(self, request, *args, **kwargs):
         context = {'page_title': 'اطلاعیه ها', 'get_params': request.GET.urlencode()}
         q = Q()
-        if not notification_is_allowed(request.user, 'create'):
+        if not has_access_to_section(request, 'create,notification'):
             q &= (
                 Q(**{'user': request.user})
             )
@@ -351,7 +352,7 @@ class NotificationView:
         try:
             user_notification = UserNotification.objects.get(id=notification_id)
             if user_notification.user != request.user:
-                if not notification_is_allowed(request.user, 'create'):
+                if not has_access_to_section(request, 'create,notification'):
                     return render(request, 'panel/err/err-not-authorized.html')
             context = {'page_title': f'جزئیات اطلاعیه با شماره *{user_notification.notification.id}*',
                        'user_notification': user_notification, 'get_params': request.GET.urlencode()}
@@ -530,7 +531,7 @@ class MessageView:
         q &= Q(
             Q(**{'ticket__id': ticket_id})
         )
-        if not ticket_admin_is_allowed:
+        if not has_access_to_section(request, 'read,create,modify,delete,ticket_admin'):
             q &= Q(
                 Q(**{'ticket__owner': request.user}) |
                 Q(**{'ticket__receiver': request.user})
@@ -553,7 +554,7 @@ class MessageView:
             message = Message.objects.filter(id=message_id)
             if message.count() == 0:
                 return render(request, 'panel/err/err-not-found.html')
-            if not ticket_admin_is_allowed(request.user, allowed_actions='read'):
+            if not has_access_to_section(request, 'read,ticket_admin'):
                 if message.ticket.belong_to != request.user:
                     return render(request, 'panel/err/err-not-authorized.html')
             serializer = MessageSerializer(message, many=True)
@@ -575,7 +576,7 @@ class MessageView:
             q &= Q(
                 Q(**{'id': ticket_id})
             )
-            if not ticket_admin_is_allowed:
+            if not has_access_to_section(request, 'read,create,modify,delete,ticket_admin'):
                 q &= Q(
                     Q(**{'owner': request.user}) |
                     Q(**{'receiver': request.user})

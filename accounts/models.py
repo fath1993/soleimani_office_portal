@@ -61,6 +61,7 @@ class Permission(models.Model):
         return f'{self.has_access_to_section}: {string}'
 
     class Meta:
+        ordering = ['id', ]
         verbose_name = 'اجازه'
         verbose_name_plural = 'اجازه ها'
 
@@ -75,6 +76,7 @@ class Role(models.Model):
         return self.title
 
     class Meta:
+        ordering = ['id', ]
         verbose_name = 'نقش'
         verbose_name_plural = 'نقش ها'
 
@@ -107,6 +109,7 @@ class SellerProfile(models.Model):
     profile = models.OneToOneField(Profile, related_name='profile_seller_profile', on_delete=models.CASCADE, null=False,
                                    blank=False,
                                    editable=False, verbose_name='پروفایل کاربر')
+    is_sales_admin = models.BooleanField(default=False, verbose_name='ایا مدیر فروش است؟')
     daily_allowed_product_processing_number = models.PositiveIntegerField(default=0, null=False, blank=False,
                                                                           verbose_name='تعداد مجاز فروش محصولات روزانه')
 
@@ -122,6 +125,7 @@ class WarehouseProfile(models.Model):
     profile = models.OneToOneField(Profile, related_name='profile_warehouse_profile', on_delete=models.CASCADE, null=False,
                                    blank=False,
                                    editable=False, verbose_name='پروفایل کاربر')
+    is_warehouse_admin = models.BooleanField(default=False, verbose_name='ایا مدیر انبار است؟')
 
     def __str__(self):
         return self.profile.user.username
@@ -135,6 +139,7 @@ class DeliveryProfile(models.Model):
     profile = models.OneToOneField(Profile, related_name='profile_delivery_profile', on_delete=models.CASCADE, null=False,
                                    blank=False,
                                    editable=False, verbose_name='پروفایل کاربر')
+    is_delivery_admin = models.BooleanField(default=False, verbose_name='ایا مدیر ارسال است؟')
 
     def __str__(self):
         return self.profile.user.username

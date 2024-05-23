@@ -31,6 +31,8 @@
     <!-- Vendors CSS -->
     <link rel="stylesheet" href="{% static 'assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css' %}">
     <link rel="stylesheet" href="{% static 'assets/vendor/libs/typeahead-js/typeahead.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/toastr/toastr.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/animate-css/animate.css' %}">
     <link rel="stylesheet" href="{% static 'assets/vendor/libs/apex-charts/apex-charts.css' %}">
     <link rel="stylesheet" href="{% static 'assets/vendor/libs/spinkit/spinkit.css' %}">
 
@@ -52,6 +54,28 @@
 
     <script src="{% static 'assets/vendor/js/menu.js' %}"></script>
     <!-- endbuild -->
+
+    <!-- Vendors JS -->
+    <script src="{% static 'assets/vendor/libs/toastr/toastr.js' %}"></script>
+    <script>
+        function toast_maker(status, message) {
+            toastr.options = {
+                timeOut: 3000,
+                progressBar: true,
+                showMethod: "slideDown",
+                hideMethod: "slideUp",
+                showDuration: 200,
+                hideDuration: 200
+            };
+            if (status === 'success') {
+                toastr.success(`${message}`);
+            } else if (status === 'error') {
+                toastr.error(`${message}`);
+            } else if (status === 'info') {
+                toastr.info(`${message}`);
+            }
+        }
+    </script>
 
     <!-- Page CSS -->
     {% block extra_head %}{% endblock %}

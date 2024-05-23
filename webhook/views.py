@@ -67,7 +67,7 @@ class WebhookView:
                         RequestedProductProcessing.objects.create(
                             requested_product=requested_product,
                             seller=seller,
-                            updated_by=seller,
+                            updated_by=seller.profile.user,
                         )
                         return JsonResponse({'message': 'the request has been assigned.'})
                     else:

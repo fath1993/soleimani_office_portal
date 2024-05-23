@@ -197,12 +197,14 @@ class RequestedProductProcessingReportAdmin(admin.ModelAdmin):
     list_display = (
         'requested_product_processing',
         'department',
+        'status',
         'report',
     )
 
     readonly_fields = (
         'requested_product_processing',
         'department',
+        'status',
         'created_at',
         'created_by',
     )
@@ -210,6 +212,7 @@ class RequestedProductProcessingReportAdmin(admin.ModelAdmin):
     fields = (
         'requested_product_processing',
         'department',
+        'status',
         'report',
         'created_at',
         'created_by',

@@ -5,6 +5,8 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from accounts.models import Role, Permission
+from accounts.templatetags.account_custom_tag import has_access_to_section
+from automation.models import RequestedProductProcessing, create_requested_product_processing_report
 from gallery.models import FileGallery
 from panel.custom_decorator import CheckLogin, CheckPermissions, RequireMethod
 from portal.models import Product, TeaserMaker
@@ -1303,20 +1305,42 @@ class RequestedProductProcessingView:
         super().__init__()
 
     @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='read')
     def list(self, request, *args, **kwargs):
-        context = {'page_title': 'لیست محصولات', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'لیست درخواست ها', 'get_params': request.GET.urlencode()}
 
-        products = Product.objects.filter().order_by('id')
-        context['products'] = products
+        profile = request.user.user_profile
+
+        q = Q()
+        if not request.user.is_superuser:
+            try:
+                q |= (
+                    Q(**{'seller': profile.profile_seller_profile})
+                )
+            except:
+                pass
+            try:
+                q |= (
+                    Q(**{'warehouse_keeper': profile.profile_warehouse_profile})
+                )
+            except:
+                pass
+            try:
+                q |= (
+                    Q(**{'delivery_man': profile.profile_delivery_profile})
+                )
+            except:
+                pass
+
+        requested_product_processing = RequestedProductProcessing.objects.filter(q)
+        context['requested_product_processing'] = requested_product_processing
 
         items_per_page = 50
-        paginator = Paginator(products, items_per_page)
+        paginator = Paginator(requested_product_processing, items_per_page)
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         context['page'] = page
 
-        return render(request, 'panel/products/product-list.html', context)
+        return render(request, 'panel/cartable/cartable-list.html', context)
 
     @CheckLogin()
     @CheckPermissions(section='product', allowed_actions='read')
@@ -1486,242 +1510,124 @@ class RequestedProductProcessingView:
         return render(request, 'panel/products/product-list.html', context)
 
     @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='create')
     @RequireMethod(allowed_method='POST')
-    def create(self, request, *args, **kwargs):
-        context = {'page_title': 'ساخت محصول جدید', 'get_params': request.GET.urlencode()}
-
-        name = fetch_data_from_http_post(request, 'name', context)
-        product_type = fetch_data_from_http_post(request, 'type', context)
-        code = fetch_data_from_http_post(request, 'code', context)
-        weight = fetch_data_from_http_post(request, 'weight', context)
-        size = fetch_data_from_http_post(request, 'size', context)
-        color = fetch_data_from_http_post(request, 'color', context)
-        images = fetch_files_from_http_post_data(request, 'images', context)
-        videos = fetch_files_from_http_post_data(request, 'videos', context)
-        product_price = fetch_data_from_http_post(request, 'product_price', context)
-        shipping_price = fetch_data_from_http_post(request, 'shipping_price', context)
-        send_link_price = fetch_data_from_http_post(request, 'send_link_price', context)
-        packing_price = fetch_data_from_http_post(request, 'packing_price', context)
-        seller_commission = fetch_data_from_http_post(request, 'seller_commission', context)
-        is_active = fetch_data_from_http_post(request, 'is_active', context)
-
-        if not name:
-            context['err'] = 'نام محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not product_type:
-            context['err'] = 'نوع محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not code:
-            context['err'] = 'کد محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not weight:
-            context['err'] = 'وزن محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not size:
-            context['err'] = 'سایز محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not color:
-            context['err'] = 'رنگ محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not product_price:
-            context['err'] = 'هزینه خام محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not shipping_price:
-            context['err'] = 'هزینه حمل محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not send_link_price:
-            context['err'] = 'هزینه ارسال لینک محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not packing_price:
-            context['err'] = 'هزینه بسته بندی محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not seller_commission:
-            context['err'] = 'نام محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if is_active == 'true':
-            is_active = True
+    def change_sale_state(self, request, *args, **kwargs):
+        context = {}
+        if not request.user.is_superuser:
+            try:
+                seller_profile = request.user.user_profile.profile_seller_profile
+            except:
+                return JsonResponse({"message": 'seller profile not found'})
         else:
-            is_active = False
+            seller_profile = None
 
+        requested_product_processing_id = fetch_data_from_http_post(request, 'requested_product_processing_id',
+                                                                    context)
         try:
-            Product.objects.get(code=code)
-            context['err'] = f'محصول با کد {code} از قبل موجود است'
-            return render(request, 'panel/products/product-list.html', context)
-        except:
-            new_product = Product.objects.create(
-                name=name,
-                type=product_type,
-                code=code,
-                weight=weight,
-                size=size,
-                color=color,
-                product_price=product_price,
-                shipping_price=shipping_price,
-                send_link_price=send_link_price,
-                packing_price=packing_price,
-                seller_commission=seller_commission,
-                is_active=is_active,
-                created_by=request.user,
-                updated_by=request.user,
-            )
+            requested_product_processing = RequestedProductProcessing.objects.get(id=requested_product_processing_id)
+            if not request.user.is_superuser:
+                if not requested_product_processing.seller == seller_profile:
+                    return JsonResponse({"message": 'not authorized seller'})
+            ssm_status = fetch_data_from_http_post(request, 'ssm_status', context)
+            ssm_message = fetch_data_from_http_post(request, 'ssm_message', context)
 
-            for image in images:
-                try:
-                    new_file = FileGallery.objects.create(
-                        alt=image.name,
-                        file=image,
-                        created_by=request.user,
-                    )
-                    new_product.images.add(new_file)
-                except:
-                    pass
-
-            for video in videos:
-                try:
-                    new_file = FileGallery.objects.create(
-                        alt=video.name,
-                        file=video,
-                        created_by=request.user,
-                    )
-                    new_product.videos.add(new_file)
-                except:
-                    pass
-
-            context['message'] = f'محصول با کد {code} ایجاد گردید'
-            return redirect('panel:product-list')
-
-    @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='modify')
-    def modify(self, request, product_id, *args, **kwargs):
-        try:
-            product = Product.objects.get(id=product_id)
-            context = {'page_title': f'ویرایش اطلاعات محصول *{product.name}*',
-                       'product': product, 'get_params': request.GET.urlencode()}
-
-            if request.method == 'GET':
-                return render(request, 'panel/products/product-edit.html', context)
+            create_requested_product_processing_report(requested_product_processing, 'sale', ssm_status, ssm_message)
+            if ssm_status == 'sold':
+                requested_product_processing.sales_status = 'pending_sales_approval'
+                requested_product_processing.save()
+                return JsonResponse({"message": 'sold'})
             else:
-                name = fetch_data_from_http_post(request, 'name', context)
-                product_type = fetch_data_from_http_post(request, 'type', context)
-                code = fetch_data_from_http_post(request, 'code', context)
-                weight = fetch_data_from_http_post(request, 'weight', context)
-                size = fetch_data_from_http_post(request, 'size', context)
-                color = fetch_data_from_http_post(request, 'color', context)
-                images = fetch_files_from_http_post_data(request, 'images', context)
-                videos = fetch_files_from_http_post_data(request, 'videos', context)
-                product_price = fetch_data_from_http_post(request, 'product_price', context)
-                shipping_price = fetch_data_from_http_post(request, 'shipping_price', context)
-                send_link_price = fetch_data_from_http_post(request, 'send_link_price', context)
-                packing_price = fetch_data_from_http_post(request, 'packing_price', context)
-                seller_commission = fetch_data_from_http_post(request, 'seller_commission', context)
-                is_active = fetch_data_from_http_post(request, 'is_active', context)
-
-                try:
-                    if name:
-                        product.name = name
-                    if product_type:
-                        product.product_type = product_type
-                    if code:
-                        product.code = code
-                    if weight:
-                        product.weight = weight
-                    if size:
-                        product.size = size
-                    if color:
-                        product.color = color
-                    if product_price:
-                        product.product_price = product_price
-                    if shipping_price:
-                        product.shipping_price = shipping_price
-                    if send_link_price:
-                        product.send_link_price = send_link_price
-                    if packing_price:
-                        product.packing_price = packing_price
-                    if seller_commission:
-                        product.seller_commission = seller_commission
-                    if is_active == 'true':
-                        is_active = True
-                    else:
-                        is_active = False
-                    product.is_active = is_active
-                    product.save()
-                    if images:
-                        for image in images:
-                            try:
-                                new_file = FileGallery.objects.create(
-                                    alt=image.name,
-                                    file=image,
-                                    created_by=request.user,
-                                )
-                                product.images.add(new_file)
-                            except:
-                                pass
-                    if videos:
-                        for video in videos:
-                            try:
-                                new_file = FileGallery.objects.create(
-                                    alt=video.name,
-                                    file=video,
-                                    created_by=request.user,
-                                )
-                                product.videos.add(new_file)
-                            except:
-                                pass
-                    context['message'] = f'محصول با شناسه یکتا {product.id} ویرایش گردید'
-                    return redirect(
-                        reverse('panel:product-detail-with-id',
-                                kwargs={'product_id': product_id}) + f'?{request.GET.urlencode()}')
-                except:
-                    return render(request, 'panel/err/err-not-found.html')
+                requested_product_processing.sales_status = 'canceled'
+                requested_product_processing.save()
+                requested_product = requested_product_processing.requested_product
+                requested_product.is_processed = True
+                requested_product.save()
+                return JsonResponse({"message": 'canceled'})
         except Exception as e:
             print(e)
-            return render(request, 'panel/err/err-not-found.html')
+            return JsonResponse({"message": 'requested product processing not found'})
 
     @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='delete')
     @RequireMethod(allowed_method='POST')
-    def delete_file(self, request, file_id, *args, **kwargs):
+    def confirm_sale(self, request, *args, **kwargs):
+        context = {}
+        if not request.user.is_superuser:
+            try:
+                seller_profile = request.user.user_profile.profile_seller_profile
+
+                if not seller_profile.is_sales_admin:
+                    return JsonResponse({"message": 'seller profile is not sale admin'})
+            except:
+                return JsonResponse({"message": 'seller profile not found'})
+        else:
+            seller_profile = None
+
+        requested_product_processing_id = fetch_data_from_http_post(request, 'requested_product_processing_id',
+                                                                    context)
         try:
-            file = FileGallery.objects.get(id=file_id)
-            file.delete()
-            return JsonResponse({"message": 'deleted'})
-        except:
-            return JsonResponse({"message": 'failed'})
+            requested_product_processing = RequestedProductProcessing.objects.get(id=requested_product_processing_id)
 
-    @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='delete')
-    def delete(self, request, product_id, *args, **kwargs):
-        try:
-            product = Product.objects.get(id=product_id)
-            context = {'page_title': f'حذف محصول {product.name}', 'get_params': request.GET.urlencode()}
+            msa_status = fetch_data_from_http_post(request, 'ssm_status', context)
+            msa_message = fetch_data_from_http_post(request, 'ssm_message', context)
 
-            images = product.images.all()
-            videos = product.videos.all()
+            create_requested_product_processing_report(requested_product_processing, 'sale', msa_status, msa_message)
+            if msa_status == 'confirmed':
+                requested_product_processing.sales_status = 'sold'
+                requested_product_processing.is_confirmed_by_sales_department = True
+                requested_product_processing.product_price = requested_product_processing.requested_product
+                requested_product_processing.product_number = 1
+                requested_product_processing.request_total_income = 1
 
-            for image in images:
-                image.delete()
-            for video in videos:
-                video.delete()
-
-            product.delete()
-            return redirect(reverse('panel:product-list') + f'?{request.GET.urlencode()}')
-        except:
-            return render(request, 'panel/err/err-not-found.html')
-
-    @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='modify')
-    def change_state(self, request, product_id, *args, **kwargs):
-        try:
-            product = Product.objects.get(id=product_id)
-            context = {'page_title': f'تغییر وضعیت محصول {product.name}', 'get_params': request.GET.urlencode()}
-            if product.is_active:
-                product.is_active = False
-                product_is_active = 'false'
+                requested_product_processing.warehouse_keeper = 1
+                requested_product_processing.warehouse_status = 'processing'
+                requested_product_processing.save()
+                return JsonResponse({"message": 'sold'})
+            elif msa_status == 'recheck':
+                requested_product_processing.sales_status = 'canceled'
+                requested_product_processing.save()
+                return JsonResponse({"message": 'canceled'})
             else:
-                product.is_active = True
-                product_is_active = 'true'
-            product.save()
-            return JsonResponse({"product_is_active": product_is_active})
+                requested_product_processing.sales_status = 'canceled'
+                requested_product_processing.save()
+                return JsonResponse({"message": 'canceled'})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"message": 'requested product processing not found'})
+
+    @CheckLogin()
+    @RequireMethod(allowed_method='POST')
+    def change_warehouse_state(self, request, *args, **kwargs):
+        context = {}
+        try:
+            seller_profile = request.user.user_profile.profile_seller_profile
         except:
-            return render(request, 'panel/err/err-not-found.html')
+            return JsonResponse({"message": 'seller profile not found'})
+
+        requested_product_processing_id = fetch_data_from_http_post(request, 'requested_product_processing_id',
+                                                                    context)
+
+        try:
+            requested_product_processing = RequestedProductProcessing.objects.get(id=requested_product_processing_id)
+            ssm_status = fetch_data_from_http_post(request, 'ssm_status', context)
+            ssm_message = fetch_data_from_http_post(request, 'ssm_message', context)
+        except:
+            return JsonResponse({"message": 'not authorized seller'})
+
+    @CheckLogin()
+    @RequireMethod(allowed_method='POST')
+    def change_delivery_state(self, request, *args, **kwargs):
+        context = {}
+        try:
+            seller_profile = request.user.user_profile.profile_seller_profile
+        except:
+            return JsonResponse({"message": 'seller profile not found'})
+
+        requested_product_processing_id = fetch_data_from_http_post(request, 'requested_product_processing_id',
+                                                                    context)
+
+        try:
+            requested_product_processing = RequestedProductProcessing.objects.get(id=requested_product_processing_id)
+            ssm_status = fetch_data_from_http_post(request, 'ssm_status', context)
+            ssm_message = fetch_data_from_http_post(request, 'ssm_message', context)
+        except:
+            return JsonResponse({"message": 'not authorized seller'})

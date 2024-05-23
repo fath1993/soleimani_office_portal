@@ -64,6 +64,30 @@ class ProductAdmin(admin.ModelAdmin):
         return instance
 
 
+@admin.register(ProductWarehouse)
+class ProductWarehouseAdmin(admin.ModelAdmin):
+    list_display = (
+        'product',
+        'available_number',
+    )
+
+    readonly_fields = (
+        'created_at',
+        'updated_at',
+        'created_by',
+        'updated_by',
+    )
+
+    fields = (
+        'product',
+        'available_number',
+        'created_at',
+        'updated_at',
+        'created_by',
+        'updated_by',
+    )
+
+
 @admin.register(Receiver)
 class ReceiverAdmin(admin.ModelAdmin):
     list_display = (
@@ -108,7 +132,6 @@ class ReceiverAdmin(admin.ModelAdmin):
         return instance
 
 
-admin.site.register(ProductWarehouse)
 admin.site.register(TeaserMaker)
 admin.site.register(ResellerNetwork)
 admin.site.register(AdvertiseContent)

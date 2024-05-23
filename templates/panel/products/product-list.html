@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load account_custom_tag %}
 {% load static %}
 {% load panel_custom_tag %}
 
@@ -174,7 +175,7 @@
             </div>
         </div>
         <div class="card">
-            {% if request.user|product_is_allowed:'create' %}
+            {% if request|has_access_to_section:'create,product' %}
                 <h5 class="card-header heading-color">
                     <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
                         <i class="ti-plus m-r-5"></i> ایجاد محصول جدید
@@ -408,21 +409,21 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if request.user|product_is_allowed:'modify,delete' %}
+                                    {% if request|has_access_to_section:'modify,delete,product' %}
                                         <div class="dropdown">
                                             <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
                                                     data-bs-toggle="dropdown">
                                                 <i class="bx bx-dots-vertical-rounded"></i>
                                             </button>
                                             <div class="dropdown-menu">
-                                                {% if request.user|product_is_allowed:'modify' %}
+                                                {% if request|has_access_to_section:'modify,product' %}
                                                     <a class="dropdown-item" href="{% url 'panel:product-modify-with-id' product_id=product.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"><i
                                                             class="bx bx-edit-alt me-1"></i> ویرایش</a>
                                                     <a id="product_is_active_change_btn_{{ forloop.counter }}" class="dropdown-item" href="javascript:void(0)" onclick="product_change_state('{{ product.id }}', '{{ forloop.counter }}')"><span>{% if product.is_active %}<i
                                                             class="bx bx-lock me-1"></i>غیر فعال{% else %}<i class="bx bx-lock-open me-1"></i>فعال{% endif %}</span></a>
                                                     
                                                 {% endif %}
-                                                {% if request.user|product_is_allowed:'delete' %}
+                                                {% if request|has_access_to_section:'delete,product' %}
                                                     <a class="dropdown-item" href="javascript:void(0);"
                                                        data-bs-toggle="modal"
                                                        data-bs-target="#deleteModal_{{ forloop.counter }}"><i

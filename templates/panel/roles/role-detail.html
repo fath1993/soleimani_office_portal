@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load account_custom_tag %}
 {% load static %}
 {% load panel_custom_tag %}
 
@@ -20,14 +21,20 @@
                         <div class="info-container">
                             <ul class="list-unstyled">
                                 <li class="mb-3">
-                                    <span class="fw-bold me-2">عنوان:</span>
-                                    <span>{{ role.title|default:"-" }}</span>
+                                    <h4><span class="fw-bold me-2">عنوان:</span><span class="text-primary">{{ role.title|default:"-" }}</span></h4>
                                 </li>
                                 <li class="mb-3">
-                                    <span class="fw-bold me-2">دسترسی دارد به:</span>
+                                    <h4 class="fw-bold me-2">دسترسی دارد به:</h4>
                                     {% for permission in role.permissions.all %}
-                                    <br> 
-                                    <span class="text-success">- {{ permission.title|default:"-" }}</span>
+                                    <div class="row justify-content-between mt-3">
+                                        <div class="col-sm-12 col-md-2">
+                                            <span class="text-black">- {{ permission.has_access_to_section|default:"-" }}</span>
+                                        </div>
+                                        <div class="col-sm-12 col-md-10">
+                                            <span class="text-warning">{% if permission.read %}خواندن | {% endif%} {% if permission.create %}ساختن | {% endif%} {% if permission.modify %}ویرایش | {% endif%} {% if permission.delete %}حذف{% endif%}</span>
+                                        </div>
+                                    </div>    
+                                    <hr>
                                     {% empty %}
                                     -
                                     {% endfor %}
@@ -35,7 +42,7 @@
                             </ul>
                             <div class="d-flex justify-content-between pt-3">
                                 <div class="text-right">
-                                    {% if request.user|role_section_is_allowed:'modify' %}
+                                    {% if request|has_access_to_section:'modify,role' %}
                                         <a href="{% url 'panel:role-modify-with-id' role_id=role.id %}{% if get_params %}?{{ get_params }}{% endif %}"
                                            class="btn btn-primary me-3">ویرایش</a>
                                     {% endif %}
@@ -43,7 +50,7 @@
                                        class="btn btn-outline-gray me-3">بازگشت</a>
                                 </div>
 
-                                {% if request.user|role_section_is_allowed:'delete' %}
+                                {% if request|has_access_to_section:'delete,role' %}
                                     <div class="text-left">
                                         <a href="javascript:void(0)" class="btn btn-label-danger suspend-user"
                                            data-bs-toggle="modal" data-bs-target="#deleteModal">حذف</a>

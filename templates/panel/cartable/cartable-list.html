@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load panel_custom_tag %}
+
+{% block extra_head %}
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'assets/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/flatpickr/flatpickr.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/sweetalert2/sweetalert2.css' %}">
+    <!-- Row Group CSS -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css' %}">
+    <!-- Form Validation -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/formvalidation/dist/css/formValidation.min.css' %}">
+{% endblock %}
+
+
+{% block content %}
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <h4 class="py-3 breadcrumb-wrapper mb-4">
+            <span class="text-muted fw-light">کارپوشه / <span class="text-black">کارتابل من</span></span>
+        </h4>
+        <div class="card mb-3">
+            <h5 class="card-header heading-color">
+                فیلتر کار ها
+            </h5>
+            <div class="card-body">
+                <div class="row">
+                    <form method="get" action="{% url 'panel:product-filter' %}">
+                        <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
+                            <label class="form-label" for="search">جستجو <span
+                                    class="text-muted">(نام, کد, شناسه)</span></label>
+                            <div class="input-group">
+                                <input type="text" id="search" name="search" class="form-control text-start"
+                                       placeholder="جستجو" dir="rtl" value="">
+                                <button type="submit" class="input-group-text"><i class="fa fa-search"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="row">
+                    <form method="get" action="{% url 'panel:product-filter' %}">
+                        <div class="row">
+                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
+                                <label for="defaultSelect" class="form-label">نوع محصول</label>
+                                <select id="defaultSelect" name="type" class="form-select dt-user-role">
+                                    <option {% if type != 'کالا' and type != 'خدمات' %} selected {% endif %} value="">
+                                        انتخاب
+                                    </option>
+                                    <option {% if type == 'کالا' %} selected {% endif %} value="کالا">کالا</option>
+                                    <option {% if type == 'خدمات' %} selected {% endif %}value="خدمات">خدمات</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
+                                <label for="defaultSelect" class="form-label">وضعیت</label>
+                                <select id="defaultSelect" name="is_active" class="form-select dt-is_active">
+                                    <option {% if is_active != 'فعال' and type != 'غیر فعال' %} selected {% endif %}
+                                                                                                value="">انتخاب
+                                    </option>
+                                    <option {% if is_active == 'فعال' %} selected {% endif %} value="فعال">فعال</option>
+                                    <option {% if is_active == 'غیر فعال' %} selected {% endif %} value="غیر فعال">غیر
+                                        فعال
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
+                                <label class="form-label" for="color">
+                                    رنگ</label>
+                                <div class="input-group input-group-merge">
+                                    <input type="text" id="color"
+                                           class="form-control dt-color"
+                                           name="color"
+                                           placeholder="" aria-label="color"
+                                           aria-describedby="color"
+                                           value="{{ color|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
+                                <label class="form-label" for="weight_from">
+                                    وزن از...تا</label>
+                                <div class="input-group input-group-merge">
+                                    <input class="form-control d-inline-block" type="number"
+                                           id="weight_from"
+                                           name="weight_from"
+                                           value="{{ weight_from|default:'' }}">
+                                    <input class="form-control d-inline-block" type="number"
+                                           id="weight_to" name="weight_to"
+                                           value="{{ weight_to|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
+                                <label class="form-label" for="size_from">
+                                    سایز از...تا</label>
+                                <div class="input-group input-group-merge">
+                                    <input class="form-control d-inline-block" type="number"
+                                           id="size_from"
+                                           name="size_from"
+                                           value="{{ size_from|default:'' }}">
+                                    <input class="form-control d-inline-block" type="number"
+                                           id="size_to" name="size_to"
+                                           value="{{ size_to|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
+                                <label class="form-label" for="product_price_from">
+                                    هزینه خام محصول از...تا</label>
+                                <div class="input-group input-group-merge">
+                                    <input class="form-control d-inline-block" type="number"
+                                           id="product_price_from"
+                                           name="product_price_from"
+                                           value="{{ product_price_from|default:'' }}">
+                                    <input class="form-control d-inline-block" type="number"
+                                           id="product_price_to" name="product_price_to"
+                                           value="{{ product_price_to|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
+                                <label class="form-label" for="shipping_price_from">
+                                    هزینه حمل از...تا</label>
+                                <div class="input-group input-group-merge">
+                                    <input class="form-control d-inline-block" type="number"
+                                           id="shipping_price_from"
+                                           name="shipping_price_from"
+                                           value="{{ shipping_price_from|default:'' }}">
+                                    <input class="form-control d-inline-block" type="number"
+                                           id="shipping_price_to" name="shipping_price_to"
+                                           value="{{ shipping_price_to|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
+                                <label class="form-label" for="send_link_price_from">
+                                    هزینه ارسال لینک از...تا</label>
+                                <div class="input-group input-group-merge">
+                                    <input class="form-control d-inline-block" type="number"
+                                           id="send_link_price_from"
+                                           name="send_link_price_from"
+                                           value="{{ send_link_price_from|default:'' }}">
+                                    <input class="form-control d-inline-block" type="number"
+                                           id="send_link_price_to" name="send_link_price_to"
+                                           value="{{ send_link_price_to|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
+                                <label class="form-label" for="packing_price_from">
+                                    هزینه بسته بندی از...تا</label>
+                                <div class="input-group input-group-merge">
+                                    <input class="form-control d-inline-block" type="number"
+                                           id="packing_price_from"
+                                           name="packing_price_from"
+                                           value="{{ packing_price_from|default:'' }}">
+                                    <input class="form-control d-inline-block" type="number"
+                                           id="packing_price_to" name="packing_price_to"
+                                           value="{{ packing_price_to|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
+                                <label class="form-label" for="seller_commission_from">
+                                    کمیسیون فروشنده از...تا</label>
+                                <div class="input-group input-group-merge">
+                                    <input class="form-control d-inline-block" type="number"
+                                           id="seller_commission_from"
+                                           name="seller_commission_from"
+                                           value="{{ seller_commission_from|default:'' }}">
+                                    <input class="form-control d-inline-block" type="number"
+                                           id="seller_commission_to" name="seller_commission_to"
+                                           value="{{ seller_commission_to|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-outline-secondary"><i class="fa fa-search"> فیلتر</i>
+                            </button>
+                            <a href="{% url 'panel:product-filter' %}" target="_self" class="btn btn-outline-gray"><i
+                                    class="fa fa-refresh"> ریست</i></a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive text-nowrap" style="min-height: 250px">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th style="width: 5%">#</th>
+                            <th style="width: 15%">محصول درخواستی</th>
+                            <th style="width: 15%">واحد فعلی پردازش کننده</th>
+                            <th style="width: 15%">وضعیت فروش</th>
+                            <th style="width: 15%">وضعیت انبار</th>
+                            <th style="width: 15%">وضعیت ارسال</th>
+                            <th style="width: 20%">تاریخ بروز رسانی</th>
+                        </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                        {% for requested_product_processing in page %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    <span class="btn text-primary" data-bs-toggle="modal"
+                                          data-bs-target="#twoData">{{ requested_product_processing.requested_product.product.name }}</span>
+                                    {% include 'panel/cartable/modal_requested_product.html' %}
+                                </td>
+                                <td>
+                                    {% if requested_product_processing.in_department_status == 'sale' %}
+                                        <span><span
+                                                class="badge bg-secondary rounded-pill">فروش</span> - <span>{{ requested_product_processing.seller.profile.user.username }}</span></span>
+                                    {% elif requested_product_processing.in_department_status == 'warehouse' %}
+                                        <span class="badge bg-secondary rounded-pill">انبار</span>
+                                    {% elif requested_product_processing.in_department_status == 'delivery' %}
+                                        <span class="badge bg-secondary rounded-pill">ارسال</span>
+                                    {% else %}
+                                        <span class="badge bg-primary"> - </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if requested_product_processing.sales_status == 'processing' %}
+                                        {% if request.user.user_profile.profile_seller_profile %}
+                                            <span id="sales_status" class="btn badge bg-info" data-bs-toggle="modal"
+                                                  data-bs-target="#saleStatus">در حال پردازش ...</span>
+                                            {% include 'panel/cartable/modal_sale_state.html' %}
+                                        {% else %}
+                                            <span id="sales_status" class="badge bg-info">در حال پردازش ...</span>
+                                        {% endif %}
+                                    {% elif requested_product_processing.sales_status == 'soled' %}
+                                        <span id="sales_status" class="btn badge bg-success">فروخته شده</span>
+                                    {% elif requested_product_processing.sales_status == 'canceled' %}
+                                        <span id="sales_status" class="btn badge bg-danger">کنسل شده</span>
+                                    {% elif requested_product_processing.sales_status == 'pending_sales_approval' %}
+                                        <span id="sales_status"
+                                              class="btn badge bg-warning">در انتظار تایید مدیریت فروش ...</span>
+                                    {% else %}
+                                        <span id="sales_status" class="btn badge bg-primary"> - </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if requested_product_processing.sales_status == 'canceled' %}
+                                        <span id="warehouse_status" class="badge bg-dark">کنسل شده</span>
+                                    {% else %}
+                                        {% if requested_product_processing.warehouse_status == 'pending' %}
+                                            <span id="warehouse_status" class="badge bg-warning">در انتظار</span>
+                                        {% elif requested_product_processing.warehouse_status == 'processing' %}
+                                            <span id="warehouse_status" class="badge bg-info">در حال پردازش ...</span>
+                                        {% elif requested_product_processing.warehouse_status == 'sent_to_delivery' %}
+                                            <span id="warehouse_status" class="badge bg-success">تحویل به واحد ارسال</span>
+                                        {% elif requested_product_processing.warehouse_status == 'return_to_sales' %}
+                                            <span id="warehouse_status" class="badge bg-danger">بازگشت به واحد فروش</span>
+                                        {% else %}
+                                            <span id="warehouse_status" class="badge bg-primary"> - </span>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if requested_product_processing.sales_status == 'canceled' %}
+                                        <span id="warehouse_status" class="badge bg-dark">کنسل شده</span>
+                                    {% else %}
+                                        {% if requested_product_processing.delivery_status == 'pending' %}
+                                            <span id="delivery_status" class="badge bg-warning">در انتظار</span>
+                                        {% elif requested_product_processing.delivery_status == 'processing' %}
+                                            <span id="delivery_status" class="badge bg-info">در حال پردازش ...</span>
+                                        {% elif requested_product_processing.delivery_status == 'delivered' %}
+                                            <span id="delivery_status" class="badge bg-success">تحویل به مشتری</span>
+                                        {% elif requested_product_processing.delivery_status == 'return_to_warehouse' %}
+                                            <span id="delivery_status" class="badge bg-danger">بازگشت به واحد انبار</span>
+                                        {% else %}
+                                            <span id="delivery_status" class="badge bg-primary"> - </span>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                                <td>{{ requested_product_processing.updated_at|date:'Y-m-d ساعت H:i' }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="demo-inline-spacing">
+                            <!-- Display page links -->
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination justify-content-center">
+                                    {% if page.has_previous %}
+                                        <li class="page-item prev">
+                                            <a class="page-link" href="?page=
+                                                    {{ page.previous_page_number }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"><i
+                                                    class="tf-icon bx bx-chevrons-left"></i></a>
+                                        </li>
+                                    {% endif %}
+                                    {% for num in page.paginator.page_range %}
+                                        {% if num == page.number %}
+                                            <li class="page-item active">
+                                                <a class="page-link" href="?page={{ num }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">{{ num }}</a>
+                                            </li>
+                                        {% elif num == page.paginator.page_range.0 or num == page.paginator.page_range.1 or num == page.paginator.page_range.2 or num == page.paginator.page_range.3 or num == page.paginator.page_range.4 %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">{{ num }}</a>
+                                            </li>
+                                        {% elif num == page.paginator.page_range.5 %}
+                                            <li class="page-item">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if page.has_next %}
+                                        <li class="page-item next">
+                                            <a class="page-link" href="?page={{ page.next_page_number }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"><i
+                                                    class="tf-icon bx bx-chevrons-right"></i></a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+{% endblock %}
+
+{% block extra_body %}
+    <script src="{% static 'assets/js/main.js' %}"></script>
+{% endblock %}

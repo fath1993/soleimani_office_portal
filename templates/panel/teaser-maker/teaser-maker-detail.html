@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load account_custom_tag %}
 {% load static %}
 {% load panel_custom_tag %}
 
@@ -75,7 +76,7 @@
                             </ul>
                             <div class="d-flex justify-content-between pt-3">
                                 <div class="text-right">
-                                    {% if request.user|teaser_maker_is_allowed:'modify' %}
+                                    {% if request|has_access_to_section:'modify,teaser_maker' %}
                                         <a href="{% url 'panel:teaser-maker-modify-with-id' teaser_maker_id=teaser_maker.id %}{% if get_params %}?{{ get_params }}{% endif %}"
                                            class="btn btn-primary me-3">ویرایش</a>
                                     {% endif %}
@@ -88,7 +89,7 @@
                                     {% endif %}
                                     
                                 </div>
-                                {% if request.user|teaser_maker_is_allowed:'delete' %}
+                                {% if request|has_access_to_section:'delete,teaser_maker' %}
                                     <div class="text-left">
                                         <a href="javascript:void(0)" class="btn btn-label-danger suspend-user"
                                            data-bs-toggle="modal" data-bs-target="#deleteModal">حذف</a>

@@ -1,0 +1,177 @@
+{% load static %}
+
+<div class="modal fade" id="saleStatus" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered modal-simple">
+        <div class="modal-content p-3 p-md-5">
+            <div class="modal-body">
+                <form id="ssm_form">
+                    {% csrf_token %}
+                    <div class="row justify-content-between">
+                        <div class="d-grid gap-2 col-lg-12 mx-auto">
+                            <button type="button" class="btn btn-lg btn-success" data-bs-toggle="modal"
+                                          data-bs-target="#soldModal">فروش رفت</button>
+                            <button type="button" class="btn btn-lg btn-danger" data-bs-toggle="modal"
+                                          data-bs-target="#canceledModal">کنسل شد</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="soldModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered modal-simple">
+        <div class="modal-content p-3 p-md-5">
+            <div class="modal-body">
+                <form id="ssm_form_sold">
+                    {% csrf_token %}
+                    <div class="row justify-content-between">
+                        <div class="d-grid gap-2 col-lg-12 mx-auto">
+                            <button type="button" class="btn btn-lg btn-success" data-bs-dismiss="modal"
+                            aria-label="Close" onclick="ssm_change_sale_state('sold', 'ssm_form_sold')">تایید</button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12 col-lg-12 mb-2">
+                            <label class="form-label" for="ssm_sold_number">
+                                تعداد</label>
+                            <div class="input-group input-group-merge">
+                                <input type="number" min="1" id="ssm_sold_number"
+                                       class="form-control dt-number"
+                                       name="ssm_sold_number" value="1" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12 col-lg-12 mb-2">
+                            <label class="form-label" for="ssm_message">
+                                پیام</label>
+                            <div class="input-group input-group-merge">
+                                <textarea type="text" id="ssm_message"
+                                       class="form-control dt-message"
+                                       name="ssm_message" rows="4"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="canceledModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered modal-simple">
+        <div class="modal-content p-3 p-md-5">
+            <div class="modal-body">
+                <form id="ssm_form_canceled">
+                    {% csrf_token %}
+                    <div class="row justify-content-between">
+                        <button type="button" class="btn btn-lg btn-danger" data-bs-dismiss="modal"
+                                aria-label="Close" onclick="ssm_change_sale_state('canceled', 'ssm_form_canceled')">کنسل شد</button>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12 col-lg-12 mb-2">
+                            <label class="form-label" for="ssm_message">
+                                پیام</label>
+                            <div class="input-group input-group-merge">
+                                <textarea type="text" id="ssm_message"
+                                       class="form-control dt-message"
+                                       name="ssm_message" rows="4"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function ssm_change_sale_state(status, form_id) {
+        let sales_status = document.getElementById('sales_status')
+        let warehouse_status = document.getElementById('warehouse_status')
+        let delivery_status = document.getElementById('delivery_status')
+        const form = document.getElementById(form_id);
+        const formData = new FormData(form);
+        formData.append('ssm_status', status)
+        formData.append('requested_product_processing_id', "{{ requested_product_processing.id }}")
+        const options = {
+            method: 'POST',
+            body: formData,
+        }
+        fetch('{% url 'panel:requested-product-processing-change-sale-state' %}', options)
+            .then(response => {
+                sales_status.parentElement.innerHTML=`<div id="sales_status" class="spinner-border text-light" role="status">
+                          <span class="visually-hidden">در حال بارگذاری ...</span>
+                        </div>`
+                warehouse_status.parentElement.innerHTML=`<div id="warehouse_status" class="spinner-border text-light" role="status">
+                          <span class="visually-hidden">در حال بارگذاری ...</span>
+                        </div>`
+                delivery_status.parentElement.innerHTML=`<div id="delivery_status" class="spinner-border text-light" role="status">
+                          <span class="visually-hidden">در حال بارگذاری ...</span>
+                        </div>`
+                const message_list = document.getElementsByClassName('dt-message')
+                for (let i = 0; i < message_list.length; i++) {
+                  message_list[i].value=''
+                } 
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                sales_status = document.getElementById('sales_status')
+                warehouse_status = document.getElementById('warehouse_status')
+                delivery_status = document.getElementById('delivery_status')
+                if (data['message'] === 'seller profile not found') {
+                    toast_maker('error', 'فروشنده نیستید')
+                } else if (data['message'] === 'sold') {
+                    sales_status = document.getElementById('sales_status')
+                    warehouse_status = document.getElementById('warehouse_status')
+                    delivery_status = document.getElementById('delivery_status')
+                    
+                    sales_status.parentElement.innerHTML='<span id="sales_status"></span>'
+                    warehouse_status.parentElement.innerHTML='<span id="warehouse_status"></span>'
+                    delivery_status.parentElement.innerHTML='<span id="delivery_status"></span>'
+                    
+                    sales_status = document.getElementById('sales_status')
+                    warehouse_status = document.getElementById('warehouse_status')
+                    delivery_status = document.getElementById('delivery_status')
+                    
+                    sales_status.className='btn badge bg-warning'
+                    sales_status.innerText='در انتظار تایید مدیریت فروش ...'
+                    warehouse_status.className='badge bg-warning'
+                    warehouse_status.innerText='در انتظار'
+                    delivery_status.className='badge bg-warning'
+                    delivery_status.innerText='در انتظار'
+                    toast_maker('success', 'فروخته شد. در انتظار تایید مدیر')
+                } else if (data['message'] === 'canceled') {
+                    sales_status = document.getElementById('sales_status')
+                    warehouse_status = document.getElementById('warehouse_status')
+                    delivery_status = document.getElementById('delivery_status')
+                    
+                    sales_status.parentElement.innerHTML='<span id="sales_status"></span>'
+                    warehouse_status.parentElement.innerHTML='<span id="warehouse_status"></span>'
+                    delivery_status.parentElement.innerHTML='<span id="delivery_status"></span>'
+                    
+                    sales_status = document.getElementById('sales_status')
+                    warehouse_status = document.getElementById('warehouse_status')
+                    delivery_status = document.getElementById('delivery_status')
+                    
+                    sales_status.className='btn badge bg-danger'
+                    sales_status.innerText='کنسل شده'
+                    warehouse_status.className='badge bg-dark'
+                    warehouse_status.innerText='کنسل شده'
+                    delivery_status.className='badge bg-dark'
+                    delivery_status.innerText='کنسل شده'
+                    toast_maker('info', 'کنسل شد')
+                } else if (data['message'] === 'not authorized seller') {
+                    toast_maker('error', 'فروشنده غیر مجاز')
+                } else if (data['message'] === 'requested product processing not found') {
+                    toast_maker('error', 'محصول یافت نشد')
+                }
+            })
+            .catch(error => {
+                toast_maker('warning', data['message'])
+            });
+    }
+</script>

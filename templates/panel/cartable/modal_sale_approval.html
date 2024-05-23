@@ -1,0 +1,72 @@
+{% load static %}
+
+<div class="modal fade" id="saleStatus" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered modal-simple">
+        <div class="modal-content p-3 p-md-5">
+            <div class="modal-body">
+                <form id="msa_form">
+                    {% csrf_token %}
+                    <div class="row justify-content-between">
+                        <div class="d-grid gap-2 col-lg-12 mx-auto">
+                            <button type="button" class="btn btn-lg btn-success" data-bs-dismiss="modal"
+                            aria-label="Close" onclick="msa_sale_approval('confirmed')">تایید</button>
+                            <button type="button" class="btn btn-lg btn-success" data-bs-dismiss="modal"
+                            aria-label="Close" onclick="msa_sale_approval('recheck')">بازگردانی</button>
+                            <button type="button" class="btn btn-lg btn-success" data-bs-dismiss="modal"
+                            aria-label="Close" onclick="msa_sale_approval('change_seller')">تغییر فروشنده</button>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12 col-lg-12 mb-2">
+                            <label class="form-label" for="msa_message">
+                                پیام</label>
+                            <div class="input-group input-group-merge">
+                                <textarea type="text" id="msa_message"
+                                       class="form-control dt-message"
+                                       name="msa_message" rows="4"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function msa_sale_approval(status) {
+        const form = document.getElementById('msa_form');
+        const formData = new FormData(form);
+        formData.append('msa_status', status)
+        formData.append('requested_product_processing_id', "{{ requested_product_processing.id }}")
+        const options = {
+            method: 'POST',
+            body: formData,
+        }
+        fetch('{% url 'panel:requested-product-processing-confirm-sale' %}', options)
+            .then(response => {
+                document.getElementById('msa_message').value=''
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data['message'] === 'seller profile not found') {
+                    toast_maker('error', 'فروشنده نیستید')
+                } else if (data['message'] === 'sold') {
+                    toast_maker('success', 'فروخته شد. در انتظار تایید مدیر')
+                } else if (data['message'] === 'canceled') {
+                    toast_maker('info', 'کنسل شد')
+                } else if (data['message'] === 'not authorized seller') {
+                    toast_maker('error', 'فروشنده غیر مجاز')
+                } else if (data['message'] === 'requested product processing not found') {
+                    toast_maker('error', 'محصول یافت نشد')
+                }
+            })
+            .catch(error => {
+                toast_maker('warning', data['message'])
+            });
+    }
+</script>

@@ -5,11 +5,11 @@ from django_jalali.db import models as jmodel
 from accounts.models import SellerProfile, WarehouseProfile, DeliveryProfile
 from portal.models import Product, Receiver
 
-REQUESTED_PRODUCT_PROCESSING_IN_DEPARTMENT_STATUS = (('sales', 'فروش'), ('warehouse', 'انبار'),
+REQUESTED_PRODUCT_PROCESSING_IN_DEPARTMENT_STATUS = (('sale', 'فروش'), ('warehouse', 'انبار'),
                                                      ('delivery', 'ارسال'))
 
-REQUESTED_PRODUCT_SALES_STATUS = (('processing', 'در حال پردازش'), ('soled', 'فروخته شده'),
-                                  ('canceled', 'کنسل شده'))
+REQUESTED_PRODUCT_SALES_STATUS = (('processing', 'در حال پردازش'), ('sold', 'فروخته شده'),
+                                  ('canceled', 'کنسل شده'), ('pending_sales_approval', 'در انتظار تایید مدیریت فروش'))
 
 REQUESTED_PRODUCT_WAREHOUSE_STATUS = (
     ('pending', 'در انتظار'), ('processing', 'در حال پردازش'), ('sent_to_delivery', 'تحویل به واحد ارسال'),
@@ -185,6 +185,10 @@ class RequestedProductProcessingReport(models.Model):
                                   null=False,
                                   editable=False,
                                   blank=False, verbose_name='واحد پردازش کننده محصول')
+    status = models.CharField(max_length=255,
+                              null=False,
+                              editable=False,
+                              blank=False, verbose_name='وضعیت محصول')
     report = models.TextField(null=True, blank=True, verbose_name='گزارش')
     created_at = jmodel.jDateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
     created_by = models.ForeignKey(User, related_name='created_by_requested_product_processing_report',
@@ -198,3 +202,19 @@ class RequestedProductProcessingReport(models.Model):
         ordering = ['-created_at']
         verbose_name = 'گزارش پردازش محصول درخواستی'
         verbose_name_plural = 'گزارشات پردازش محصولات درخواستی'
+
+
+def create_requested_product_processing_report(requested_product_processing, department, status, report=None,
+                                               created_by=None, **kwargs):
+    if report is None:
+        report = f'گزارش سیستمی از پردازش مجصول با شناسه {requested_product_processing.id} توسط دپارتمان {department} ثبت گردید.'
+
+    if not created_by:
+        created_by = User.objects.filter(is_superuser=True).latest('id')
+    RequestedProductProcessingReport.objects.create(
+        requested_product_processing=requested_product_processing,
+        department=department,
+        status=status,
+        report=report,
+        created_by=created_by,
+    )

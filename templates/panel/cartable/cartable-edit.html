@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load panel_custom_tag %}
+
+{% block extra_head %}
+
+{% endblock %}
+
+
+{% block content %}
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <h4 class="py-3 breadcrumb-wrapper mb-4">
+            <span class="text-muted fw-light">مدیریت منابع / محصولات / <span class="text-black">ویرایش محصول : {{ product.name }} با شناسه یکتای {{ product.id }}</span></span>
+        </h4>
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-header">ویرایش محصول <span class="text-info">{{ product.name }}</span> با شناسه یکتای <span class="text-info">{{ product.id }}</span></h4>
+                <form class="add-new-record pt-0 row g-2" method="post" enctype="multipart/form-data"
+                      action="{% url 'panel:product-modify-with-id' product_id=product.id %}{% if get_params %}?{{ get_params }}{% endif %}">
+                    {% csrf_token %}
+                    <div class="col-sm-12">
+                        <label class="form-label" for="name">نام</label>
+                        <div class="input-group input-group-merge">
+                        <span id="name" class="input-group-text"></span>
+                            <input type="text" id="name" class="form-control"
+                                   name="name" required
+                                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                   oninput="setCustomValidity('')"
+                                   placeholder="کفش طبی" aria-label="نام"
+                                   aria-describedby="نام"
+                                   value="{{ product.name|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label for="defaultSelect" class="form-label">نوع محصول</label>
+                        <select id="defaultSelect" name="type"
+                                class="form-select dt-user-role" required>
+                            <option {% if product.type == 'کالا' %} selected {% endif %}
+                                                                             value="کالا">کالا
+                            </option>
+                            <option {% if product.type == 'خدمات' %} selected {% endif %}
+                                                                                   value="خدمات">خدمات
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="code">کد</label>
+                        <div class="input-group input-group-merge">
+                        <span id="code" class="input-group-text"></span>
+                            <input type="text" id="code" class="form-control"
+                                   name="code" required
+                                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                   oninput="setCustomValidity('')"
+                                   placeholder="123456" aria-label="کد"
+                                   aria-describedby="کد"
+                                   value="{{ product.code|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="weight">وزن</label>
+                        <div class="input-group input-group-merge">
+                        <span id="weight" class="input-group-text"></span>
+                            <input type="number" min="0" id="weight" class="form-control"
+                                   name="weight" required
+                                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                   oninput="setCustomValidity('')"
+                                   placeholder="گرم" aria-label="وزن"
+                                   aria-describedby="وزن"
+                                   value="{{ product.weight|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="size">سایز</label>
+                        <div class="input-group input-group-merge">
+                        <span id="size" class="input-group-text"></span>
+                            <input type="number" min="0" id="size" class="form-control"
+                                   name="size" required
+                                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                   oninput="setCustomValidity('')"
+                                   placeholder="اینچ" aria-label="سایز"
+                                   aria-describedby="سایز"
+                                   value="{{ product.size|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="color">رنگ</label>
+                        <div class="input-group input-group-merge">
+                        <span id="color" class="input-group-text"></span>
+                            <input type="text" id="color" class="form-control"
+                                   name="color" required
+                                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                   oninput="setCustomValidity('')"
+                                   placeholder="بنفش" aria-label="رنگ"
+                                   aria-describedby="رنگ"
+                                   value="{{ product.color|default:'' }}">
+                        </div>
+                    </div>
+                
+                    <div class="col-sm-12 mb-3">
+                        <label class="form-label" for="images">تصاویر</label>
+                        <div class="d-flex align-items-center flex-wrap my-2">
+                            {% for image in product.images.all %}
+                                <div class="avatar avatar-xl mx-1 my-1" id="image_id_{{ forloop.counter }}">
+                                    <i class="bx bx-trash"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#imageModal_{{ forloop.counter }}"></i>
+                                    <div class="modal fade" id="imageModal_{{ forloop.counter }}"
+                                                 tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-simple modal-enable-otp modal-dialog-centered">
+                                            <div class="modal-content p-3 p-md-5">
+                                                <div class="modal-body">
+                                                    <button type="button" class="btn-close"
+                                                            data-bs-dismiss="modal"
+                                                            aria-label="Close"></button>
+                                                    <div class="text-center mb-4 mt-0 mt-md-n2">
+                                                        <h3 class="mb-4 secondary-font">تایید حذف</h3>
+                                                    </div>
+                                                    <h6>آیا از حذف تصویر <strong class="bg-warning">{{ image.name }}</strong> مطمئن هستید؟</h6>
+                                                    <div class="col-12">
+                                                        <button type="button" onclick="delete_file('{{ image.id }}', 'image', '{{ forloop.counter }}')"
+                                                                class="btn btn-primary me-sm-3 me-1"
+                                                                data-bs-dismiss="modal" aria-label="Close">
+                                                            بله
+                                                        </button>
+                                                        <button type="button" class="btn btn-label-secondary"
+                                                                data-bs-dismiss="modal" aria-label="Close">
+                                                            انصراف
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <img src="{{ image.file.url }}" alt="Img"
+                                         class="rounded"
+                                         onclick="window.open('{{ image.file.url }}', '_blank')">
+                                </div>
+                            {% empty %}
+                                -
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-sm-12 mb-3">
+                        <label class="form-label" for="images">افزودن تصویر</label>
+                        <div class="input-group input-group-merge">
+                            <span id="images" class="input-group-text"><i class="bx bxs-file"></i></span>
+                            <input type="file" id="images" class="form-control dt-files"
+                                   name="images" multiple
+                                   placeholder="تصاویر" aria-label="تصاویر"
+                                   aria-describedby="images">
+                        </div>
+                    </div>
+                    <div class="col-sm-12 mb-3">
+                        <label class="form-label" for="images">ویدیو ها</label>
+                        <div class="d-flex align-items-center flex-wrap my-2">
+                            {% for video in product.videos.all %}
+                                <div class="avatar avatar-xl mx-1 my-1" id="video_id_{{ forloop.counter }}">
+                                    <i class="bx bx-trash"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#videoModal_{{ forloop.counter }}"></i>
+                                    <div class="modal fade" id="videoModal_{{ forloop.counter }}"
+                                                     tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-simple modal-enable-otp modal-dialog-centered">
+                                        <div class="modal-content p-3 p-md-5">
+                                            <div class="modal-body">
+                                                <button type="button" class="btn-close"
+                                                        data-bs-dismiss="modal"
+                                                        aria-label="Close"></button>
+                                                <div class="text-center mb-4 mt-0 mt-md-n2">
+                                                    <h3 class="mb-4 secondary-font">تایید حذف</h3>
+                                                </div>
+                                                <h6>آیا از حذف ویدیو <strong class="bg-warning">{{ video.name }}</strong> مطمئن هستید؟</h6>
+                                                <div class="col-12">
+                                                    <button type="button" onclick="delete_file('{{ video.id }}', 'video', '{{ forloop.counter }}')"
+                                                            class="btn btn-primary me-sm-3 me-1"
+                                                            data-bs-dismiss="modal" aria-label="Close">
+                                                        بله
+                                                    </button>
+                                                    <button type="button" class="btn btn-label-secondary"
+                                                            data-bs-dismiss="modal" aria-label="Close">
+                                                        انصراف
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    </div>
+                                    <img src="{% static 'assets/img/icons/unicons/cube.png' %}" alt="Video"
+                                         class="rounded"
+                                         onclick="window.open('{{ video.file.url }}', '_blank')">
+                                </div>
+                            {% empty %}
+                                -
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-sm-12 mb-3">
+                        <label class="form-label" for="videos">افزودن ویدیو</label>
+                        <div class="input-group input-group-merge">
+                            <span id="videos" class="input-group-text"><i class="bx bxs-file"></i></span>
+                            <input type="file" id="videos" class="form-control dt-files"
+                                   name="videos" multiple
+                                   placeholder="ویدیو ها" aria-label="ویدیو ها"
+                                   aria-describedby="videos">
+                        </div>
+                    </div>
+                
+                    <div class="col-sm-12">
+                        <label class="form-label" for="product_price">هزینه خام محصول</label>
+                        <div class="input-group input-group-merge">
+                        <span id="product_price" class="input-group-text"></span>
+                            <input type="number" min="0" id="product_price" class="form-control"
+                                   name="product_price" required
+                                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                   oninput="setCustomValidity('')"
+                                   placeholder="ریال" aria-label="هزینه خام محصول"
+                                   aria-describedby="هزینه خام محصول"
+                                   value="{{ product.product_price|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="shipping_price">هزینه حمل</label>
+                        <div class="input-group input-group-merge">
+                        <span id="shipping_price" class="input-group-text"></span>
+                            <input type="number" min="0" id="shipping_price" class="form-control"
+                                   name="shipping_price" required
+                                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                   oninput="setCustomValidity('')"
+                                   placeholder="ریال" aria-label="هزینه حمل"
+                                   aria-describedby="هزینه حمل"
+                                   value="{{ product.shipping_price|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="send_link_price">هزینه ارسال لینک</label>
+                        <div class="input-group input-group-merge">
+                        <span id="send_link_price" class="input-group-text"></span>
+                            <input type="number" min="0" id="send_link_price" class="form-control"
+                                   name="send_link_price" required
+                                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                   oninput="setCustomValidity('')"
+                                   placeholder="ریال" aria-label="هزینه ارسال لینک"
+                                   aria-describedby="هزینه ارسال لینک"
+                                   value="{{ product.send_link_price|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="packing_price">هزینه بسته بندی</label>
+                        <div class="input-group input-group-merge">
+                        <span id="packing_price" class="input-group-text"></span>
+                            <input type="number" min="0" id="packing_price" class="form-control"
+                                   name="packing_price" required
+                                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                   oninput="setCustomValidity('')"
+                                   placeholder="ریال" aria-label="هزینه بسته بندی"
+                                   aria-describedby="هزینه بسته بندی"
+                                   value="{{ product.packing_price|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="form-label" for="seller_commission">کمیسیون فروشنده</label>
+                        <div class="input-group input-group-merge">
+                        <span id="seller_commission" class="input-group-text"></span>
+                            <input type="number" min="0" id="seller_commission" class="form-control"
+                                   name="seller_commission" required
+                                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                   oninput="setCustomValidity('')"
+                                   placeholder="درصد" aria-label="کمیسیون فروشنده"
+                                   aria-describedby="کمیسیون فروشنده"
+                                   value="{{ product.seller_commission|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <div class="form-check form-check-primary mt-3">
+                            <input class="form-check-input" type="checkbox" value="true" id="is_active" name="is_active"
+                                   {% if product.is_active %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">فعال</label>
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <button type="submit" class="btn btn-primary data-submit me-sm-3 me-1">ویرایش</button>
+                        <a href="{% url 'panel:product-detail-with-id' product_id=product.id %}{% if get_params %}?{{ get_params }}{% endif %}" class="btn btn-outline-secondary">
+                            انصراف
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_body %}
+    <!-- Main JS -->
+    <script src="{% static 'assets/js/main.js' %}"></script>
+    <script>
+    function delete_file(file_id, file_type, forloop_counter) {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+        const options = {
+            method: 'POST',
+            body: formData,
+        }
+        fetch('{% url 'panel:product-delete-file-with-file-id' file_id=0 %}'.replace('0', file_id).replace('amp;', ''), options)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data['message'] === 'deleted') {
+                    if (file_type === 'image') {
+                        document.getElementById('image_id_' + forloop_counter).remove()
+                    } else {
+                        document.getElementById('video_id_' + forloop_counter).remove()
+                    }
+                    
+                }
+            })
+            .catch(error => {
+                console.error('Error remove file', error);
+            });
+        }
+    </script>
+{% endblock %}

@@ -136,6 +136,8 @@ class ProfileAdmin(admin.ModelAdmin):
 
     fields = (
         'user',
+        'role',
+
         'first_name',
         'last_name',
         'national_code',
@@ -145,8 +147,6 @@ class ProfileAdmin(admin.ModelAdmin):
         'card_number',
         'isbn',
         'address',
-
-        'role',
     )
 
     def has_add_permission(self, request):
@@ -157,6 +157,7 @@ class ProfileAdmin(admin.ModelAdmin):
 class SellerProfileAdmin(admin.ModelAdmin):
     list_display = (
         'profile',
+        'is_sales_admin',
         'daily_allowed_product_processing_number',
     )
 
@@ -166,6 +167,7 @@ class SellerProfileAdmin(admin.ModelAdmin):
 
     fields = (
         'profile',
+        'is_sales_admin',
         'daily_allowed_product_processing_number',
     )
 
@@ -177,6 +179,7 @@ class SellerProfileAdmin(admin.ModelAdmin):
 class WarehouseProfileAdmin(admin.ModelAdmin):
     list_display = (
         'profile',
+        'is_warehouse_admin',
     )
 
     readonly_fields = (
@@ -185,6 +188,7 @@ class WarehouseProfileAdmin(admin.ModelAdmin):
 
     fields = (
         'profile',
+        'is_warehouse_admin',
     )
 
     def has_add_permission(self, request):
@@ -195,6 +199,7 @@ class WarehouseProfileAdmin(admin.ModelAdmin):
 class DeliveryProfileAdmin(admin.ModelAdmin):
     list_display = (
         'profile',
+        'is_delivery_admin',
     )
 
     readonly_fields = (
@@ -203,6 +208,7 @@ class DeliveryProfileAdmin(admin.ModelAdmin):
 
     fields = (
         'profile',
+        'is_delivery_admin',
     )
 
     def has_add_permission(self, request):

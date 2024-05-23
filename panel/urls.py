@@ -131,10 +131,12 @@ urlpatterns = [
     # Requested Product Processing
     path('requested-product-processing/list/', RequestedProductProcessingView().list, name='requested-product-processing-list'),
     path('requested-product-processing/filter/', RequestedProductProcessingView().filter, name='requested-product-processing-filter'),
-    path('requested-product-processing/create/', RequestedProductProcessingView().create, name='requested-product-processing-create'),
     path('requested-product-processing/detail&id=<int:requested_product_processing_id>/', RequestedProductProcessingView().detail, name='requested-product-processing-detail-with-id'),
-    path('requested-product-processing/modify&id=<int:requested_product_processing_id>/', RequestedProductProcessingView().modify, name='requested-product-processing-modify-with-id'),
-    path('requested-product-processing/delete&id=<int:requested_product_processing_id>/', RequestedProductProcessingView().delete, name='requested-product-processing-delete-with-id'),
-    path('requested-product-processing/change-state&id=<int:requested_product_processing_id>/', RequestedProductProcessingView().change_state, name='requested-product-processing-change_state-with-id'),
-
+    path('requested-product-processing/change-sale-state/', RequestedProductProcessingView().change_sale_state, name='requested-product-processing-change-sale-state'),
+    path('requested-product-processing/change-warehouse-state/', RequestedProductProcessingView().change_warehouse_state,
+         name='requested-product-processing-change-warehouse-state'),
+    path('requested-product-processing/change-delivery-state/', RequestedProductProcessingView().change_delivery_state,
+         name='requested-product-processing-change-delivery-state'),
+    path('requested-product-processing/confirm-sale/', RequestedProductProcessingView().confirm_sale,
+         name='requested-product-processing-confirm-sale'),
 ]

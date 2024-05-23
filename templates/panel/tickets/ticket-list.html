@@ -48,7 +48,7 @@
         </div>
         <div class="card">
             <h5 class="card-header heading-color">
-                {% if request.user|ticket_is_allowed:'create' %}
+                {% if request.user|has_access_to_section:'create,ticket' %}
                     {% if request.path != '/tickets/list&box-status=received/' and request.path != '/tickets/list&box-status=all/' %}
                     <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
                         <i class="ti-plus m-r-5"></i> ایجاد پیام جدید
