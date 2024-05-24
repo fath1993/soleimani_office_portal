@@ -201,10 +201,10 @@
                                 <td>{{ forloop.counter }}</td>
                                 <td>
                                     <span class="btn text-primary" data-bs-toggle="modal"
-                                          data-bs-target="#twoData">{{ requested_product_processing.requested_product.product.name }}</span>
+                                          data-bs-target="#threeData">{{ requested_product_processing.requested_product.product.name }}</span>
                                     {% include 'panel/cartable/modal_requested_product.html' %}
                                 </td>
-                                <td>
+                                <td id="department_status">
                                     {% if requested_product_processing.in_department_status == 'sale' %}
                                         <span><span
                                                 class="badge bg-secondary rounded-pill">فروش</span> - <span>{{ requested_product_processing.seller.profile.user.username }}</span></span>
@@ -216,57 +216,56 @@
                                         <span class="badge bg-primary"> - </span>
                                     {% endif %}
                                 </td>
-                                <td>
+                                <td id="sales_status">
                                     {% if requested_product_processing.sales_status == 'processing' %}
                                         {% if request.user.user_profile.profile_seller_profile %}
-                                            <span id="sales_status" class="btn badge bg-info" data-bs-toggle="modal"
+                                            <span class="btn badge bg-info" data-bs-toggle="modal"
                                                   data-bs-target="#saleStatus">در حال پردازش ...</span>
                                             {% include 'panel/cartable/modal_sale_state.html' %}
                                         {% else %}
                                             <span id="sales_status" class="badge bg-info">در حال پردازش ...</span>
                                         {% endif %}
                                     {% elif requested_product_processing.sales_status == 'soled' %}
-                                        <span id="sales_status" class="btn badge bg-success">فروخته شده</span>
+                                        <span class="btn badge bg-success">فروخته شده</span>
                                     {% elif requested_product_processing.sales_status == 'canceled' %}
-                                        <span id="sales_status" class="btn badge bg-danger">کنسل شده</span>
+                                        <span class="btn badge bg-danger">کنسل شده</span>
                                     {% elif requested_product_processing.sales_status == 'pending_sales_approval' %}
-                                        <span id="sales_status"
-                                              class="btn badge bg-warning">در انتظار تایید مدیریت فروش ...</span>
+                                        <span class="btn badge bg-warning">در انتظار تایید مدیریت فروش ...</span>
                                     {% else %}
-                                        <span id="sales_status" class="btn badge bg-primary"> - </span>
+                                        <span class="btn badge bg-primary"> - </span>
                                     {% endif %}
                                 </td>
-                                <td>
+                                <td id="warehouse_status">
                                     {% if requested_product_processing.sales_status == 'canceled' %}
-                                        <span id="warehouse_status" class="badge bg-dark">کنسل شده</span>
+                                        <span class="badge bg-dark">کنسل شده</span>
                                     {% else %}
                                         {% if requested_product_processing.warehouse_status == 'pending' %}
-                                            <span id="warehouse_status" class="badge bg-warning">در انتظار</span>
+                                            <span class="badge bg-warning">در انتظار</span>
                                         {% elif requested_product_processing.warehouse_status == 'processing' %}
-                                            <span id="warehouse_status" class="badge bg-info">در حال پردازش ...</span>
+                                            <span class="badge bg-info">در حال پردازش ...</span>
                                         {% elif requested_product_processing.warehouse_status == 'sent_to_delivery' %}
-                                            <span id="warehouse_status" class="badge bg-success">تحویل به واحد ارسال</span>
+                                            <span class="badge bg-success">تحویل به واحد ارسال</span>
                                         {% elif requested_product_processing.warehouse_status == 'return_to_sales' %}
-                                            <span id="warehouse_status" class="badge bg-danger">بازگشت به واحد فروش</span>
+                                            <span class="badge bg-danger">بازگشت به واحد فروش</span>
                                         {% else %}
-                                            <span id="warehouse_status" class="badge bg-primary"> - </span>
+                                            <span class="badge bg-primary"> - </span>
                                         {% endif %}
                                     {% endif %}
                                 </td>
-                                <td>
+                                <td id="delivery_status">
                                     {% if requested_product_processing.sales_status == 'canceled' %}
-                                        <span id="warehouse_status" class="badge bg-dark">کنسل شده</span>
+                                        <span class="badge bg-dark">کنسل شده</span>
                                     {% else %}
                                         {% if requested_product_processing.delivery_status == 'pending' %}
-                                            <span id="delivery_status" class="badge bg-warning">در انتظار</span>
+                                            <span class="badge bg-warning">در انتظار</span>
                                         {% elif requested_product_processing.delivery_status == 'processing' %}
-                                            <span id="delivery_status" class="badge bg-info">در حال پردازش ...</span>
+                                            <span class="badge bg-info">در حال پردازش ...</span>
                                         {% elif requested_product_processing.delivery_status == 'delivered' %}
-                                            <span id="delivery_status" class="badge bg-success">تحویل به مشتری</span>
+                                            <span class="badge bg-success">تحویل به مشتری</span>
                                         {% elif requested_product_processing.delivery_status == 'return_to_warehouse' %}
-                                            <span id="delivery_status" class="badge bg-danger">بازگشت به واحد انبار</span>
+                                            <span class="badge bg-danger">بازگشت به واحد انبار</span>
                                         {% else %}
-                                            <span id="delivery_status" class="badge bg-primary"> - </span>
+                                            <span class="badge bg-primary"> - </span>
                                         {% endif %}
                                     {% endif %}
                                 </td>

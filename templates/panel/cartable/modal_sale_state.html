@@ -4,7 +4,7 @@
     <div class="modal-dialog modal-md modal-dialog-centered modal-simple">
         <div class="modal-content p-3 p-md-5">
             <div class="modal-body">
-                <form id="ssm_form">
+                <form id="mss_form">
                     {% csrf_token %}
                     <div class="row justify-content-between">
                         <div class="d-grid gap-2 col-lg-12 mx-auto">
@@ -23,33 +23,33 @@
     <div class="modal-dialog modal-md modal-dialog-centered modal-simple">
         <div class="modal-content p-3 p-md-5">
             <div class="modal-body">
-                <form id="ssm_form_sold">
+                <form id="mss_form_sold">
                     {% csrf_token %}
                     <div class="row justify-content-between">
                         <div class="d-grid gap-2 col-lg-12 mx-auto">
                             <button type="button" class="btn btn-lg btn-success" data-bs-dismiss="modal"
-                            aria-label="Close" onclick="ssm_change_sale_state('sold', 'ssm_form_sold')">تایید</button>
+                            aria-label="Close" onclick="mss_change_sale_state('sold', 'mss_form_sold')">تایید</button>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-12 col-md-12 col-lg-12 mb-2">
-                            <label class="form-label" for="ssm_sold_number">
+                            <label class="form-label" for="mss_sold_number">
                                 تعداد</label>
                             <div class="input-group input-group-merge">
-                                <input type="number" min="1" id="ssm_sold_number"
+                                <input type="number" min="1" id="mss_sold_number"
                                        class="form-control dt-number"
-                                       name="ssm_sold_number" value="1" required>
+                                       name="mss_sold_number" value="1" required>
                             </div>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-12 col-md-12 col-lg-12 mb-2">
-                            <label class="form-label" for="ssm_message">
+                            <label class="form-label" for="mss_message">
                                 پیام</label>
                             <div class="input-group input-group-merge">
-                                <textarea type="text" id="ssm_message"
+                                <textarea type="text" id="mss_message"
                                        class="form-control dt-message"
-                                       name="ssm_message" rows="4"></textarea>
+                                       name="mss_message" rows="4"></textarea>
                             </div>
                         </div>
                     </div>
@@ -62,20 +62,20 @@
     <div class="modal-dialog modal-md modal-dialog-centered modal-simple">
         <div class="modal-content p-3 p-md-5">
             <div class="modal-body">
-                <form id="ssm_form_canceled">
+                <form id="mss_form_canceled">
                     {% csrf_token %}
                     <div class="row justify-content-between">
                         <button type="button" class="btn btn-lg btn-danger" data-bs-dismiss="modal"
-                                aria-label="Close" onclick="ssm_change_sale_state('canceled', 'ssm_form_canceled')">کنسل شد</button>
+                                aria-label="Close" onclick="mss_change_sale_state('canceled', 'mss_form_canceled')">کنسل شد</button>
                     </div>
                     <div class="row">
                         <div class="col-sm-12 col-md-12 col-lg-12 mb-2">
-                            <label class="form-label" for="ssm_message">
+                            <label class="form-label" for="mss_message">
                                 پیام</label>
                             <div class="input-group input-group-merge">
-                                <textarea type="text" id="ssm_message"
+                                <textarea type="text" id="mss_message"
                                        class="form-control dt-message"
-                                       name="ssm_message" rows="4"></textarea>
+                                       name="mss_message" rows="4"></textarea>
                             </div>
                         </div>
                     </div>
@@ -86,83 +86,48 @@
 </div>
 
 <script>
-    function ssm_change_sale_state(status, form_id) {
-        let sales_status = document.getElementById('sales_status')
-        let warehouse_status = document.getElementById('warehouse_status')
-        let delivery_status = document.getElementById('delivery_status')
+    function mss_change_sale_state(status, form_id) {
+        const message_list = document.getElementsByClassName('dt-message')
+        const sales_status = document.getElementById('sales_status')
+        const warehouse_status = document.getElementById('warehouse_status')
+        const delivery_status = document.getElementById('delivery_status')
+        const text_1 = 'در انتظار تایید مدیریت فروش ...'
+        const text_2 = 'در انتظار'
+        const text_3 = 'کنسل شده'
+        const loading_text = 'در حال بارگذاری ...'
+        const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                  <span class="visually-hidden">${loading_text}</span>
+                                </div>`
         const form = document.getElementById(form_id);
         const formData = new FormData(form);
-        formData.append('ssm_status', status)
+        formData.append('mss_status', status)
         formData.append('requested_product_processing_id', "{{ requested_product_processing.id }}")
         const options = {
             method: 'POST',
             body: formData,
         }
+        sales_status.innerHTML=loading_html
+        warehouse_status.innerHTML=loading_html
+        delivery_status.innerHTML=loading_html
         fetch('{% url 'panel:requested-product-processing-change-sale-state' %}', options)
             .then(response => {
-                sales_status.parentElement.innerHTML=`<div id="sales_status" class="spinner-border text-light" role="status">
-                          <span class="visually-hidden">در حال بارگذاری ...</span>
-                        </div>`
-                warehouse_status.parentElement.innerHTML=`<div id="warehouse_status" class="spinner-border text-light" role="status">
-                          <span class="visually-hidden">در حال بارگذاری ...</span>
-                        </div>`
-                delivery_status.parentElement.innerHTML=`<div id="delivery_status" class="spinner-border text-light" role="status">
-                          <span class="visually-hidden">در حال بارگذاری ...</span>
-                        </div>`
-                const message_list = document.getElementsByClassName('dt-message')
-                for (let i = 0; i < message_list.length; i++) {
-                  message_list[i].value=''
-                } 
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
                 return response.json();
             })
             .then(data => {
-                sales_status = document.getElementById('sales_status')
-                warehouse_status = document.getElementById('warehouse_status')
-                delivery_status = document.getElementById('delivery_status')
                 if (data['message'] === 'seller profile not found') {
                     toast_maker('error', 'فروشنده نیستید')
                 } else if (data['message'] === 'sold') {
-                    sales_status = document.getElementById('sales_status')
-                    warehouse_status = document.getElementById('warehouse_status')
-                    delivery_status = document.getElementById('delivery_status')
-                    
-                    sales_status.parentElement.innerHTML='<span id="sales_status"></span>'
-                    warehouse_status.parentElement.innerHTML='<span id="warehouse_status"></span>'
-                    delivery_status.parentElement.innerHTML='<span id="delivery_status"></span>'
-                    
-                    sales_status = document.getElementById('sales_status')
-                    warehouse_status = document.getElementById('warehouse_status')
-                    delivery_status = document.getElementById('delivery_status')
-                    
-                    sales_status.className='btn badge bg-warning'
-                    sales_status.innerText='در انتظار تایید مدیریت فروش ...'
-                    warehouse_status.className='badge bg-warning'
-                    warehouse_status.innerText='در انتظار'
-                    delivery_status.className='badge bg-warning'
-                    delivery_status.innerText='در انتظار'
+                    sales_status.innerHTML=`<span class="btn badge bg-warning">${text_1}</span>`
+                    warehouse_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
+                    delivery_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
                     toast_maker('success', 'فروخته شد. در انتظار تایید مدیر')
                 } else if (data['message'] === 'canceled') {
-                    sales_status = document.getElementById('sales_status')
-                    warehouse_status = document.getElementById('warehouse_status')
-                    delivery_status = document.getElementById('delivery_status')
-                    
-                    sales_status.parentElement.innerHTML='<span id="sales_status"></span>'
-                    warehouse_status.parentElement.innerHTML='<span id="warehouse_status"></span>'
-                    delivery_status.parentElement.innerHTML='<span id="delivery_status"></span>'
-                    
-                    sales_status = document.getElementById('sales_status')
-                    warehouse_status = document.getElementById('warehouse_status')
-                    delivery_status = document.getElementById('delivery_status')
-                    
-                    sales_status.className='btn badge bg-danger'
-                    sales_status.innerText='کنسل شده'
-                    warehouse_status.className='badge bg-dark'
-                    warehouse_status.innerText='کنسل شده'
-                    delivery_status.className='badge bg-dark'
-                    delivery_status.innerText='کنسل شده'
+                    sales_status.innerHTML=`<span class="btn badge bg-danger">${text_3}</span>`
+                    warehouse_status.innerHTML=`<span class="badge bg-warning">${text_3}</span>`
+                    delivery_status.innerHTML=`<span class="badge bg-warning">${text_3}</span>`
                     toast_maker('info', 'کنسل شد')
                 } else if (data['message'] === 'not authorized seller') {
                     toast_maker('error', 'فروشنده غیر مجاز')
@@ -173,5 +138,9 @@
             .catch(error => {
                 toast_maker('warning', data['message'])
             });
+        
+        for (let i = 0; i < message_list.length; i++) {
+          message_list[i].value=''
+        }
     }
 </script>

@@ -6,9 +6,11 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from accounts.models import Role, Permission
 from accounts.templatetags.account_custom_tag import has_access_to_section
-from automation.models import RequestedProductProcessing, create_requested_product_processing_report
+from automation.models import RequestedProductProcessing, create_requested_product_processing_report, \
+    RequestedProductProcessingReport
 from gallery.models import FileGallery
 from panel.custom_decorator import CheckLogin, CheckPermissions, RequireMethod
+from panel.serializer import RequestedProductProcessingReportSerializer
 from portal.models import Product, TeaserMaker
 from utilities.http_metod import fetch_data_from_http_post, fetch_files_from_http_post_data, fetch_data_from_http_get
 
@@ -1354,6 +1356,54 @@ class RequestedProductProcessingView:
             return render(request, 'panel/err/err-not-found.html')
 
     @CheckLogin()
+    @RequireMethod(allowed_method='POST')
+    def reports(self, request, *args, **kwargs):
+        context = {}
+        requested_product_processing_id = fetch_data_from_http_post(request, 'requested_product_processing_id',
+                                                                    context)
+        profile = request.user.user_profile
+
+        q = Q()
+        q &= (
+            Q(**{'pk': requested_product_processing_id})
+        )
+        if not request.user.is_superuser:
+            try:
+                q |= (
+                    Q(**{'seller': profile.profile_seller_profile})
+                )
+            except:
+                pass
+            try:
+                q |= (
+                    Q(**{'warehouse_keeper': profile.profile_warehouse_profile})
+                )
+            except:
+                pass
+            try:
+                q |= (
+                    Q(**{'delivery_man': profile.profile_delivery_profile})
+                )
+            except:
+                pass
+        try:
+            requested_product_processing = RequestedProductProcessing.objects.get(q)
+            requested_product_processing_reports = RequestedProductProcessingReport.objects.filter(requested_product_processing=requested_product_processing)
+            serializer = RequestedProductProcessingReportSerializer(requested_product_processing_reports, many=True)
+            json_response_body = {
+                "method": "post",
+                "request": f"لیست پیام های پردازش محصول درخواستی با ایدی {requested_product_processing.id}",
+                "result": "موفق",
+                "data": serializer.data
+            }
+            return JsonResponse(json_response_body)
+        except Exception as e:
+            print(e)
+            return JsonResponse({"message": 'requested product processing not found'})
+
+
+
+    @CheckLogin()
     @CheckPermissions(section='product', allowed_actions='read')
     def filter(self, request, *args, **kwargs):
         context = {}
@@ -1528,11 +1578,11 @@ class RequestedProductProcessingView:
             if not request.user.is_superuser:
                 if not requested_product_processing.seller == seller_profile:
                     return JsonResponse({"message": 'not authorized seller'})
-            ssm_status = fetch_data_from_http_post(request, 'ssm_status', context)
-            ssm_message = fetch_data_from_http_post(request, 'ssm_message', context)
+            mss_status = fetch_data_from_http_post(request, 'mss_status', context)
+            mss_message = fetch_data_from_http_post(request, 'mss_message', context)
 
-            create_requested_product_processing_report(requested_product_processing, 'sale', ssm_status, ssm_message)
-            if ssm_status == 'sold':
+            create_requested_product_processing_report(requested_product_processing, 'sale', mss_status, mss_message)
+            if mss_status == 'sold':
                 requested_product_processing.sales_status = 'pending_sales_approval'
                 requested_product_processing.save()
                 return JsonResponse({"message": 'sold'})

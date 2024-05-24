@@ -207,7 +207,7 @@ class RequestedProductProcessingReport(models.Model):
 def create_requested_product_processing_report(requested_product_processing, department, status, report=None,
                                                created_by=None, **kwargs):
     if report is None:
-        report = f'گزارش سیستمی از پردازش مجصول با شناسه {requested_product_processing.id} توسط دپارتمان {department} ثبت گردید.'
+        report = f'گزارش سیستمی از پردازش محصول با شناسه {requested_product_processing.id} توسط دپارتمان {department} ثبت گردید.'
 
     if not created_by:
         created_by = User.objects.filter(is_superuser=True).latest('id')

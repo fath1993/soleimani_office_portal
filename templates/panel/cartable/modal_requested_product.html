@@ -1,16 +1,15 @@
 {% load static %}
 
-<div class="modal fade" id="twoData" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="threeData" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-simple">
         <div class="modal-content p-3 p-md-5">
             <div class="modal-body">
                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 <div class="text-center mb-4 mt-0 mt-md-n2">
-                    <h3 class="mb-2 secondary-font">اطلاعات محصول و مشتری</h3>
+                    <h3 class="mb-2 secondary-font">اطلاعات فروش</h3>
                     <p class="text-muted">
-                        جزئیات اطلاعات مرتبط با محصول و مشتری را بررسی و تکمیل
-                        نمایید.
+                        جزئیات اطلاعات مرتبط با محصول، مشتری و گزارشات فروش را بررسی نمایید.
                     </p>
                 </div>
                 <div class="row">
@@ -24,39 +23,59 @@
                                        class="form-check-input d-none" type="radio"
                                        value="" id="customRadioTemp1">
                                 <span class="d-flex align-items-start">
-                                                                        <i class="bx bx-body bx-md me-3 mt-1"></i>
-                                                                        <span>
-                                                                          <span class="custom-option-header">
-                                                                            <span class="h4 mb-2">اطلاعات مشتری</span>
-                                                                          </span>
-                                                                          <span class="custom-option-body">
-                                                                            <span class="mb-0 text-primary">شماره تماس: {{ requested_product_processing.requested_product.customer.phone_number }}</span>
-                                                                          </span>
-                                                                        </span>
-                                                                      </span>
+                                    <i class="bx bx-body bx-md me-3 mt-1"></i>
+                                    <span>
+                                        <span class="custom-option-header">
+                                            <span class="h4 mb-2">اطلاعات مشتری</span>
+                                        </span>
+                                        <span class="custom-option-body">
+                                            <span class="mb-0 text-primary">شماره تماس: {{ requested_product_processing.requested_product.customer.phone_number }}</span>
+                                        </span>
+                                    </span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <div class="form-check custom-option custom-option-basic">
+                            <label class="form-check-label custom-option-content ps-3"
+                                   for="customRadioTemp2"
+                                   data-bs-target="#productData"
+                                   data-bs-toggle="modal">
+                                <input name="customRadioTemp"
+                                       class="form-check-input d-none" type="radio"
+                                       value="" id="customRadioTemp2">
+                                <span class="d-flex align-items-start">
+                                    <i class="bx bx-category bx-md me-3 mt-1"></i>
+                                    <span>
+                                        <span class="custom-option-header">
+                                            <span class="h4 mb-2">اطلاعات محصول</span>
+                                        </span>
+                                        <span class="custom-option-body">
+                                            <span class="mb-0 text-primary">نام محصول: {{ requested_product_processing.requested_product.product.name }}</span>
+                                        </span>
+                                    </span>
+                                </span>
                             </label>
                         </div>
                     </div>
                     <div class="col-12">
                         <div class="form-check custom-option custom-option-basic">
                             <label class="form-check-label custom-option-content ps-3"
-                                   for="customRadioTemp2"
-                                   data-bs-target="#ProductData"
-                                   data-bs-toggle="modal">
+                                   for="customRadioTemp3"
+                                   data-bs-target="#reportData"
+                                   data-bs-toggle="modal" onclick="get_reports_data('{{ requested_product_processing.id }}')">
                                 <input name="customRadioTemp"
                                        class="form-check-input d-none" type="radio"
-                                       value="" id="customRadioTemp2">
+                                       value="" id="customRadioTemp3">
                                 <span class="d-flex align-items-start">
-                                                                        <i class="bx bx-category bx-md me-3 mt-1"></i>
-                                                                        <span>
-                                                                          <span class="custom-option-header">
-                                                                            <span class="h4 mb-2">اطلاعات محصول</span>
-                                                                          </span>
-                                                                          <span class="custom-option-body">
-                                                                            <span class="mb-0 text-primary">نام محصول: {{ requested_product_processing.requested_product.product.name }}</span>
-                                                                          </span>
-                                                                        </span>
-                                                                      </span>
+                                    <i class="bx bxs-report bx-md me-3 mt-1"></i>
+                                    <span>
+                                        <span class="custom-option-header">
+                                            <span class="h4 mb-2">گزارشات فروش</span>
+                                        </span>
+                                    </span>
+                                </span>
                             </label>
                         </div>
                     </div>
@@ -81,7 +100,7 @@
                     یک کد 6 رقمی برای شما ایجاد می کند که در زیر وارد کنید.
                 </p>
                 <div class="text-center">
-                    <img src="../../assets/img/icons/misc/authentication-QR.png"
+                    <img src="{% static 'assets/img/icons/misc/authentication-QR.png' %}"
                          alt="QR Code" width="140">
                 </div>
                 <div class="alert alert-warning alert-dismissible my-3"
@@ -111,7 +130,7 @@
         </div>
     </div>
 </div>
-<div class="modal fade" id="ProductData" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="productData" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-simple">
         <div class="modal-content p-3 p-md-5">
             <div class="modal-body">
@@ -145,3 +164,71 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="reportData" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-simple">
+        <div class="modal-content p-3 p-md-5">
+            <div class="modal-body">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                <h4 id="mrp_reports_count" class="modal-header"></h4>
+                <div class="row">
+                    <div id="mrp_reports_container" class="col-sm-12 col-md-12 col-lg-12"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function get_reports_data(requested_product_processing_id) {
+        const mrp_reports_container = document.getElementById('mrp_reports_container')
+        const mrp_reports_count = document.getElementById('mrp_reports_count')
+        
+        const loading_text = 'در حال بارگذاری ...'
+        const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                  <span class="visually-hidden">${loading_text}</span>
+                                </div>`
+        const formData = new FormData();
+        formData.append('requested_product_processing_id', `${requested_product_processing_id}`)
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+        const options = {
+            method: 'POST',
+            body: formData,
+        }
+        mrp_reports_container.innerHTML=loading_html
+        fetch('{% url 'panel:requested-product-processing-reports' %}', options)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                mrp_reports_count.innerText=`تعداد گزارشات: ${data['data'].length}`
+                mrp_reports_container.innerHTML=`<ul class="timeline timeline-dashed mt-4"></ul>`
+                for (let i=0; i < data['data'].length; i++) {
+                    mrp_reports_container.firstElementChild.innerHTML += `<li class="timeline-item timeline-item-primary mb-4">
+                                <span class="timeline-indicator timeline-indicator-primary">
+                                    <i class="bx bx-paper-plane"></i>
+                                </span>
+                                <div class="timeline-event">
+                                    <div class="timeline-header border-bottom mb-3 mt-n1">
+                                        <h6 class="mb-1 mb-sm-2">دپارتمان: ${data['data'][i]['department']}</h6>
+                                        <small class="text-muted mt-1 mt-sm-0 mb-2 mb-sm-0">${data['data'][i]['created_at']}</small>
+                                    </div>
+                                    <div class="text mb-2">
+                                        <span>${data['data'][i]['report']}</span>
+                                    </div>
+                                    <a href="javascript:void(0)">
+                                        <i class="bx bx-user"></i>
+                                        توسط: ${data['data'][i]['created_by']}
+                                    </a>
+                                </div>
+                            </li>`
+                }
+                console.log(data)
+            })
+            .catch(error => {
+                console.log(error)
+            });
+    }
+</script>
