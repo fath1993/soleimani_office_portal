@@ -64,7 +64,7 @@
                             <label class="form-check-label custom-option-content ps-3"
                                    for="customRadioTemp3"
                                    data-bs-target="#reportData"
-                                   data-bs-toggle="modal" onclick="get_reports_data('{{ requested_product_processing.id }}')">
+                                   data-bs-toggle="modal" onclick="get_reports_data()">
                                 <input name="customRadioTemp"
                                        class="form-check-input d-none" type="radio"
                                        value="" id="customRadioTemp3">
@@ -179,7 +179,8 @@
     </div>
 </div>
 <script>
-    function get_reports_data(requested_product_processing_id) {
+    function get_reports_data() {
+        const cl_requested_product_id = document.getElementById('cl_requested_product_id').value
         const mrp_reports_container = document.getElementById('mrp_reports_container')
         const mrp_reports_count = document.getElementById('mrp_reports_count')
         
@@ -188,7 +189,7 @@
                                   <span class="visually-hidden">${loading_text}</span>
                                 </div>`
         const formData = new FormData();
-        formData.append('requested_product_processing_id', `${requested_product_processing_id}`)
+        formData.append('requested_product_processing_id', `${cl_requested_product_id}`)
         formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
         const options = {
             method: 'POST',

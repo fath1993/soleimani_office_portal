@@ -1,5 +1,7 @@
 {% load static %}
 
+
+{% if request.user.is_superuser or request.user.user_profile.profile_seller_profile %}
 <div class="modal fade" id="saleStatus" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-md modal-dialog-centered modal-simple">
         <div class="modal-content p-3 p-md-5">
@@ -87,6 +89,7 @@
 
 <script>
     function mss_change_sale_state(status, form_id) {
+        const cl_requested_product_id = document.getElementById('cl_requested_product_id').value
         const message_list = document.getElementsByClassName('dt-message')
         const sales_status = document.getElementById('sales_status')
         const warehouse_status = document.getElementById('warehouse_status')
@@ -101,7 +104,7 @@
         const form = document.getElementById(form_id);
         const formData = new FormData(form);
         formData.append('mss_status', status)
-        formData.append('requested_product_processing_id', "{{ requested_product_processing.id }}")
+        formData.append('requested_product_processing_id', `${cl_requested_product_id}`)
         const options = {
             method: 'POST',
             body: formData,
@@ -120,12 +123,14 @@
                 if (data['message'] === 'seller profile not found') {
                     toast_maker('error', 'فروشنده نیستید')
                 } else if (data['message'] === 'sold') {
-                    sales_status.innerHTML=`<span class="btn badge bg-warning">${text_1}</span>`
+                    sales_status.innerHTML=`<span class="btn badge bg-warning" data-bs-toggle="modal"
+                                                  data-bs-target="#saleApproval">${text_1}</span>`
                     warehouse_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
                     delivery_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
                     toast_maker('success', 'فروخته شد. در انتظار تایید مدیر')
                 } else if (data['message'] === 'canceled') {
-                    sales_status.innerHTML=`<span class="btn badge bg-danger">${text_3}</span>`
+                    sales_status.innerHTML=`<span class="btn badge bg-danger" data-bs-toggle="modal"
+                                                  data-bs-target="#cancelRetry" onclick="change_requested_product_id('${cl_requested_product_id}')">${text_3}</span>`
                     warehouse_status.innerHTML=`<span class="badge bg-warning">${text_3}</span>`
                     delivery_status.innerHTML=`<span class="badge bg-warning">${text_3}</span>`
                     toast_maker('info', 'کنسل شد')
@@ -144,3 +149,4 @@
         }
     }
 </script>
+{% endif %}

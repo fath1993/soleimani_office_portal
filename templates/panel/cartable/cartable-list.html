@@ -187,7 +187,7 @@
                         <thead>
                         <tr>
                             <th style="width: 5%">#</th>
-                            <th style="width: 15%">محصول درخواستی</th>
+                            <th style="width: 5%">شماره سفارش</th>
                             <th style="width: 15%">واحد فعلی پردازش کننده</th>
                             <th style="width: 15%">وضعیت فروش</th>
                             <th style="width: 15%">وضعیت انبار</th>
@@ -199,19 +199,19 @@
                         {% for requested_product_processing in page %}
                             <tr>
                                 <td>{{ forloop.counter }}</td>
-                                <td>
-                                    <span class="btn text-primary" data-bs-toggle="modal"
-                                          data-bs-target="#threeData">{{ requested_product_processing.requested_product.product.name }}</span>
-                                    {% include 'panel/cartable/modal_requested_product.html' %}
+                                <td data-bs-toggle="modal" data-bs-target="#threeData" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">
+                                    <span class="btn text-primary">{{ requested_product_processing.id }}</span>
                                 </td>
                                 <td id="department_status">
                                     {% if requested_product_processing.in_department_status == 'sale' %}
                                         <span><span
                                                 class="badge bg-secondary rounded-pill">فروش</span> - <span>{{ requested_product_processing.seller.profile.user.username }}</span></span>
                                     {% elif requested_product_processing.in_department_status == 'warehouse' %}
-                                        <span class="badge bg-secondary rounded-pill">انبار</span>
+                                        <span><span
+                                                class="badge bg-secondary rounded-pill">انبار</span> - <span>{{ requested_product_processing.seller.profile.user.username }}</span></span>
                                     {% elif requested_product_processing.in_department_status == 'delivery' %}
-                                        <span class="badge bg-secondary rounded-pill">ارسال</span>
+                                        <span><span
+                                                class="badge bg-secondary rounded-pill">ارسال</span> - <span>{{ requested_product_processing.seller.profile.user.username }}</span></span>
                                     {% else %}
                                         <span class="badge bg-primary"> - </span>
                                     {% endif %}
@@ -220,17 +220,20 @@
                                     {% if requested_product_processing.sales_status == 'processing' %}
                                         {% if request.user.user_profile.profile_seller_profile %}
                                             <span class="btn badge bg-info" data-bs-toggle="modal"
-                                                  data-bs-target="#saleStatus">در حال پردازش ...</span>
-                                            {% include 'panel/cartable/modal_sale_state.html' %}
+                                                  data-bs-target="#saleStatus" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">در حال پردازش ...</span>
                                         {% else %}
                                             <span id="sales_status" class="badge bg-info">در حال پردازش ...</span>
                                         {% endif %}
-                                    {% elif requested_product_processing.sales_status == 'soled' %}
+                                    {% elif requested_product_processing.sales_status == 'sold' %}
                                         <span class="btn badge bg-success">فروخته شده</span>
                                     {% elif requested_product_processing.sales_status == 'canceled' %}
-                                        <span class="btn badge bg-danger">کنسل شده</span>
+                                        <span class="btn badge bg-danger" data-bs-toggle="modal"
+                                                  data-bs-target="#cancelRetry" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">کنسل شده</span>
+                                    {% elif requested_product_processing.sales_status == 'pending' %}
+                                        <span class="btn badge bg-warning">در انتظار</span>
                                     {% elif requested_product_processing.sales_status == 'pending_sales_approval' %}
-                                        <span class="btn badge bg-warning">در انتظار تایید مدیریت فروش ...</span>
+                                        <span class="btn badge bg-warning" data-bs-toggle="modal"
+                                                  data-bs-target="#saleApproval" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">در انتظار تایید مدیریت فروش ...</span>
                                     {% else %}
                                         <span class="btn badge bg-primary"> - </span>
                                     {% endif %}
@@ -330,8 +333,22 @@
         </div>
         
     </div>
+    <!-- modals -->
+    <form hidden>
+        <input type="hidden" id="cl_requested_product_id" value="none">
+    </form>
+    {% include 'panel/cartable/modal_canceled_retry.html' %}
+    {% include 'panel/cartable/modal_requested_product.html' %}
+    {% include 'panel/cartable/modal_sale_state.html' %}
+    {% include 'panel/cartable/modal_sale_approval.html' %}
+    <!-- modals -->
 {% endblock %}
 
 {% block extra_body %}
     <script src="{% static 'assets/js/main.js' %}"></script>
+    <script>
+        function change_requested_product_id(requested_product_id) {
+            document.getElementById('cl_requested_product_id').value=requested_product_id
+        }
+    </script>
 {% endblock %}

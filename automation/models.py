@@ -1,3 +1,6 @@
+import random
+
+import jdatetime
 from django.contrib.auth.models import User
 from django.db import models
 from django_jalali.db import models as jmodel
@@ -8,8 +11,10 @@ from portal.models import Product, Receiver
 REQUESTED_PRODUCT_PROCESSING_IN_DEPARTMENT_STATUS = (('sale', 'فروش'), ('warehouse', 'انبار'),
                                                      ('delivery', 'ارسال'))
 
-REQUESTED_PRODUCT_SALES_STATUS = (('processing', 'در حال پردازش'), ('sold', 'فروخته شده'),
-                                  ('canceled', 'کنسل شده'), ('pending_sales_approval', 'در انتظار تایید مدیریت فروش'))
+REQUESTED_PRODUCT_SALES_STATUS = (('pending', 'در انتظار'), ('processing', 'در حال پردازش'),
+                                  ('sold', 'فروخته شده'),
+                                  ('canceled', 'کنسل شده'),
+                                  ('pending_sales_approval', 'در انتظار تایید مدیریت فروش'))
 
 REQUESTED_PRODUCT_WAREHOUSE_STATUS = (
     ('pending', 'در انتظار'), ('processing', 'در حال پردازش'), ('sent_to_delivery', 'تحویل به واحد ارسال'),
@@ -127,6 +132,7 @@ class RequestedProductProcessing(models.Model):
     sales_status = models.CharField(max_length=255, default='processing', choices=REQUESTED_PRODUCT_SALES_STATUS,
                                     null=False,
                                     blank=False, verbose_name='وضعیت فروش محصول درخواستی')
+    cancel_number = models.IntegerField(default=0, null=False, blank=False, verbose_name='تعداد کنسلی ها')
     product_price = models.IntegerField(null=True, blank=True, verbose_name='قیمت نهایی واحد محصول فروخته شده - ریال')
     product_number = models.IntegerField(null=True, blank=True, verbose_name='تعداد محصول فروخته شده')
     request_total_income = models.IntegerField(null=True, blank=True, verbose_name='درآمد نهایی این درخواست - ریال')
@@ -207,7 +213,7 @@ class RequestedProductProcessingReport(models.Model):
 def create_requested_product_processing_report(requested_product_processing, department, status, report=None,
                                                created_by=None, **kwargs):
     if report is None:
-        report = f'گزارش سیستمی از پردازش محصول با شناسه {requested_product_processing.id} توسط دپارتمان {department} ثبت گردید.'
+        report = f'گزارش سیستمی از {status} با شناسه {requested_product_processing.id} توسط دپارتمان {department} ثبت گردید.'
 
     if not created_by:
         created_by = User.objects.filter(is_superuser=True).latest('id')
@@ -218,3 +224,22 @@ def create_requested_product_processing_report(requested_product_processing, dep
         report=report,
         created_by=created_by,
     )
+
+
+def pick_seller(exclude_profile=None):
+    sales_allowed_profiles = SellerProfile.objects.filter(daily_allowed_product_processing_number__gte=0)
+    sales_allowed_profiles_with_available_quantity = []
+    for sales_allowed_profile in sales_allowed_profiles:
+        now = jdatetime.datetime.now()
+        start_of_today = jdatetime.datetime(year=now.year, month=now.month, day=now.day, hour=0,
+                                            minute=0, second=0)
+        all_request_product_processing_that_belong_to_user = RequestedProductProcessing.objects.filter(
+            created_at__gte=start_of_today, seller=sales_allowed_profile)
+        if all_request_product_processing_that_belong_to_user.count() < sales_allowed_profile.daily_allowed_product_processing_number:
+            if sales_allowed_profile != exclude_profile:
+                sales_allowed_profiles_with_available_quantity.append(sales_allowed_profile)
+    if len(sales_allowed_profiles_with_available_quantity) > 0:
+        seller = random.choice(sales_allowed_profiles_with_available_quantity)
+        return seller
+    else:
+        return None

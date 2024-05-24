@@ -167,6 +167,7 @@ class RequestedProductProcessingAdmin(admin.ModelAdmin):
         'seller',
         'is_confirmed_by_sales_department',
         'sales_status',
+        'cancel_number',
         'product_price',
         'product_number',
         'request_total_income',

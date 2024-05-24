@@ -1,13 +1,15 @@
+import random
+
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from accounts.models import Role, Permission
+from accounts.models import Role, Permission, WarehouseProfile
 from accounts.templatetags.account_custom_tag import has_access_to_section
 from automation.models import RequestedProductProcessing, create_requested_product_processing_report, \
-    RequestedProductProcessingReport
+    RequestedProductProcessingReport, pick_seller
 from gallery.models import FileGallery
 from panel.custom_decorator import CheckLogin, CheckPermissions, RequireMethod
 from panel.serializer import RequestedProductProcessingReportSerializer
@@ -1579,11 +1581,13 @@ class RequestedProductProcessingView:
                 if not requested_product_processing.seller == seller_profile:
                     return JsonResponse({"message": 'not authorized seller'})
             mss_status = fetch_data_from_http_post(request, 'mss_status', context)
+            mss_sold_number = fetch_data_from_http_post(request, 'mss_sold_number', context)
             mss_message = fetch_data_from_http_post(request, 'mss_message', context)
 
             create_requested_product_processing_report(requested_product_processing, 'sale', mss_status, mss_message)
             if mss_status == 'sold':
                 requested_product_processing.sales_status = 'pending_sales_approval'
+                requested_product_processing.product_number = int(mss_sold_number)
                 requested_product_processing.save()
                 return JsonResponse({"message": 'sold'})
             else:
@@ -1617,29 +1621,101 @@ class RequestedProductProcessingView:
         try:
             requested_product_processing = RequestedProductProcessing.objects.get(id=requested_product_processing_id)
 
-            msa_status = fetch_data_from_http_post(request, 'ssm_status', context)
-            msa_message = fetch_data_from_http_post(request, 'ssm_message', context)
+            msa_status = fetch_data_from_http_post(request, 'msa_status', context)
+            msa_message = fetch_data_from_http_post(request, 'msa_message', context)
 
             create_requested_product_processing_report(requested_product_processing, 'sale', msa_status, msa_message)
+
+            warehouse_profiles = WarehouseProfile.objects.all()
+            print(warehouse_profiles)
+            if warehouse_profiles.count() == 0:
+                return JsonResponse({"message": 'no available warehouse keeper'})
+            else:
+                warehouse_profile = warehouse_profiles[random.randint(0, warehouse_profiles.count() - 1)]
             if msa_status == 'confirmed':
                 requested_product_processing.sales_status = 'sold'
                 requested_product_processing.is_confirmed_by_sales_department = True
-                requested_product_processing.product_price = requested_product_processing.requested_product
-                requested_product_processing.product_number = 1
-                requested_product_processing.request_total_income = 1
+                requested_product_processing.product_price = requested_product_processing.requested_product.product.product_price
+                requested_product_processing.request_total_income = requested_product_processing.requested_product.product.product_price * requested_product_processing.product_number
 
-                requested_product_processing.warehouse_keeper = 1
+                requested_product_processing.warehouse_keeper = warehouse_profile
                 requested_product_processing.warehouse_status = 'processing'
+                requested_product_processing.in_department_status = 'warehouse'
                 requested_product_processing.save()
                 return JsonResponse({"message": 'sold'})
             elif msa_status == 'recheck':
-                requested_product_processing.sales_status = 'canceled'
+                requested_product_processing.sales_status = 'processing'
+                requested_product_processing.is_confirmed_by_sales_department = False
+                requested_product_processing.product_price = 0
+                requested_product_processing.request_total_income = 0
+
+                requested_product_processing.warehouse_keeper = None
+                requested_product_processing.warehouse_status = 'pending'
+                requested_product_processing.in_department_status = 'sale'
                 requested_product_processing.save()
-                return JsonResponse({"message": 'canceled'})
+                return JsonResponse({"message": 'recheck'})
             else:
-                requested_product_processing.sales_status = 'canceled'
+                requested_product_processing.sales_status = 'processing'
+                requested_product_processing.is_confirmed_by_sales_department = False
+                requested_product_processing.product_price = 0
+                requested_product_processing.request_total_income = 0
+
+                requested_product_processing.warehouse_keeper = None
+                requested_product_processing.warehouse_status = 'pending'
+                requested_product_processing.in_department_status = 'sale'
+                old_seller = requested_product_processing.seller
+                requested_product_processing.seller = pick_seller(exclude_profile=old_seller)
                 requested_product_processing.save()
-                return JsonResponse({"message": 'canceled'})
+                return JsonResponse({"message": 'seller has changed'})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"message": 'requested product processing not found'})
+
+    @CheckLogin()
+    @RequireMethod(allowed_method='POST')
+    def reopen_sale(self, request, *args, **kwargs):
+        context = {}
+        if not request.user.is_superuser:
+            try:
+                seller_profile = request.user.user_profile.profile_seller_profile
+            except:
+                return JsonResponse({"message": 'seller profile not found'})
+        else:
+            seller_profile = None
+
+        requested_product_processing_id = fetch_data_from_http_post(request, 'requested_product_processing_id',
+                                                                    context)
+        try:
+            requested_product_processing = RequestedProductProcessing.objects.get(id=requested_product_processing_id)
+            if not request.user.is_superuser:
+                if not requested_product_processing.seller == seller_profile:
+                    return JsonResponse({"message": 'not authorized seller'})
+            mcr_status = fetch_data_from_http_post(request, 'mcr_status', context)
+            mcr_message = fetch_data_from_http_post(request, 'mcr_message', context)
+
+            create_requested_product_processing_report(requested_product_processing, 'sale', mcr_status, mcr_message)
+
+            requested_product_processing.in_department_status = 'sale'
+            requested_product_processing.is_confirmed_by_sales_department = False
+            requested_product_processing.cancel_number += 1
+            requested_product_processing.product_price = 0
+            requested_product_processing.product_number = 0
+            requested_product_processing.request_total_income = 0
+            requested_product_processing.warehouse_keeper = None
+            requested_product_processing.warehouse_status = 'pending'
+            requested_product_processing.is_confirmed_by_warehouse_keeper = False
+            requested_product_processing.delivery_man = None
+            requested_product_processing.delivery_status = 'pending'
+            requested_product_processing.is_confirmed_by_delivery_man = False
+            if mcr_status == 'myself':
+                requested_product_processing.sales_status = 'processing'
+                requested_product_processing.save()
+                return JsonResponse({"message": 'reopen for myself'})
+            else:
+                requested_product_processing.sales_status = 'pending'
+                requested_product_processing.seller = None
+
+                return JsonResponse({"message": 'free for all'})
         except Exception as e:
             print(e)
             return JsonResponse({"message": 'requested product processing not found'})

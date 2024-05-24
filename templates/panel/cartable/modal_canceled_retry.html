@@ -1,0 +1,99 @@
+{% load static %}
+
+{% if request.user.is_superuser or request.user.user_profile.profile_seller_profile %}
+<div class="modal fade" id="cancelRetry" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered modal-simple">
+        <div class="modal-content p-3 p-md-5">
+            <div class="modal-body">
+                <form id="mcr_form">
+                    {% csrf_token %}
+                    <div class="row justify-content-between">
+                        <div class="d-grid gap-2 col-lg-12 mx-auto">
+                            <button type="button" class="btn btn-lg btn-success" data-bs-dismiss="modal"
+                            aria-label="Close" onclick="mcr_cancel_retry('myself')">بازگشایی سفارش برای خودم</button>
+                            <button type="button" class="btn btn-lg btn-success" data-bs-dismiss="modal"
+                            aria-label="Close" onclick="mcr_cancel_retry('everyone')">آزاد سازی پردازش سفارش برای همه</button>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12 col-lg-12 mb-2">
+                            <label class="form-label" for="mcr_message">
+                                پیام</label>
+                            <div class="input-group input-group-merge">
+                                <textarea type="text" id="mcr_message"
+                                       class="form-control dt-message"
+                                       name="mcr_message" rows="4"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function mcr_cancel_retry(status) {
+        const cl_requested_product_id = document.getElementById('cl_requested_product_id').value
+        const message_list = document.getElementsByClassName('dt-message')
+        const sales_status = document.getElementById('sales_status')
+        const warehouse_status = document.getElementById('warehouse_status')
+        const delivery_status = document.getElementById('delivery_status')
+        const text_1 = 'در انتظار تایید مدیریت فروش ...'
+        const text_2 = 'در انتظار'
+        const text_3 = 'کنسل شده'
+        const text_4 = 'در حال پردازش ...'
+        const loading_text = 'در حال بارگذاری ...'
+        const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                  <span class="visually-hidden">${loading_text}</span>
+                                </div>`
+        const form = document.getElementById('mcr_form');
+        const formData = new FormData(form);
+        formData.append('mcr_status', status)
+        formData.append('requested_product_processing_id', `${cl_requested_product_id}`)
+        const options = {
+            method: 'POST',
+            body: formData,
+        }
+        sales_status.innerHTML=loading_html
+        warehouse_status.innerHTML=loading_html
+        delivery_status.innerHTML=loading_html
+        fetch('{% url 'panel:requested-product-processing-reopen-sale' %}', options)
+            .then(response => {
+                document.getElementById('msa_message').value=''
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data['message'] === 'seller profile not found') {
+                    toast_maker('error', 'فروشنده نیستید')
+                } else if (data['message'] === 'reopen for myself') {
+                    sales_status.innerHTML=`<span class="btn badge bg-info" data-bs-toggle="modal"
+                                                  data-bs-target="#saleStatus" onclick="change_requested_product_id('${cl_requested_product_id}')">${text_4}</span>`
+                    warehouse_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
+                    delivery_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
+                    toast_maker('success', 'سفارش مجددا بازگشایی شد')
+                } else if (data['message'] === 'free for all') {
+                    sales_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
+                    warehouse_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
+                    delivery_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
+                    toast_maker('info', 'سفارش ازاد شد')
+                } else if (data['message'] === 'not authorized seller') {
+                    toast_maker('error', 'فروشنده غیر مجاز')
+                } else if (data['message'] === 'requested product processing not found') {
+                    toast_maker('error', 'محصول یافت نشد')
+                }
+            })
+            .catch(error => {
+                console.log(error)
+                toast_maker('warning', data['message'])
+            });
+        
+        for (let i = 0; i < message_list.length; i++) {
+          message_list[i].value=''
+        }
+    }
+</script>
+{% endif %}
