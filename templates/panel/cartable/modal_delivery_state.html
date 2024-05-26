@@ -1,0 +1,107 @@
+{% load static %}
+
+
+{% if request.user.is_superuser or request.user.user_profile.profile_delivery_profile %}
+<div class="modal fade" id="deliveryStateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered modal-simple">
+        <div class="modal-content p-3 p-md-5">
+            <div class="modal-body">
+                <form id="mds_form_delivery_state">
+                    {% csrf_token %}
+                    <div class="row justify-content-between">
+                        <div class="d-grid gap-2 col-lg-12 mx-auto">
+                            <button type="button" class="btn btn-lg btn-success" data-bs-dismiss="modal"
+                                    aria-label="Close" onclick="mds_change_delivery_state('delivered', 'mds_form_delivery_state')">تحویل شده به مشتری</button>
+                            <button type="button" class="btn btn-lg btn-danger" data-bs-dismiss="modal"
+                                    aria-label="Close" onclick="mds_change_delivery_state('return_to_warehouse', 'mds_form_delivery_state')">بازگشت به واحد انبار</button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12 col-lg-12 mb-2">
+                            <label class="form-label" for="mds_message">
+                                پیام</label>
+                            <div class="input-group input-group-merge">
+                                <textarea type="text" id="mds_message"
+                                       class="form-control dt-message"
+                                       name="mds_message" rows="4"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function mds_change_delivery_state(status, form_id) {
+        const cl_requested_product_id = document.getElementById('cl_requested_product_id').value
+        const cl_requested_processed_by = document.getElementById('cl_requested_processed_by').value
+        const message_list = document.getElementsByClassName('dt-message')
+        const department_status = document.getElementById(`department_status_${cl_requested_product_id}`)
+        const sales_status = document.getElementById(`sales_status_${cl_requested_product_id}`)
+        const warehouse_status = document.getElementById(`warehouse_status_${cl_requested_product_id}`)
+        const delivery_status = document.getElementById(`delivery_status_${cl_requested_product_id}`)
+        const text_2 = 'در انتظار'
+        const text_4 = 'فروخته شده'
+        const text_5 = 'تحویل به واحد ارسال'
+        const text_6 = 'در حال پردازش ...'
+        const text_7 = 'بازگشت به واحد فروش'
+        const text_8 = 'تحویل شده به مشتری'
+        const text_9 = 'بازگشت به واحد انبار'
+        const loading_text = 'در حال بارگذاری ...'
+        const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                  <span class="visually-hidden">${loading_text}</span>
+                                </div>`
+        const form = document.getElementById(form_id);
+        const formData = new FormData(form);
+        formData.append('mds_status', status)
+        formData.append('requested_product_processing_id', `${cl_requested_product_id}`)
+        const options = {
+            method: 'POST',
+            body: formData,
+        }
+        department_status.innerHTML=loading_html
+        sales_status.innerHTML=loading_html
+        warehouse_status.innerHTML=loading_html
+        delivery_status.innerHTML=loading_html
+        fetch('{% url 'panel:requested-product-processing-change-delivery-state' %}', options)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data['message'] === 'delivery profile not found') {
+                    toast_maker('error', 'ارسال کننده نیستید')
+                } else if (data['message'] === 'not authorized delivery') {
+                    toast_maker('error', 'ارسال کننده غیر مجاز')
+                } else if (data['message'] === 'requested product processing not found') {
+                    toast_maker('error', 'محصول یافت نشد')
+                } else if (data['message'] === 'delivered') {
+                    department_status.innerHTML=`<span><span
+                                                class="badge bg-secondary rounded-pill">ارسال</span> - <span>${cl_requested_processed_by}</span></span>`
+                    sales_status.innerHTML=`<span class="badge bg-success">${text_4}</span>`
+                    warehouse_status.innerHTML=`<span class="badge bg-success">${text_5}</span>`
+                    delivery_status.innerHTML=`<span class="badge bg-success">${text_8}</span>`
+                    toast_maker('success', `${text_8}`)
+                } else if (data['message'] === 'return_to_warehouse') {
+                    department_status.innerHTML=`<span><span
+                                                class="badge bg-secondary rounded-pill">انبار</span> - <span>${cl_requested_processed_by}</span></span>`
+                    sales_status.innerHTML=`<span class="badge bg-success">${text_4}</span>`
+                    warehouse_status.innerHTML=`<span class="badge bg-info">${text_6}</span>`
+                    delivery_status.innerHTML=`<span class="badge bg-danger">${text_9}</span>`
+                    toast_maker('info', `${text_9}`)
+                }
+            })
+            .catch(error => {
+                toast_maker('warning', data['message'])
+            });
+        
+        for (let i = 0; i < message_list.length; i++) {
+          message_list[i].value=''
+        }
+    }
+</script>
+{% endif %}

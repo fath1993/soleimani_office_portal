@@ -1,0 +1,23 @@
+{% load  static %}
+
+<div class="form-check custom-option custom-option-basic">
+    <label class="form-check-label custom-option-content ps-3"
+           for="customRadioTemp1"
+           data-bs-target="#customerData"
+           data-bs-toggle="modal" onclick="get_customer_data()">
+        <input name="customRadioTemp"
+               class="form-check-input d-none" type="radio"
+               value="" id="customRadioTemp1">
+        <span class="d-flex align-items-start">
+            <i class="bx bx-body bx-md me-3 mt-1"></i>
+            <span>
+                <span class="custom-option-header">
+                    <span class="h4 mb-2">اطلاعات مشتری</span>
+                </span>
+                <span class="custom-option-body">
+                    <span id="mc_customer_phone_number" class="mb-0 text-primary"></span>
+                </span>
+            </span>
+        </span>
+    </label>
+</div>

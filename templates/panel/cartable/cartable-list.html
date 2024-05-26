@@ -199,13 +199,14 @@
                         {% for requested_product_processing in page %}
                             <tr>
                                 <td>{{ forloop.counter }}</td>
-                                <td data-bs-toggle="modal" data-bs-target="#threeData" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">
+                                <td data-bs-toggle="modal" data-bs-target="#threeData" onclick="change_requested_product_id_and_get_overall_data('{{ requested_product_processing.id }}')">
                                     <span class="btn text-primary">{{ requested_product_processing.id }}</span>
                                 </td>
-                                <td id="department_status">
+                                <td id="department_status_{{ requested_product_processing.id }}">
                                     {% if requested_product_processing.in_department_status == 'sale' %}
-                                        <span><span
-                                                class="badge bg-secondary rounded-pill">فروش</span> - <span>{{ requested_product_processing.seller.profile.user.username }}</span></span>
+                                        <span>
+                                            <span class="badge bg-secondary rounded-pill">فروش</span> - <span>{{ requested_product_processing.seller.profile.user.username }}</span>
+                                        </span>
                                     {% elif requested_product_processing.in_department_status == 'warehouse' %}
                                         <span><span
                                                 class="badge bg-secondary rounded-pill">انبار</span> - <span>{{ requested_product_processing.seller.profile.user.username }}</span></span>
@@ -216,7 +217,7 @@
                                         <span class="badge bg-primary"> - </span>
                                     {% endif %}
                                 </td>
-                                <td id="sales_status">
+                                <td id="sales_status_{{ requested_product_processing.id }}">
                                     {% if requested_product_processing.sales_status == 'processing' %}
                                         {% if request.user.user_profile.profile_seller_profile %}
                                             <span class="btn badge bg-info" data-bs-toggle="modal"
@@ -225,10 +226,12 @@
                                             <span id="sales_status" class="badge bg-info">در حال پردازش ...</span>
                                         {% endif %}
                                     {% elif requested_product_processing.sales_status == 'sold' %}
-                                        <span class="btn badge bg-success">فروخته شده</span>
+                                        <span class="badge bg-success">فروخته شده</span>
                                     {% elif requested_product_processing.sales_status == 'canceled' %}
-                                        <span class="btn badge bg-danger" data-bs-toggle="modal"
-                                                  data-bs-target="#cancelRetry" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">کنسل شده</span>
+                                        <span>
+                                            <span class="badge bg-dark text-white rounded-pill badge-notifications">{{ requested_product_processing.cancel_number }}</span>
+                                            <span class="btn badge bg-danger" data-bs-toggle="modal" data-bs-target="#cancelRetry" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">کنسل شده</span>
+                                        </span>
                                     {% elif requested_product_processing.sales_status == 'pending' %}
                                         <span class="btn badge bg-warning">در انتظار</span>
                                     {% elif requested_product_processing.sales_status == 'pending_sales_approval' %}
@@ -238,14 +241,15 @@
                                         <span class="btn badge bg-primary"> - </span>
                                     {% endif %}
                                 </td>
-                                <td id="warehouse_status">
+                                <td id="warehouse_status_{{ requested_product_processing.id }}">
                                     {% if requested_product_processing.sales_status == 'canceled' %}
                                         <span class="badge bg-dark">کنسل شده</span>
                                     {% else %}
                                         {% if requested_product_processing.warehouse_status == 'pending' %}
                                             <span class="badge bg-warning">در انتظار</span>
                                         {% elif requested_product_processing.warehouse_status == 'processing' %}
-                                            <span class="badge bg-info">در حال پردازش ...</span>
+                                            <span class="btn badge bg-info" data-bs-toggle="modal"
+                                                  data-bs-target="#warehouseStateModal" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">در حال پردازش ...</span>
                                         {% elif requested_product_processing.warehouse_status == 'sent_to_delivery' %}
                                             <span class="badge bg-success">تحویل به واحد ارسال</span>
                                         {% elif requested_product_processing.warehouse_status == 'return_to_sales' %}
@@ -255,14 +259,15 @@
                                         {% endif %}
                                     {% endif %}
                                 </td>
-                                <td id="delivery_status">
+                                <td id="delivery_status_{{ requested_product_processing.id }}">
                                     {% if requested_product_processing.sales_status == 'canceled' %}
                                         <span class="badge bg-dark">کنسل شده</span>
                                     {% else %}
                                         {% if requested_product_processing.delivery_status == 'pending' %}
                                             <span class="badge bg-warning">در انتظار</span>
                                         {% elif requested_product_processing.delivery_status == 'processing' %}
-                                            <span class="badge bg-info">در حال پردازش ...</span>
+                                            <span class="btn badge bg-info" data-bs-toggle="modal"
+                                                  data-bs-target="#deliveryStateModal" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">در حال پردازش ...</span>
                                         {% elif requested_product_processing.delivery_status == 'delivered' %}
                                             <span class="badge bg-success">تحویل به مشتری</span>
                                         {% elif requested_product_processing.delivery_status == 'return_to_warehouse' %}
@@ -336,11 +341,17 @@
     <!-- modals -->
     <form hidden>
         <input type="hidden" id="cl_requested_product_id" value="none">
+        <input type="hidden" id="cl_requested_processed_by" value="none">
+        <input type="hidden" id="cl_customer_phone_number" value="none">
+        <input type="hidden" id="cl_product_name" value="none">
+        <input type="hidden" id="cl_product_link" value="none">
     </form>
     {% include 'panel/cartable/modal_canceled_retry.html' %}
     {% include 'panel/cartable/modal_requested_product.html' %}
     {% include 'panel/cartable/modal_sale_state.html' %}
     {% include 'panel/cartable/modal_sale_approval.html' %}
+    {% include 'panel/cartable/modal_warehouse_state.html' %}
+    {% include 'panel/cartable/modal_delivery_state.html' %}
     <!-- modals -->
 {% endblock %}
 
@@ -349,6 +360,66 @@
     <script>
         function change_requested_product_id(requested_product_id) {
             document.getElementById('cl_requested_product_id').value=requested_product_id
+            document.getElementById('cl_requested_processed_by').value='{{ request.user.username }}'
+            document.getElementById('cl_customer_phone_number').value=`شماره تماس: {{ requested_product_processing.requested_product.customer.phone_number }}`
         }
+        
+        function change_requested_product_id_and_get_overall_data(requested_product_id) {
+            document.getElementById('cl_requested_product_id').value=requested_product_id
+            get_overall_data(requested_product_id)
+        }
+        
+        function get_overall_data(requested_product_id) {
+        const cl_customer_phone_number = document.getElementById('cl_customer_phone_number')
+        const cl_product_name = document.getElementById('cl_product_name')
+        const cl_product_link = document.getElementById('cl_product_link')
+            
+        const customer_modal_container = document.getElementById('customer_modal_container')
+        const product_modal_container = document.getElementById('product_modal_container')
+        const reports_modal_container = document.getElementById('reports_modal_container')
+        
+            
+        const loading_text = 'در حال بارگذاری ...'
+        const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                  <span class="visually-hidden">${loading_text}</span>
+                                </div>`
+        const formData = new FormData();
+        formData.append('requested_product_processing_id', `${requested_product_id}`)
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+        const options = {
+            method: 'POST',
+            body: formData,
+        }
+        customer_modal_container.innerHTML=loading_html
+        product_modal_container.innerHTML=loading_html
+        reports_modal_container.innerHTML=loading_html
+        fetch('{% url 'panel:requested-product-processing-overall-data' %}', options)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data)
+                customer_modal_container.innerHTML=`{% include 'panel/cartable/modal_customer.html' %}`
+                product_modal_container.innerHTML=`{% include 'panel/cartable/modal_product.html' %}`
+                reports_modal_container.innerHTML=`{% include 'panel/cartable/modal_reports.html' %}`
+                cl_customer_phone_number.value=`${data['data']['customer_phone_number']}`
+                cl_product_name.value=`${data['data']['product_name']}`
+                cl_product_link.value=`${data['data']['product_link']}`
+                
+                const mc_customer_phone_number = document.getElementById('mc_customer_phone_number')
+                const mc_product_name = document.getElementById('mc_product_name')
+                mc_customer_phone_number.innerText=`شماره همراه مشتری: ${data['data']['customer_phone_number']}`
+                mc_product_name.innerText=`نام محصول: ${data['data']['product_name']}`
+                mc_product_name.href=`${data['data']['product_link']}`
+                mc_product_name.target='_blank'
+                
+            })
+            .catch(error => {
+                console.log(error)
+            });
+    }
     </script>
 {% endblock %}

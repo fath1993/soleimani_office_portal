@@ -1,0 +1,23 @@
+{% load static %}
+
+<div class="form-check custom-option custom-option-basic">
+    <label class="form-check-label custom-option-content ps-3"
+           for="customRadioTemp2"
+           data-bs-target="#productData"
+           data-bs-toggle="modal" onclick="get_product_data()">
+        <input name="customRadioTemp"
+               class="form-check-input d-none" type="radio"
+               value="" id="customRadioTemp2">
+        <span class="d-flex align-items-start">
+            <i class="bx bx-category bx-md me-3 mt-1"></i>
+            <span>
+                <span class="custom-option-header">
+                    <span class="h4 mb-2">اطلاعات محصول</span>
+                </span>
+                <span class="custom-option-body">
+                    <a href="#" id="mc_product_name" class="mb-0 text-primary"></a>
+                </span>
+            </span>
+        </span>
+    </label>
+</div>

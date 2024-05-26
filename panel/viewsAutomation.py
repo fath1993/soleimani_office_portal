@@ -9,11 +9,12 @@ from django.urls import reverse
 from accounts.models import Role, Permission, WarehouseProfile
 from accounts.templatetags.account_custom_tag import has_access_to_section
 from automation.models import RequestedProductProcessing, create_requested_product_processing_report, \
-    RequestedProductProcessingReport, pick_seller
+    RequestedProductProcessingReport, pick_seller, pick_warehouse_keeper, pick_delivery_man, Customer
 from gallery.models import FileGallery
 from panel.custom_decorator import CheckLogin, CheckPermissions, RequireMethod
-from panel.serializer import RequestedProductProcessingReportSerializer
+from panel.serializer import RequestedProductProcessingReportSerializer, ProductSerializer, CustomerSerializer
 from portal.models import Product, TeaserMaker
+from soleimani_office_portal.settings import BASE_DIR, BASE_URL
 from utilities.http_metod import fetch_data_from_http_post, fetch_files_from_http_post_data, fetch_data_from_http_get
 
 
@@ -1347,15 +1348,144 @@ class RequestedProductProcessingView:
         return render(request, 'panel/cartable/cartable-list.html', context)
 
     @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='read')
-    def detail(self, request, product_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def overall_data(self, request, *args, **kwargs):
+        context = {}
+        requested_product_processing_id = fetch_data_from_http_post(request, 'requested_product_processing_id',
+                                                                    context)
+        profile = request.user.user_profile
+
+        q = Q()
+        q &= (
+            Q(**{'pk': requested_product_processing_id})
+        )
+        if not request.user.is_superuser:
+            try:
+                q |= (
+                    Q(**{'seller': profile.profile_seller_profile})
+                )
+            except:
+                pass
+            try:
+                q |= (
+                    Q(**{'warehouse_keeper': profile.profile_warehouse_profile})
+                )
+            except:
+                pass
+            try:
+                q |= (
+                    Q(**{'delivery_man': profile.profile_delivery_profile})
+                )
+            except:
+                pass
         try:
-            product = Product.objects.get(id=product_id)
-            context = {'page_title': f'اطلاعات محصول *{product.name}*',
-                       'product': product, 'get_params': request.GET.urlencode()}
-            return render(request, 'panel/products/product-detail.html', context)
-        except:
-            return render(request, 'panel/err/err-not-found.html')
+            requested_product_processing = RequestedProductProcessing.objects.get(q)
+            json_response_body = {
+                "method": "post",
+                "request": f"دیتای کلی پردازش محصول درخواستی با ایدی {requested_product_processing.requested_product.product.id}",
+                "result": "موفق",
+                "data": {
+                    'customer_phone_number': f'{requested_product_processing.requested_product.customer.phone_number}',
+                    'product_name': f'{requested_product_processing.requested_product.product.name}',
+                    'product_link': f'{BASE_URL}{reverse('panel:product-detail-with-id', kwargs={'product_id': requested_product_processing.requested_product.product.id})}'.replace('//', '/'),
+                }
+            }
+            return JsonResponse(json_response_body)
+        except Exception as e:
+            print(e)
+            return JsonResponse({"message": 'requested product processing not found'})
+
+    @CheckLogin()
+    @RequireMethod(allowed_method='POST')
+    def product_detail(self, request, *args, **kwargs):
+        context = {}
+        requested_product_processing_id = fetch_data_from_http_post(request, 'requested_product_processing_id',
+                                                                    context)
+        profile = request.user.user_profile
+
+        q = Q()
+        q &= (
+            Q(**{'pk': requested_product_processing_id})
+        )
+        if not request.user.is_superuser:
+            try:
+                q |= (
+                    Q(**{'seller': profile.profile_seller_profile})
+                )
+            except:
+                pass
+            try:
+                q |= (
+                    Q(**{'warehouse_keeper': profile.profile_warehouse_profile})
+                )
+            except:
+                pass
+            try:
+                q |= (
+                    Q(**{'delivery_man': profile.profile_delivery_profile})
+                )
+            except:
+                pass
+        try:
+            requested_product_processing = RequestedProductProcessing.objects.get(q)
+            query_products = Product.objects.filter(id=requested_product_processing.requested_product.product.id)
+            serializer = ProductSerializer(query_products, many=True)
+            json_response_body = {
+                "method": "post",
+                "request": f"دیتای مجصول پردازش محصول درخواستی با ایدی {requested_product_processing.requested_product.product.id}",
+                "result": "موفق",
+                "data": serializer.data
+            }
+            return JsonResponse(json_response_body)
+        except Exception as e:
+            print(e)
+            return JsonResponse({"message": 'requested product processing not found'})
+
+    @CheckLogin()
+    @RequireMethod(allowed_method='POST')
+    def customer_detail(self, request, *args, **kwargs):
+        context = {}
+        requested_product_processing_id = fetch_data_from_http_post(request, 'requested_product_processing_id',
+                                                                    context)
+        profile = request.user.user_profile
+
+        q = Q()
+        q &= (
+            Q(**{'pk': requested_product_processing_id})
+        )
+        if not request.user.is_superuser:
+            try:
+                q |= (
+                    Q(**{'seller': profile.profile_seller_profile})
+                )
+            except:
+                pass
+            try:
+                q |= (
+                    Q(**{'warehouse_keeper': profile.profile_warehouse_profile})
+                )
+            except:
+                pass
+            try:
+                q |= (
+                    Q(**{'delivery_man': profile.profile_delivery_profile})
+                )
+            except:
+                pass
+        try:
+            requested_product_processing = RequestedProductProcessing.objects.get(q)
+            customers = Customer.objects.filter(id=requested_product_processing.requested_product.customer.id)
+            serializer = CustomerSerializer(customers, many=True)
+            json_response_body = {
+                "method": "post",
+                "request": f"دیتای کاربر پردازش محصول درخواستی با ایدی {requested_product_processing.id}",
+                "result": "موفق",
+                "data": serializer.data
+            }
+            return JsonResponse(json_response_body)
+        except Exception as e:
+            print(e)
+            return JsonResponse({"message": 'requested product processing not found'})
 
     @CheckLogin()
     @RequireMethod(allowed_method='POST')
@@ -1390,7 +1520,8 @@ class RequestedProductProcessingView:
                 pass
         try:
             requested_product_processing = RequestedProductProcessing.objects.get(q)
-            requested_product_processing_reports = RequestedProductProcessingReport.objects.filter(requested_product_processing=requested_product_processing)
+            requested_product_processing_reports = RequestedProductProcessingReport.objects.filter(
+                requested_product_processing=requested_product_processing)
             serializer = RequestedProductProcessingReportSerializer(requested_product_processing_reports, many=True)
             json_response_body = {
                 "method": "post",
@@ -1402,8 +1533,6 @@ class RequestedProductProcessingView:
         except Exception as e:
             print(e)
             return JsonResponse({"message": 'requested product processing not found'})
-
-
 
     @CheckLogin()
     @CheckPermissions(section='product', allowed_actions='read')
@@ -1584,19 +1713,13 @@ class RequestedProductProcessingView:
             mss_sold_number = fetch_data_from_http_post(request, 'mss_sold_number', context)
             mss_message = fetch_data_from_http_post(request, 'mss_message', context)
 
-            create_requested_product_processing_report(requested_product_processing, 'sale', mss_status, mss_message)
             if mss_status == 'sold':
-                requested_product_processing.sales_status = 'pending_sales_approval'
                 requested_product_processing.product_number = int(mss_sold_number)
                 requested_product_processing.save()
-                return JsonResponse({"message": 'sold'})
-            else:
-                requested_product_processing.sales_status = 'canceled'
-                requested_product_processing.save()
-                requested_product = requested_product_processing.requested_product
-                requested_product.is_processed = True
-                requested_product.save()
-                return JsonResponse({"message": 'canceled'})
+
+            requested_product_processing_action(request, requested_product_processing, 'sale', mss_status, mss_message)
+            return JsonResponse({"message": f'{mss_status}'})
+
         except Exception as e:
             print(e)
             return JsonResponse({"message": 'requested product processing not found'})
@@ -1624,49 +1747,13 @@ class RequestedProductProcessingView:
             msa_status = fetch_data_from_http_post(request, 'msa_status', context)
             msa_message = fetch_data_from_http_post(request, 'msa_message', context)
 
-            create_requested_product_processing_report(requested_product_processing, 'sale', msa_status, msa_message)
-
             warehouse_profiles = WarehouseProfile.objects.all()
-            print(warehouse_profiles)
             if warehouse_profiles.count() == 0:
                 return JsonResponse({"message": 'no available warehouse keeper'})
-            else:
-                warehouse_profile = warehouse_profiles[random.randint(0, warehouse_profiles.count() - 1)]
-            if msa_status == 'confirmed':
-                requested_product_processing.sales_status = 'sold'
-                requested_product_processing.is_confirmed_by_sales_department = True
-                requested_product_processing.product_price = requested_product_processing.requested_product.product.product_price
-                requested_product_processing.request_total_income = requested_product_processing.requested_product.product.product_price * requested_product_processing.product_number
 
-                requested_product_processing.warehouse_keeper = warehouse_profile
-                requested_product_processing.warehouse_status = 'processing'
-                requested_product_processing.in_department_status = 'warehouse'
-                requested_product_processing.save()
-                return JsonResponse({"message": 'sold'})
-            elif msa_status == 'recheck':
-                requested_product_processing.sales_status = 'processing'
-                requested_product_processing.is_confirmed_by_sales_department = False
-                requested_product_processing.product_price = 0
-                requested_product_processing.request_total_income = 0
+            requested_product_processing_action(request, requested_product_processing, 'sale', msa_status, msa_message)
+            return JsonResponse({"message": f'{msa_status}'})
 
-                requested_product_processing.warehouse_keeper = None
-                requested_product_processing.warehouse_status = 'pending'
-                requested_product_processing.in_department_status = 'sale'
-                requested_product_processing.save()
-                return JsonResponse({"message": 'recheck'})
-            else:
-                requested_product_processing.sales_status = 'processing'
-                requested_product_processing.is_confirmed_by_sales_department = False
-                requested_product_processing.product_price = 0
-                requested_product_processing.request_total_income = 0
-
-                requested_product_processing.warehouse_keeper = None
-                requested_product_processing.warehouse_status = 'pending'
-                requested_product_processing.in_department_status = 'sale'
-                old_seller = requested_product_processing.seller
-                requested_product_processing.seller = pick_seller(exclude_profile=old_seller)
-                requested_product_processing.save()
-                return JsonResponse({"message": 'seller has changed'})
         except Exception as e:
             print(e)
             return JsonResponse({"message": 'requested product processing not found'})
@@ -1693,29 +1780,9 @@ class RequestedProductProcessingView:
             mcr_status = fetch_data_from_http_post(request, 'mcr_status', context)
             mcr_message = fetch_data_from_http_post(request, 'mcr_message', context)
 
-            create_requested_product_processing_report(requested_product_processing, 'sale', mcr_status, mcr_message)
+            requested_product_processing_action(request, requested_product_processing, 'sale', mcr_status, mcr_message)
+            return JsonResponse({"message": f'{mcr_status}'})
 
-            requested_product_processing.in_department_status = 'sale'
-            requested_product_processing.is_confirmed_by_sales_department = False
-            requested_product_processing.cancel_number += 1
-            requested_product_processing.product_price = 0
-            requested_product_processing.product_number = 0
-            requested_product_processing.request_total_income = 0
-            requested_product_processing.warehouse_keeper = None
-            requested_product_processing.warehouse_status = 'pending'
-            requested_product_processing.is_confirmed_by_warehouse_keeper = False
-            requested_product_processing.delivery_man = None
-            requested_product_processing.delivery_status = 'pending'
-            requested_product_processing.is_confirmed_by_delivery_man = False
-            if mcr_status == 'myself':
-                requested_product_processing.sales_status = 'processing'
-                requested_product_processing.save()
-                return JsonResponse({"message": 'reopen for myself'})
-            else:
-                requested_product_processing.sales_status = 'pending'
-                requested_product_processing.seller = None
-
-                return JsonResponse({"message": 'free for all'})
         except Exception as e:
             print(e)
             return JsonResponse({"message": 'requested product processing not found'})
@@ -1725,35 +1792,147 @@ class RequestedProductProcessingView:
     def change_warehouse_state(self, request, *args, **kwargs):
         context = {}
         try:
-            seller_profile = request.user.user_profile.profile_seller_profile
+            warehouse_profile = request.user.user_profile.profile_warehouse_profile
         except:
-            return JsonResponse({"message": 'seller profile not found'})
+            return JsonResponse({"message": 'warehouse profile not found'})
 
         requested_product_processing_id = fetch_data_from_http_post(request, 'requested_product_processing_id',
                                                                     context)
 
         try:
             requested_product_processing = RequestedProductProcessing.objects.get(id=requested_product_processing_id)
-            ssm_status = fetch_data_from_http_post(request, 'ssm_status', context)
-            ssm_message = fetch_data_from_http_post(request, 'ssm_message', context)
+            mws_status = fetch_data_from_http_post(request, 'mws_status', context)
+            mws_message = fetch_data_from_http_post(request, 'mws_message', context)
+
+            requested_product_processing_action(request, requested_product_processing, 'sale', mws_status, mws_message)
+            return JsonResponse({"message": f'{mws_status}'})
+
         except:
-            return JsonResponse({"message": 'not authorized seller'})
+            return JsonResponse({"message": 'not authorized warehouse keeper'})
 
     @CheckLogin()
     @RequireMethod(allowed_method='POST')
     def change_delivery_state(self, request, *args, **kwargs):
         context = {}
         try:
-            seller_profile = request.user.user_profile.profile_seller_profile
+            delivery_profile = request.user.user_profile.profile_delivery_profile
         except:
-            return JsonResponse({"message": 'seller profile not found'})
+            return JsonResponse({"message": 'delivery profile not found'})
 
         requested_product_processing_id = fetch_data_from_http_post(request, 'requested_product_processing_id',
                                                                     context)
 
         try:
             requested_product_processing = RequestedProductProcessing.objects.get(id=requested_product_processing_id)
-            ssm_status = fetch_data_from_http_post(request, 'ssm_status', context)
-            ssm_message = fetch_data_from_http_post(request, 'ssm_message', context)
+            mds_status = fetch_data_from_http_post(request, 'mds_status', context)
+            mds_message = fetch_data_from_http_post(request, 'mds_message', context)
+
+            requested_product_processing_action(request, requested_product_processing, 'sale', mds_status, mds_message)
+            return JsonResponse({"message": f'{mds_status}'})
+
         except:
-            return JsonResponse({"message": 'not authorized seller'})
+            return JsonResponse({"message": 'not authorized delivery'})
+
+
+def requested_product_processing_action(request, requested_product_processing, report_from_department, status, message):
+    create_requested_product_processing_report(requested_product_processing, report_from_department, status, message, request.user)
+
+    if status == 'sold':
+        requested_product_processing.in_department_status = 'sale'
+        requested_product_processing.is_confirmed_by_sales_department = False
+        requested_product_processing.sales_status = 'sold'
+        requested_product_processing.product_price = requested_product_processing.requested_product.product.product_price
+        requested_product_processing.request_total_income = requested_product_processing.requested_product.product.product_price * requested_product_processing.product_number
+
+    if status == 'canceled':
+        requested_product_processing.in_department_status = 'sale'
+        if requested_product_processing.cancel_number == 3:
+            requested_product_processing.seller = None
+        requested_product_processing.is_confirmed_by_sales_department = False
+        requested_product_processing.sales_status = 'canceled'
+        requested_product_processing.cancel_number += 1
+        requested_product_processing.product_price = 0
+        requested_product_processing.request_total_income = 0
+        requested_product_processing.product_number = 0
+        requested_product_processing.warehouse_keeper = None
+        requested_product_processing.warehouse_status = 'canceled'
+        requested_product_processing.delivery_man = None
+        requested_product_processing.delivery_status = 'canceled'
+
+        requested_product = requested_product_processing.requested_product
+        requested_product.is_processed = True
+        requested_product.save()
+
+    if status == 'confirmed':
+        requested_product_processing.in_department_status = 'warehouse'
+        requested_product_processing.is_confirmed_by_sales_department = True
+        requested_product_processing.sales_status = 'sold'
+        requested_product_processing.warehouse_keeper = pick_warehouse_keeper()
+        requested_product_processing.warehouse_status = 'processing'
+
+    if status == 'recheck':
+        requested_product_processing.in_department_status = 'sale'
+        requested_product_processing.is_confirmed_by_sales_department = False
+        requested_product_processing.sales_status = 'recheck'
+
+    if status == 'change_seller':
+        requested_product_processing.in_department_status = 'sale'
+        requested_product_processing.is_confirmed_by_sales_department = False
+        requested_product_processing.sales_status = 'change_seller'
+        old_seller = requested_product_processing.seller
+        requested_product_processing.seller = pick_seller(old_seller)
+        requested_product_processing.sales_status = 'processing'
+
+    if status == 'sent_to_delivery':
+        requested_product_processing.in_department_status = 'delivery'
+        requested_product_processing.warehouse_status = 'sent_to_delivery'
+        requested_product_processing.delivery_man = pick_delivery_man()
+        requested_product_processing.delivery_status = 'processing'
+
+    if status == 'return_to_sales':
+        requested_product_processing.in_department_status = 'sale'
+        requested_product_processing.is_confirmed_by_sales_department = False
+        requested_product_processing.sales_status = 'return_to_sales'
+        requested_product_processing.warehouse_status = 'pending'
+
+    if status == 'delivered':
+        requested_product_processing.in_department_status = 'delivery'
+        requested_product_processing.delivery_status = 'delivered'
+
+        requested_product = requested_product_processing.requested_product
+        requested_product.is_processed = True
+        requested_product.save()
+
+    if status == 'return_to_warehouse':
+        requested_product_processing.in_department_status = 'warehouse'
+        requested_product_processing.warehouse_status = 'processing'
+        requested_product_processing.delivery_status = 'pending'
+
+    if status == 'myself':
+        requested_product_processing.in_department_status = 'sale'
+        requested_product_processing.seller = request.user.user_profile.profile_seller_profile
+        requested_product_processing.is_confirmed_by_sales_department = False
+        requested_product_processing.sales_status = 'processing'
+
+    if status == 'everyone':
+        requested_product_processing.in_department_status = 'sale'
+        requested_product_processing.seller = None
+        requested_product_processing.is_confirmed_by_sales_department = False
+        requested_product_processing.sales_status = 'pending'
+
+    # requested_product_processing.in_department_status =
+    # requested_product_processing.seller =
+    # requested_product_processing.is_confirmed_by_sales_department =
+    # requested_product_processing.sales_status =
+    # requested_product_processing.cancel_number =
+    # requested_product_processing.product_price =
+    # requested_product_processing.request_total_income =
+    # requested_product_processing.warehouse_keeper =
+    # requested_product_processing.warehouse_status =
+    # requested_product_processing.delivery_man =
+    # requested_product_processing.delivery_status =
+
+    requested_product_processing.updated_by = request.user
+
+    requested_product_processing.save()
+    return requested_product_processing

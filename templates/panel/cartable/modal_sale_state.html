@@ -90,10 +90,12 @@
 <script>
     function mss_change_sale_state(status, form_id) {
         const cl_requested_product_id = document.getElementById('cl_requested_product_id').value
+        const cl_requested_processed_by = document.getElementById('cl_requested_processed_by').value
         const message_list = document.getElementsByClassName('dt-message')
-        const sales_status = document.getElementById('sales_status')
-        const warehouse_status = document.getElementById('warehouse_status')
-        const delivery_status = document.getElementById('delivery_status')
+        const department_status = document.getElementById(`department_status_${cl_requested_product_id}`)
+        const sales_status = document.getElementById(`sales_status_${cl_requested_product_id}`)
+        const warehouse_status = document.getElementById(`warehouse_status_${cl_requested_product_id}`)
+        const delivery_status = document.getElementById(`delivery_status_${cl_requested_product_id}`)
         const text_1 = 'در انتظار تایید مدیریت فروش ...'
         const text_2 = 'در انتظار'
         const text_3 = 'کنسل شده'
@@ -109,6 +111,7 @@
             method: 'POST',
             body: formData,
         }
+        department_status.innerHTML=loading_html
         sales_status.innerHTML=loading_html
         warehouse_status.innerHTML=loading_html
         delivery_status.innerHTML=loading_html
@@ -123,16 +126,20 @@
                 if (data['message'] === 'seller profile not found') {
                     toast_maker('error', 'فروشنده نیستید')
                 } else if (data['message'] === 'sold') {
+                    department_status.innerHTML=`<span><span
+                                                class="badge bg-secondary rounded-pill">انبار</span> - <span>${cl_requested_processed_by}</span></span>`
                     sales_status.innerHTML=`<span class="btn badge bg-warning" data-bs-toggle="modal"
                                                   data-bs-target="#saleApproval">${text_1}</span>`
                     warehouse_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
                     delivery_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
                     toast_maker('success', 'فروخته شد. در انتظار تایید مدیر')
                 } else if (data['message'] === 'canceled') {
+                    department_status.innerHTML=`<span><span
+                                                class="badge bg-secondary rounded-pill">فروش</span> - <span>${cl_requested_processed_by}</span></span>`
                     sales_status.innerHTML=`<span class="btn badge bg-danger" data-bs-toggle="modal"
                                                   data-bs-target="#cancelRetry" onclick="change_requested_product_id('${cl_requested_product_id}')">${text_3}</span>`
-                    warehouse_status.innerHTML=`<span class="badge bg-warning">${text_3}</span>`
-                    delivery_status.innerHTML=`<span class="badge bg-warning">${text_3}</span>`
+                    warehouse_status.innerHTML=`<span class="badge bg-dark">${text_3}</span>`
+                    delivery_status.innerHTML=`<span class="badge bg-dark">${text_3}</span>`
                     toast_maker('info', 'کنسل شد')
                 } else if (data['message'] === 'not authorized seller') {
                     toast_maker('error', 'فروشنده غیر مجاز')

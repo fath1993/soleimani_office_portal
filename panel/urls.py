@@ -131,7 +131,6 @@ urlpatterns = [
     # Requested Product Processing
     path('requested-product-processing/list/', RequestedProductProcessingView().list, name='requested-product-processing-list'),
     path('requested-product-processing/filter/', RequestedProductProcessingView().filter, name='requested-product-processing-filter'),
-    path('requested-product-processing/detail&id=<int:requested_product_processing_id>/', RequestedProductProcessingView().detail, name='requested-product-processing-detail-with-id'),
     path('requested-product-processing/change-sale-state/', RequestedProductProcessingView().change_sale_state, name='requested-product-processing-change-sale-state'),
     path('requested-product-processing/change-warehouse-state/', RequestedProductProcessingView().change_warehouse_state,
          name='requested-product-processing-change-warehouse-state'),
@@ -141,6 +140,12 @@ urlpatterns = [
          name='requested-product-processing-confirm-sale'),
     path('requested-product-processing/reopen-sale/', RequestedProductProcessingView().reopen_sale,
          name='requested-product-processing-reopen-sale'),
+    path('requested-product-processing/overall-data/', RequestedProductProcessingView().overall_data,
+         name='requested-product-processing-overall-data'),
+    path('requested-product-processing/product-detail/', RequestedProductProcessingView().product_detail,
+         name='requested-product-processing-product-detail'),
+    path('requested-product-processing/customer-detail/', RequestedProductProcessingView().customer_detail,
+         name='requested-product-processing-customer-detail'),
     path('requested-product-processing/reports/', RequestedProductProcessingView().reports,
          name='requested-product-processing-reports'),
 ]

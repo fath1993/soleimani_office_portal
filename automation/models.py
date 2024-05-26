@@ -1,4 +1,5 @@
 import random
+import time
 
 import jdatetime
 from django.contrib.auth.models import User
@@ -116,7 +117,7 @@ class RequestedProductProcessing(models.Model):
                                           on_delete=models.CASCADE, null=False,
                                           blank=False, editable=False, verbose_name='محصول درخواستی')
     # can change by user
-    in_department_status = models.CharField(max_length=255, default='sales',
+    in_department_status = models.CharField(max_length=255, default='sale',
                                             choices=REQUESTED_PRODUCT_PROCESSING_IN_DEPARTMENT_STATUS,
                                             null=False,
                                             blank=False, verbose_name='واحد فعلی پردازش کننده محصول')
@@ -212,22 +213,70 @@ class RequestedProductProcessingReport(models.Model):
 
 def create_requested_product_processing_report(requested_product_processing, department, status, report=None,
                                                created_by=None, **kwargs):
-    if report is None:
-        report = f'گزارش سیستمی از {status} با شناسه {requested_product_processing.id} توسط دپارتمان {department} ثبت گردید.'
+    if department == 'sale':
+        department = 'فروش'
+    if department == 'warehouse':
+        department = 'انبار'
+    if department == 'delivery':
+        department = 'ارسال'
 
-    if not created_by:
-        created_by = User.objects.filter(is_superuser=True).latest('id')
+    if status == 'pending':
+        status = 'انتظار'
+    if status == 'processing':
+        status = 'پردازش'
+    if status == 'sold':
+        status = 'فروش'
+    if status == 'canceled':
+        status = 'کنسلی'
+    if status == 'pending_sales_approval':
+        status = 'در انتظار تایید مدیریت فروش'
+    if status == 'confirmed':
+        status = 'تایید شده'
+    if status == 'recheck':
+        status = 'نیاز به بازبینی'
+    if status == 'change_seller':
+        status = 'تغییر فروشنده'
+    if status == 'sent_to_delivery':
+        status = 'تحویل به واحد ارسال'
+    if status == 'return_to_sales':
+        status = 'بازگشت به واحد فروش'
+    if status == 'delivered':
+        status = 'تحویل سفارش به مشتری'
+    if status == 'return_to_warehouse':
+        status = 'بازگشت سفارش به واحد انبار'
+    if status == 'myself':
+        status = 'بازگشایی سفارش برای فروشنده'
+    if status == 'everyone':
+        status = 'آزادسازی پردازش سفارش برای همه'
+
+    system_report = f'گزارش سیستمی از وضعیت *{status}* با شماره سفارش #{requested_product_processing.id} توسط واحد *{department}* ثبت گردید.'
+
+    system_admin = User.objects.filter(is_superuser=True).latest('id')
     RequestedProductProcessingReport.objects.create(
         requested_product_processing=requested_product_processing,
         department=department,
         status=status,
-        report=report,
-        created_by=created_by,
+        report=system_report,
+        created_by=system_admin,
     )
+    time.sleep(0.1)
+    try:
+        if report is not None:
+            RequestedProductProcessingReport.objects.create(
+                requested_product_processing=requested_product_processing,
+                department=department,
+                status=status,
+                report=report,
+                created_by=created_by,
+            )
+    except Exception as e:
+        print(e)
+        pass
 
 
 def pick_seller(exclude_profile=None):
-    sales_allowed_profiles = SellerProfile.objects.filter(daily_allowed_product_processing_number__gte=0)
+    sales_allowed_profiles = SellerProfile.objects.filter(daily_allowed_product_processing_number__gte=0).exclude(
+        profile=exclude_profile)
     sales_allowed_profiles_with_available_quantity = []
     for sales_allowed_profile in sales_allowed_profiles:
         now = jdatetime.datetime.now()
@@ -236,10 +285,27 @@ def pick_seller(exclude_profile=None):
         all_request_product_processing_that_belong_to_user = RequestedProductProcessing.objects.filter(
             created_at__gte=start_of_today, seller=sales_allowed_profile)
         if all_request_product_processing_that_belong_to_user.count() < sales_allowed_profile.daily_allowed_product_processing_number:
-            if sales_allowed_profile != exclude_profile:
-                sales_allowed_profiles_with_available_quantity.append(sales_allowed_profile)
+            sales_allowed_profiles_with_available_quantity.append(sales_allowed_profile)
     if len(sales_allowed_profiles_with_available_quantity) > 0:
         seller = random.choice(sales_allowed_profiles_with_available_quantity)
         return seller
     else:
         return None
+
+
+def pick_warehouse_keeper(exclude_profile=None):
+    warehouse_profiles = WarehouseProfile.objects.all().exclude(profile=exclude_profile)
+    if warehouse_profiles.count() == 0:
+        return None
+    else:
+        warehouse_profile = warehouse_profiles[random.randint(0, warehouse_profiles.count() - 1)]
+        return warehouse_profile
+
+
+def pick_delivery_man(exclude_profile=None):
+    delivery_profiles = DeliveryProfile.objects.all().exclude(profile=exclude_profile)
+    if delivery_profiles.count() == 0:
+        return None
+    else:
+        delivery_profile = delivery_profiles[random.randint(0, delivery_profiles.count() - 1)]
+        return delivery_profile
