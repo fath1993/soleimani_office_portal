@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from automation.models import CreditCard, RequestedProductProcessing, Customer, RequestedProduct, \
-    RequestedProductProcessingReport, ProductRelation
+    RequestedProductProcessingReport, ProductRelation, RequestedProductProcessingCancelReport
 
 
 @admin.register(ProductRelation)
@@ -168,6 +168,7 @@ class RequestedProductProcessingAdmin(admin.ModelAdmin):
         'is_confirmed_by_sales_department',
         'sales_status',
         'cancel_number',
+        'cancel_multiply',
         'product_price',
         'product_number',
         'request_total_income',
@@ -230,3 +231,33 @@ class RequestedProductProcessingReportAdmin(admin.ModelAdmin):
         instance.save()
         form.save_m2m()
         return instance
+
+
+@admin.register(RequestedProductProcessingCancelReport)
+class RequestedProductProcessingCancelReportAdmin(admin.ModelAdmin):
+    list_display = (
+        'requested_product_processing',
+        'seller',
+        'created_at',
+        'created_by',
+    )
+
+    readonly_fields = (
+        'requested_product_processing',
+        'seller',
+        'created_at',
+        'created_by',
+    )
+
+    fields = (
+        'requested_product_processing',
+        'seller',
+        'created_at',
+        'created_by',
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

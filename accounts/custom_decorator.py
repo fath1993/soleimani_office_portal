@@ -41,7 +41,7 @@ class CheckPermissions:
             allowed_actions = str(class_self.allowed_actions)
             if (allowed_actions.find('read') != -1 or allowed_actions.find('create') != -1 or
                     allowed_actions.find('modify') != -1 or allowed_actions.find('delete') != -1):
-                if not has_access_to_section(request.user, f'{class_self.allowed_actions},{class_self.section}'):
+                if not has_access_to_section(request, f'{class_self.allowed_actions},{class_self.section}'):
                     return render(request, 'panel/err/err-not-authorized.html')
 
             return view_func(self, request, *args, **kwargs)

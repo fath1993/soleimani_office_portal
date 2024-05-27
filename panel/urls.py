@@ -1,6 +1,6 @@
 from django.urls import path
 
-from panel.views import DashboardView, UserView, PermissionView, RoleView, ProductView, TeaserMakerView, \
+from panel.views import DashboardView, PermissionView, RoleView, ProductView, TeaserMakerView, \
     ResellerNetworkView, ReceiverView, AdvertiseContentView, ForwardToPortalView, CommunicationChannelView, \
     RegistrarView
 from panel.viewsAutomation import CreditCardView, CustomerView, RequestedProductView, RequestedProductProcessingView
@@ -9,14 +9,6 @@ app_name = 'panel'
 
 urlpatterns = [
     path('', DashboardView().main, name='panel-dashboard'),
-
-    # User
-    path('user/user-list/', UserView().list, name='user-list'),
-    path('user/filter/', UserView().filter, name='user-filter'),
-    path('user/create/', UserView().create, name='user-create'),
-    path('user/user-detail&id=<int:user_id>/', UserView().detail, name='user-detail-with-id'),
-    path('user/user-edit&id=<int:user_id>/', UserView().modify, name='user-edit-with-id'),
-    path('user/user-remove&id=<int:user_id>/', UserView().delete, name='user-remove-with-id'),
 
     # Permission
     path('permission/list/', PermissionView().list, name='permission-list'),
@@ -129,6 +121,9 @@ urlpatterns = [
     path('requested-product/change-state&id=<int:requested_product_id>/', RequestedProductView().change_state, name='requested-product-change_state-with-id'),
 
     # Requested Product Processing
+    path('requested-product-processing/admin-list/', RequestedProductProcessingView().admin_list,
+         name='requested-product-processing-admin-list'),
+    path('requested-product-processing/public-list/', RequestedProductProcessingView().public_list, name='requested-product-processing-public-list'),
     path('requested-product-processing/list/', RequestedProductProcessingView().list, name='requested-product-processing-list'),
     path('requested-product-processing/filter/', RequestedProductProcessingView().filter, name='requested-product-processing-filter'),
     path('requested-product-processing/change-sale-state/', RequestedProductProcessingView().change_sale_state, name='requested-product-processing-change-sale-state'),

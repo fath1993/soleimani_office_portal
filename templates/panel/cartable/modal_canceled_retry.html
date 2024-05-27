@@ -37,6 +37,10 @@
         const cl_requested_product_id = document.getElementById('cl_requested_product_id').value
         const cl_requested_processed_by = document.getElementById('cl_requested_processed_by').value
         const message_list = document.getElementsByClassName('dt-message')
+        const department_status_innerHTML = document.getElementById(`department_status_${cl_requested_product_id}`).innerHTML
+        const sales_status_innerHTML = document.getElementById(`sales_status_${cl_requested_product_id}`).innerHTML
+        const warehouse_status_innerHTML = document.getElementById(`warehouse_status_${cl_requested_product_id}`).innerHTML
+        const delivery_status_innerHTML = document.getElementById(`delivery_status_${cl_requested_product_id}`).innerHTML
         const department_status = document.getElementById(`department_status_${cl_requested_product_id}`)
         const sales_status = document.getElementById(`sales_status_${cl_requested_product_id}`)
         const warehouse_status = document.getElementById(`warehouse_status_${cl_requested_product_id}`)
@@ -70,9 +74,19 @@
                 return response.json();
             })
             .then(data => {
+                department_status.innerHTML=department_status_innerHTML
+                sales_status.innerHTML=sales_status_innerHTML
+                warehouse_status.innerHTML=warehouse_status_innerHTML
+                delivery_status.innerHTML=delivery_status_innerHTML
                 if (data['message'] === 'seller profile not found') {
                     toast_maker('error', 'فروشنده نیستید')
-                } else if (data['message'] === 'reopen for myself') {
+                } else if (data['message'] === 'not authorized seller') {
+                    toast_maker('error', 'فروشنده غیر مجاز')
+                } else if (data['message'] === 'requested product processing not found') {
+                    toast_maker('error', 'محصول یافت نشد')
+                } else if (data['message'] === 'seller qualification error') {
+                    toast_maker('error', 'صلاحیت فروش این محصول احراز نشد')
+                } else if (data['message'] === 'myself') {
                     department_status.innerHTML=`<span><span
                                                 class="badge bg-secondary rounded-pill">فروش</span> - <span>${cl_requested_processed_by}</span></span>`
                     sales_status.innerHTML=`<span class="btn badge bg-info" data-bs-toggle="modal"
@@ -80,17 +94,13 @@
                     warehouse_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
                     delivery_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
                     toast_maker('success', 'سفارش مجددا بازگشایی شد')
-                } else if (data['message'] === 'free for all') {
+                } else if (data['message'] === 'everyone') {
                     department_status.innerHTML=`<span><span
                                                 class="badge bg-secondary rounded-pill">فروش</span><span></span></span>`
                     sales_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
                     warehouse_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
                     delivery_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
                     toast_maker('info', 'سفارش ازاد شد')
-                } else if (data['message'] === 'not authorized seller') {
-                    toast_maker('error', 'فروشنده غیر مجاز')
-                } else if (data['message'] === 'requested product processing not found') {
-                    toast_maker('error', 'محصول یافت نشد')
                 }
             })
             .catch(error => {

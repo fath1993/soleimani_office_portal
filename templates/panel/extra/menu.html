@@ -196,42 +196,51 @@
         {% endif %}
     
         {% if request|has_access_to_section:'read,create,modify,delete,automation' %}
-        <li class="menu-item">
+        <li id="automation"  class="menu-item">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-building-house"></i>
                 <div>اداری</div>
             </a>
             <ul class="menu-sub">
-                <li id="latest-property" class="menu-item">
+                <li id="card-list" class="menu-item">
                     <a href="#" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-credit-card"></i>
                         <div>کارت بانکی</div>
                     </a>
                 </li>
-                <li id="advance-filter" class="menu-item">
+                <li id="customer-list" class="menu-item">
                     <a href="#" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-body"></i>
                         <div>مشتری</div>
                     </a>
                 </li>
-                <li id="advance-filter" class="menu-item">
-                    <a href="#" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-basket"></i>
-                        <div>محصولات درخواستی</div>
+                {% if request.user.is_superuser %}
+                <li id="requested-product-processing-admin-list" class="menu-item">
+                    <a href="{% url 'panel:requested-product-processing-admin-list' %}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-card"></i>
+                        <div>پردازش سفارش ها</div>
                     </a>
                 </li>
+                {% endif %}    
             </ul>
         </li>
         {% endif %}
     
-
+        {% if not request.user.is_superuser %}
         <li class="menu-header small text-uppercase"><span class="menu-header-text">کارپوشه</span></li>
-        <li id="latest-property" class="menu-item">
+        <li id="requested-product-processing-list" class="menu-item">
             <a href="{% url 'panel:requested-product-processing-list' %}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-barcode"></i>
                 <div>کارتابل من</div>
             </a>
         </li>
+        <li id="requested-product-processing-admin-public-list" class="menu-item">
+            <a href="{% url 'panel:requested-product-processing-public-list' %}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-paperclip"></i>
+                <div>پوشه عمومی</div>
+            </a>
+        </li>
+        {% endif %}
     
         <li class="menu-header small text-uppercase"><span class="menu-header-text">گزارشات</span></li>
         <li id="latest-property" class="menu-item">

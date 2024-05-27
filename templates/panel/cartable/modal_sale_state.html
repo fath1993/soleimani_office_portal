@@ -136,8 +136,10 @@
                 } else if (data['message'] === 'canceled') {
                     department_status.innerHTML=`<span><span
                                                 class="badge bg-secondary rounded-pill">فروش</span> - <span>${cl_requested_processed_by}</span></span>`
-                    sales_status.innerHTML=`<span class="btn badge bg-danger" data-bs-toggle="modal"
-                                                  data-bs-target="#cancelRetry" onclick="change_requested_product_id('${cl_requested_product_id}')">${text_3}</span>`
+                    sales_status.innerHTML=`<span>
+                                            <span class="badge bg-dark text-white rounded-pill badge-notifications">${data['cancel_number']}</span>
+                                            <span class="btn badge bg-danger" data-bs-toggle="modal" data-bs-target="#cancelRetry" onclick="change_requested_product_id('${cl_requested_processed_by}')">کنسل شده</span>
+                                        </span>`
                     warehouse_status.innerHTML=`<span class="badge bg-dark">${text_3}</span>`
                     delivery_status.innerHTML=`<span class="badge bg-dark">${text_3}</span>`
                     toast_maker('info', 'کنسل شد')

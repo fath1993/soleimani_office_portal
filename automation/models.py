@@ -124,8 +124,8 @@ class RequestedProductProcessing(models.Model):
     '''sales department'''
     # assign by system
     seller = models.ForeignKey(SellerProfile, related_name='seller_requested_product_processing',
-                               on_delete=models.CASCADE, null=False,
-                               blank=False, editable=False, verbose_name='اختصاص یافته به')
+                               on_delete=models.CASCADE, null=True,
+                               blank=True, editable=False, verbose_name='اختصاص یافته به')
     # can change by sales department manager
     is_confirmed_by_sales_department = models.BooleanField(default=False, verbose_name='تایید واحد فروش')
 
@@ -134,6 +134,9 @@ class RequestedProductProcessing(models.Model):
                                     null=False,
                                     blank=False, verbose_name='وضعیت فروش محصول درخواستی')
     cancel_number = models.IntegerField(default=0, null=False, blank=False, verbose_name='تعداد کنسلی ها')
+    cancel_multiply = models.IntegerField(default=0, null=False, blank=False,
+                                          verbose_name='تعداد دفعات کنسلی با تغییر فروشنده')
+
     product_price = models.IntegerField(null=True, blank=True, verbose_name='قیمت نهایی واحد محصول فروخته شده - ریال')
     product_number = models.IntegerField(null=True, blank=True, verbose_name='تعداد محصول فروخته شده')
     request_total_income = models.IntegerField(null=True, blank=True, verbose_name='درآمد نهایی این درخواست - ریال')
@@ -180,6 +183,45 @@ class RequestedProductProcessing(models.Model):
         ordering = ['-created_at']
         verbose_name = 'پردازش محصول درخواستی'
         verbose_name_plural = 'پردازش محصولات درخواستی'
+
+
+class RequestedProductProcessingCancelReport(models.Model):
+    requested_product_processing = models.ForeignKey(RequestedProductProcessing,
+                                                     related_name='requested_product_processing_requested_product_processing_cancel_report',
+                                                     on_delete=models.CASCADE, null=False,
+                                                     blank=False, editable=False, verbose_name='محصول درخواستی')
+
+    seller = models.ForeignKey(SellerProfile, related_name='seller_requested_product_processing_cancel_report',
+                               on_delete=models.CASCADE, null=True,
+                               blank=True, editable=False, verbose_name='تلاش برای فروش توسط')
+
+    created_at = jmodel.jDateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    created_by = models.ForeignKey(User, related_name='created_by_requested_product_processing_cancel_report',
+                                   on_delete=models.CASCADE, null=False,
+                                   blank=False, editable=False, verbose_name='بروز شده توسط')
+
+    def __str__(self):
+        return f'{self.requested_product_processing.id}'
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'کنسلی پردازش محصول درخواستی'
+        verbose_name_plural = 'کنسلی های پردازش محصولات درخواستی'
+
+
+def create_requested_product_processing_cancel_report(requested_product_processing, seller, created_by):
+    RequestedProductProcessingCancelReport.objects.create(
+        requested_product_processing=requested_product_processing,
+        seller=seller,
+        created_by=created_by
+    )
+
+
+def report_requested_product_processing_cancel_number(requested_product_processing, seller):
+    return RequestedProductProcessingCancelReport.objects.filter(
+        requested_product_processing=requested_product_processing,
+        seller=seller,
+    ).count()
 
 
 class RequestedProductProcessingReport(models.Model):

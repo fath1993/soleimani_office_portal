@@ -9,7 +9,8 @@ from django.urls import reverse
 from accounts.models import Role, Permission, WarehouseProfile
 from accounts.templatetags.account_custom_tag import has_access_to_section
 from automation.models import RequestedProductProcessing, create_requested_product_processing_report, \
-    RequestedProductProcessingReport, pick_seller, pick_warehouse_keeper, pick_delivery_man, Customer
+    RequestedProductProcessingReport, pick_seller, pick_warehouse_keeper, pick_delivery_man, Customer, \
+    create_requested_product_processing_cancel_report, report_requested_product_processing_cancel_number
 from gallery.models import FileGallery
 from panel.custom_decorator import CheckLogin, CheckPermissions, RequireMethod
 from panel.serializer import RequestedProductProcessingReportSerializer, ProductSerializer, CustomerSerializer
@@ -1310,12 +1311,110 @@ class RequestedProductProcessingView:
         super().__init__()
 
     @CheckLogin()
+    def admin_list(self, request, *args, **kwargs):
+        context = {'page_title': 'لیست پردازش همه سفارش ها', 'get_params': request.GET.urlencode()}
+
+        requested_product_processing = RequestedProductProcessing.objects.filter()
+        context['requested_product_processing'] = requested_product_processing
+
+        items_per_page = 50
+        paginator = Paginator(requested_product_processing, items_per_page)
+        page_number = request.GET.get('page')
+        page = paginator.get_page(page_number)
+        context['page'] = page
+
+        return render(request, 'panel/cartable/cartable-list.html', context)
+
+    @CheckLogin()
+    def public_list(self, request, *args, **kwargs):
+        context = {'page_title': 'لیست پردازش سفارش های عمومی', 'get_params': request.GET.urlencode()}
+
+        q = Q()
+
+        q &= (
+            Q(**{'seller__isnull': True})
+        )
+        q &= (
+            Q(**{'sales_status': 'canceled'})
+        )
+
+        requested_product_processing = RequestedProductProcessing.objects.filter(q)
+        context['requested_product_processing'] = requested_product_processing
+
+        items_per_page = 50
+        paginator = Paginator(requested_product_processing, items_per_page)
+        page_number = request.GET.get('page')
+        page = paginator.get_page(page_number)
+        context['page'] = page
+
+        return render(request, 'panel/cartable/cartable-list.html', context)
+
+    @CheckLogin()
     def list(self, request, *args, **kwargs):
-        context = {'page_title': 'لیست درخواست ها', 'get_params': request.GET.urlencode()}
+        context = {'page_title': f'لیست پردازش سفارش های اختصاصی فروشنده {request.user.username}', 'get_params': request.GET.urlencode()}
 
         profile = request.user.user_profile
 
         q = Q()
+        q &= (
+            Q(**{'seller__isnull': False})
+        )
+
+        user_is_seller = False
+        user_is_warehouse_keeper = False
+        user_is_delivery_man = False
+
+        try:
+            seller_profile = profile.profile_seller_profile
+            user_is_seller = True
+        except:
+            pass
+        try:
+            warehouse_profile = profile.profile_warehouse_profile
+            user_is_warehouse_keeper = True
+        except:
+            pass
+        try:
+            delivery_profile = profile.profile_delivery_profile
+            user_is_delivery_man = True
+        except:
+            pass
+
+        if user_is_seller and user_is_warehouse_keeper and user_is_delivery_man:
+            q &= (
+                    Q(**{'seller': profile.profile_seller_profile}) |
+                    Q(**{'warehouse_keeper': profile.profile_warehouse_profile}) |
+                    Q(**{'delivery_man': profile.profile_delivery_profile})
+
+            )
+
+        print(q)
+
+        requested_product_processing = RequestedProductProcessing.objects.filter(q)
+        context['requested_product_processing'] = requested_product_processing
+
+        items_per_page = 50
+        paginator = Paginator(requested_product_processing, items_per_page)
+        page_number = request.GET.get('page')
+        page = paginator.get_page(page_number)
+        context['page'] = page
+
+        return render(request, 'panel/cartable/cartable-list.html', context)
+
+    @CheckLogin()
+    def filter(self, request, *args, **kwargs):
+        context = {}
+        search = fetch_data_from_http_get(request, 'search', context)
+        filter_department_state = fetch_data_from_http_get(request, 'filter_department_state', context)
+        filter_sale_state = fetch_data_from_http_get(request, 'filter_sale_state', context)
+        filter_warehouse_state = fetch_data_from_http_get(request, 'filter_warehouse_state', context)
+        filter_delivery_state = fetch_data_from_http_get(request, 'filter_delivery_state', context)
+
+        profile = request.user.user_profile
+
+        q = Q()
+        page_title = f''''''
+
         if not request.user.is_superuser:
             try:
                 q |= (
@@ -1335,6 +1434,38 @@ class RequestedProductProcessingView:
                 )
             except:
                 pass
+
+        if search:
+            page_title += f'search: {search}, '
+            q &= (
+                    Q(**{'id__icontains': search}) |
+                    Q(**{'requested_product__customer__phone_number__icontains': search}) |
+                    Q(**{'requested_product__product__name__icontains': search})
+            )
+
+        if filter_department_state:
+            page_title += f'in_department_status: {filter_department_state}, '
+            q &= (
+                Q(**{'in_department_status': filter_department_state})
+            )
+
+        if filter_sale_state:
+            page_title += f'sales_status: {filter_sale_state}, '
+            q &= (
+                Q(**{'sales_status': filter_sale_state})
+            )
+        if filter_warehouse_state:
+            page_title += f'warehouse_status: {filter_warehouse_state}, '
+            q &= (
+                Q(**{'warehouse_status': filter_warehouse_state})
+            )
+        if filter_delivery_state:
+            page_title += f'delivery_status: {filter_delivery_state}, '
+            q &= (
+                Q(**{'delivery_status': filter_delivery_state})
+            )
+        context['page_title'] = f'لیست پردازش سفارش های اختصاصی شامل *{page_title}*'
+        context['get_params'] = request.GET.urlencode()
 
         requested_product_processing = RequestedProductProcessing.objects.filter(q)
         context['requested_product_processing'] = requested_product_processing
@@ -1535,162 +1666,6 @@ class RequestedProductProcessingView:
             return JsonResponse({"message": 'requested product processing not found'})
 
     @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='read')
-    def filter(self, request, *args, **kwargs):
-        context = {}
-        search = fetch_data_from_http_get(request, 'search', context)
-        product_type = fetch_data_from_http_get(request, 'type', context)
-        is_active = fetch_data_from_http_get(request, 'is_active', context)
-        color = fetch_data_from_http_get(request, 'color', context)
-        weight_from = fetch_data_from_http_get(request, 'weight_from', context)
-        weight_to = fetch_data_from_http_get(request, 'weight_to', context)
-        size_from = fetch_data_from_http_get(request, 'size_from', context)
-        size_to = fetch_data_from_http_get(request, 'size_to', context)
-        product_price_from = fetch_data_from_http_get(request, 'product_price_from', context)
-        product_price_to = fetch_data_from_http_get(request, 'product_price_to', context)
-        shipping_price_from = fetch_data_from_http_get(request, 'shipping_price_from', context)
-        shipping_price_to = fetch_data_from_http_get(request, 'shipping_price_to', context)
-        send_link_price_from = fetch_data_from_http_get(request, 'send_link_price_from', context)
-        send_link_price_to = fetch_data_from_http_get(request, 'send_link_price_to', context)
-        packing_price_from = fetch_data_from_http_get(request, 'packing_price_from', context)
-        packing_price_to = fetch_data_from_http_get(request, 'packing_price_to', context)
-        seller_commission_from = fetch_data_from_http_get(request, 'seller_commission_from', context)
-        seller_commission_to = fetch_data_from_http_get(request, 'seller_commission_to', context)
-
-        page_title = f''''''
-        q = Q()
-        if search:
-            page_title += f'search: {search}, '
-            if search.isdigit():
-                q &= (
-                    Q(**{'id__exact': search})
-                )
-            else:
-                q &= (
-                        Q(**{'name__icontains': search}) |
-                        Q(**{'code': search})
-                )
-
-        if product_type:
-            page_title += f'product_type: {product_type}, '
-            q &= (
-                Q(**{'type': product_type})
-            )
-
-        if is_active:
-            page_title += f'is_active: {is_active}, '
-            if is_active == 'فعال':
-                is_active = True
-            else:
-                is_active = False
-            q &= (
-                Q(**{'is_active': is_active})
-            )
-
-        if color:
-            page_title += f'color: {color}, '
-            q &= (
-                Q(**{'color': color})
-            )
-
-        if weight_from:
-            page_title += f'weight_from: {weight_from}, '
-            q &= (
-                Q(**{'weight__gte': int(weight_from)})
-            )
-
-        if weight_to:
-            page_title += f'weight_to: {weight_to}, '
-            q &= (
-                Q(**{'weight__lte': int(weight_to)})
-            )
-
-        if size_from:
-            page_title += f'size_from: {size_from}, '
-            q &= (
-                Q(**{'size__gte': float(size_from)})
-            )
-
-        if size_to:
-            page_title += f'size_to: {size_to}, '
-            q &= (
-                Q(**{'size__lte': float(size_to)})
-            )
-
-        if product_price_from:
-            page_title += f'product_price_from: {product_price_from}, '
-            q &= (
-                Q(**{'product_price__gte': int(product_price_from)})
-            )
-
-        if product_price_to:
-            page_title += f'product_price_to: {product_price_to}, '
-            q &= (
-                Q(**{'product_price__lte': int(product_price_to)})
-            )
-
-        if shipping_price_from:
-            page_title += f'shipping_price_from: {shipping_price_from}, '
-            q &= (
-                Q(**{'shipping_price__gte': int(shipping_price_from)})
-            )
-
-        if shipping_price_to:
-            page_title += f'shipping_price_to: {shipping_price_to}, '
-            q &= (
-                Q(**{'shipping_price__lte': int(shipping_price_to)})
-            )
-
-        if send_link_price_from:
-            page_title += f'send_link_price_from: {send_link_price_from}, '
-            q &= (
-                Q(**{'send_link_price__gte': int(send_link_price_from)})
-            )
-
-        if send_link_price_to:
-            page_title += f'send_link_price_to: {send_link_price_to}, '
-            q &= (
-                Q(**{'send_link_price__lte': int(send_link_price_to)})
-            )
-
-        if packing_price_from:
-            page_title += f'packing_price_from: {packing_price_from}, '
-            q &= (
-                Q(**{'packing_price__gte': int(packing_price_from)})
-            )
-
-        if packing_price_to:
-            page_title += f'packing_price_to: {packing_price_to}, '
-            q &= (
-                Q(**{'packing_price__lte': int(packing_price_to)})
-            )
-
-        if seller_commission_from:
-            page_title += f'seller_commission_from: {seller_commission_from}, '
-            q &= (
-                Q(**{'seller_commission__gte': int(seller_commission_from)})
-            )
-
-        if seller_commission_to:
-            page_title += f'seller_commission_to: {seller_commission_to}, '
-            q &= (
-                Q(**{'seller_commission__lte': int(seller_commission_to)})
-            )
-        context['page_title'] = f'لیست محصولات شامل *{page_title}*'
-        context['get_params'] = request.GET.urlencode()
-
-        products = Product.objects.filter(q).order_by('id')
-        context['products'] = products
-
-        items_per_page = 50
-        paginator = Paginator(products, items_per_page)
-        page_number = request.GET.get('page')
-        page = paginator.get_page(page_number)
-        context['page'] = page
-
-        return render(request, 'panel/products/product-list.html', context)
-
-    @CheckLogin()
     @RequireMethod(allowed_method='POST')
     def change_sale_state(self, request, *args, **kwargs):
         context = {}
@@ -1718,7 +1693,7 @@ class RequestedProductProcessingView:
                 requested_product_processing.save()
 
             requested_product_processing_action(request, requested_product_processing, 'sale', mss_status, mss_message)
-            return JsonResponse({"message": f'{mss_status}'})
+            return JsonResponse({"message": f'{mss_status}', 'cancel_number': (requested_product_processing.cancel_multiply * 3) + requested_product_processing.cancel_number})
 
         except Exception as e:
             print(e)
@@ -1780,6 +1755,8 @@ class RequestedProductProcessingView:
             mcr_status = fetch_data_from_http_post(request, 'mcr_status', context)
             mcr_message = fetch_data_from_http_post(request, 'mcr_message', context)
 
+            if report_requested_product_processing_cancel_number(requested_product_processing, seller_profile) >= 3:
+                return JsonResponse({"message": f'seller qualification error'})
             requested_product_processing_action(request, requested_product_processing, 'sale', mcr_status, mcr_message)
             return JsonResponse({"message": f'{mcr_status}'})
 
@@ -1845,12 +1822,15 @@ def requested_product_processing_action(request, requested_product_processing, r
         requested_product_processing.request_total_income = requested_product_processing.requested_product.product.product_price * requested_product_processing.product_number
 
     if status == 'canceled':
+        create_requested_product_processing_cancel_report(requested_product_processing, requested_product_processing.seller, request.user)
         requested_product_processing.in_department_status = 'sale'
-        if requested_product_processing.cancel_number == 3:
+        requested_product_processing.cancel_number += 1
+        if requested_product_processing.cancel_number >= 3:
             requested_product_processing.seller = None
+            requested_product_processing.cancel_number = 0
+            requested_product_processing.cancel_multiply += 1
         requested_product_processing.is_confirmed_by_sales_department = False
         requested_product_processing.sales_status = 'canceled'
-        requested_product_processing.cancel_number += 1
         requested_product_processing.product_price = 0
         requested_product_processing.request_total_income = 0
         requested_product_processing.product_number = 0
@@ -1913,12 +1893,16 @@ def requested_product_processing_action(request, requested_product_processing, r
         requested_product_processing.seller = request.user.user_profile.profile_seller_profile
         requested_product_processing.is_confirmed_by_sales_department = False
         requested_product_processing.sales_status = 'processing'
+        requested_product_processing.warehouse_status = 'pending'
+        requested_product_processing.delivery_status = 'pending'
 
     if status == 'everyone':
         requested_product_processing.in_department_status = 'sale'
         requested_product_processing.seller = None
         requested_product_processing.is_confirmed_by_sales_department = False
         requested_product_processing.sales_status = 'pending'
+        requested_product_processing.warehouse_status = 'pending'
+        requested_product_processing.delivery_status = 'pending'
 
     # requested_product_processing.in_department_status =
     # requested_product_processing.seller =

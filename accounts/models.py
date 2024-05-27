@@ -109,6 +109,7 @@ class SellerProfile(models.Model):
     profile = models.OneToOneField(Profile, related_name='profile_seller_profile', on_delete=models.CASCADE, null=False,
                                    blank=False,
                                    editable=False, verbose_name='پروفایل کاربر')
+    sale_allowance = models.BooleanField(default=False, verbose_name='آیا اجازه فروش دارد؟')
     is_sales_admin = models.BooleanField(default=False, verbose_name='ایا مدیر فروش است؟')
     daily_allowed_product_processing_number = models.PositiveIntegerField(default=0, null=False, blank=False,
                                                                           verbose_name='تعداد مجاز فروش محصولات روزانه')
@@ -125,6 +126,7 @@ class WarehouseProfile(models.Model):
     profile = models.OneToOneField(Profile, related_name='profile_warehouse_profile', on_delete=models.CASCADE, null=False,
                                    blank=False,
                                    editable=False, verbose_name='پروفایل کاربر')
+    warehouse_allowance = models.BooleanField(default=False, verbose_name='آیا اجازه انبار داری دارد؟')
     is_warehouse_admin = models.BooleanField(default=False, verbose_name='ایا مدیر انبار است؟')
 
     def __str__(self):
@@ -139,6 +141,7 @@ class DeliveryProfile(models.Model):
     profile = models.OneToOneField(Profile, related_name='profile_delivery_profile', on_delete=models.CASCADE, null=False,
                                    blank=False,
                                    editable=False, verbose_name='پروفایل کاربر')
+    delivery_allowance = models.BooleanField(default=False, verbose_name='آیا اجازه ارسال کالا دارد؟')
     is_delivery_admin = models.BooleanField(default=False, verbose_name='ایا مدیر ارسال است؟')
 
     def __str__(self):
@@ -154,63 +157,85 @@ def update_extra_profile(sender, instance, created, **kwargs):
     profile = Profile.objects.get(user=instance.user)
 
     # seller
-    seller_profile_is_needed = False
-    permissions = profile.role.permissions.filter(has_access_to_section__name='sale', read=True, create=True)
-    if permissions.exists():
-        seller_profile_is_needed = True
-    print(f'seller_profile_is_needed? {seller_profile_is_needed}')
+    selling_is_allowed = False
+    is_sale_admin = False
+    sell_permission = profile.role.permissions.filter(has_access_to_section__name='sale', read=True, modify=True)
+    sale_admin_permission = profile.role.permissions.filter(has_access_to_section__name='sale', read=True, create=True, modify=True, delete=True)
 
-    if seller_profile_is_needed:
-        seller_profile, created = SellerProfile.objects.get_or_create(
+    if sell_permission.exists():
+        selling_is_allowed = True
+    if sale_admin_permission.exists():
+        is_sale_admin = True
+    print(f'selling_is_allowed? {selling_is_allowed}')
+    try:
+        seller_profile = SellerProfile.objects.get(
             profile=profile,
         )
+    except:
+        seller_profile = SellerProfile.objects.create(
+            profile=profile,
+        )
+    if selling_is_allowed:
+        seller_profile.sale_allowance = True
+    if is_sale_admin:
+        seller_profile.is_sales_admin = True
+    seller_profile.save()
 
-    if not seller_profile_is_needed:
-        try:
-            seller_profile = SellerProfile.objects.get(profile=profile)
-            seller_profile.delete()
-        except:
-            pass
 
     # warehouse
-    warehouse_profile_is_needed = False
-    permissions = profile.role.permissions.filter(has_access_to_section__name='warehouse', read=True, create=True)
-    if permissions.exists():
-        warehouse_profile_is_needed = True
-    print(f'warehouse_profile_is_needed? {warehouse_profile_is_needed}')
+    warehouse_is_allowed = False
+    is_warehouse_admin = False
+    warehouse_permission = profile.role.permissions.filter(has_access_to_section__name='warehouse', read=True, modify=True)
+    warehouse_admin_permission = profile.role.permissions.filter(has_access_to_section__name='warehouse', read=True, create=True, modify=True, delete=True)
 
-    if warehouse_profile_is_needed:
-        warehouse_profile, created = WarehouseProfile.objects.get_or_create(
+    if warehouse_permission.exists():
+        warehouse_is_allowed = True
+    if warehouse_admin_permission.exists():
+        is_warehouse_admin = True
+    print(f'warehouse_is_allowed? {warehouse_is_allowed}')
+
+    try:
+        warehouse_profile = WarehouseProfile.objects.get(
             profile=profile,
         )
-
-    if not warehouse_profile_is_needed:
-        try:
-            warehouse_profile = WarehouseProfile.objects.get(profile=profile)
-            warehouse_profile.delete()
-        except:
-            pass
+    except:
+        warehouse_profile = WarehouseProfile.objects.create(
+            profile=profile,
+        )
+    if warehouse_is_allowed:
+        warehouse_profile.warehouse_allowance = True
+    if is_warehouse_admin:
+        warehouse_profile.is_warehouse_admin = True
+    warehouse_profile.save()
 
 
     # delivery
-    delivery_profile_is_needed = False
-    permissions = profile.role.permissions.filter(has_access_to_section__name='delivery', read=True, create=True)
-    if permissions.exists():
-        delivery_profile_is_needed = True
-    print(f'delivery_profile_is_needed? {delivery_profile_is_needed}')
+    delivery_is_allowed = False
+    is_delivery_admin = False
+    delivery_permission = profile.role.permissions.filter(has_access_to_section__name='delivery', read=True,
+                                                           modify=True)
+    delivery_admin_permission = profile.role.permissions.filter(has_access_to_section__name='delivery', read=True,
+                                                                 create=True, modify=True, delete=True)
 
-    if delivery_profile_is_needed:
-        delivery_profile, created = DeliveryProfile.objects.get_or_create(
+    if delivery_permission.exists():
+        delivery_is_allowed = True
+    if delivery_admin_permission.exists():
+        is_delivery_admin = True
+    print(f'delivery_is_allowed? {delivery_is_allowed}')
+
+    try:
+        delivery_profile = DeliveryProfile.objects.get(
             profile=profile,
         )
-
-    if not delivery_profile_is_needed:
-        try:
-            delivery_profile = DeliveryProfile.objects.get(profile=profile)
-            delivery_profile.delete()
-        except:
-            pass
-
+    except:
+        delivery_profile = DeliveryProfile.objects.create(
+            profile=profile,
+        )
+    if delivery_is_allowed:
+        delivery_profile.delivery_allowance = True
+    if is_delivery_admin:
+        delivery_profile.is_delivery_admin = True
+    delivery_profile.save()
 
 
 class UserNotification(models.Model):

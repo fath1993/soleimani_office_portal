@@ -157,8 +157,14 @@ class ProfileAdmin(admin.ModelAdmin):
 class SellerProfileAdmin(admin.ModelAdmin):
     list_display = (
         'profile',
+        'sale_allowance',
         'is_sales_admin',
         'daily_allowed_product_processing_number',
+    )
+
+    list_filter = (
+        'sale_allowance',
+        'is_sales_admin',
     )
 
     readonly_fields = (
@@ -167,6 +173,7 @@ class SellerProfileAdmin(admin.ModelAdmin):
 
     fields = (
         'profile',
+        'sale_allowance',
         'is_sales_admin',
         'daily_allowed_product_processing_number',
     )
@@ -179,6 +186,12 @@ class SellerProfileAdmin(admin.ModelAdmin):
 class WarehouseProfileAdmin(admin.ModelAdmin):
     list_display = (
         'profile',
+        'warehouse_allowance',
+        'is_warehouse_admin',
+    )
+
+    list_filter = (
+        'warehouse_allowance',
         'is_warehouse_admin',
     )
 
@@ -188,6 +201,7 @@ class WarehouseProfileAdmin(admin.ModelAdmin):
 
     fields = (
         'profile',
+        'warehouse_allowance',
         'is_warehouse_admin',
     )
 
@@ -199,6 +213,12 @@ class WarehouseProfileAdmin(admin.ModelAdmin):
 class DeliveryProfileAdmin(admin.ModelAdmin):
     list_display = (
         'profile',
+        'delivery_allowance',
+        'is_delivery_admin',
+    )
+
+    list_filter = (
+        'delivery_allowance',
         'is_delivery_admin',
     )
 
@@ -208,6 +228,7 @@ class DeliveryProfileAdmin(admin.ModelAdmin):
 
     fields = (
         'profile',
+        'delivery_allowance',
         'is_delivery_admin',
     )
 
