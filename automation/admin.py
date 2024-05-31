@@ -69,6 +69,8 @@ class CreditCardAdmin(admin.ModelAdmin):
         'card_number',
         'isbn',
         'owner',
+
+        'is_active',
     )
 
     readonly_fields = (
@@ -84,11 +86,13 @@ class CreditCardAdmin(admin.ModelAdmin):
         'card_number',
         'isbn',
         'owner',
-        'broker',
+        'brokers',
         'created_at',
         'updated_at',
         'created_by',
         'updated_by',
+
+        'is_active',
     )
 
     def save_model(self, request, instance, form, change):

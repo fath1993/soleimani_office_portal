@@ -33,7 +33,6 @@ urlpatterns = [
     path('product/detail&id=<int:product_id>/', ProductView().detail, name='product-detail-with-id'),
     path('product/modify&id=<int:product_id>/', ProductView().modify, name='product-modify-with-id'),
     path('product/delete&id=<int:product_id>/', ProductView().delete, name='product-delete-with-id'),
-    path('product/delete-file&file-id=<int:file_id>/', ProductView().delete_file, name='product-delete-file-with-file-id'),
     path('product/change-state&id=<int:product_id>/', ProductView().change_state, name='product-change_state-with-id'),
 
     # Teaser Maker
@@ -44,6 +43,7 @@ urlpatterns = [
     path('teaser-maker/modify&id=<int:teaser_maker_id>/', TeaserMakerView().modify, name='teaser-maker-modify-with-id'),
     path('teaser-maker/delete&id=<int:teaser_maker_id>/', TeaserMakerView().delete, name='teaser-maker-delete-with-id'),
     path('teaser-maker/change-state&id=<int:teaser_maker_id>/', TeaserMakerView().change_state, name='teaser-maker-change_state-with-id'),
+    path('teaser-maker/change-state&id=<int:teaser_maker_id>/', TeaserMakerView().change_state, name='teaser-maker-change_state-with-id'),
 
     # Reseller Network
     path('reseller-network/list/', ResellerNetworkView().list, name='reseller-network-list'),
@@ -52,6 +52,7 @@ urlpatterns = [
     path('reseller-network/detail&id=<int:reseller_network_id>/', ResellerNetworkView().detail, name='reseller-network-detail-with-id'),
     path('reseller-network/modify&id=<int:reseller_network_id>/', ResellerNetworkView().modify, name='reseller-network-modify-with-id'),
     path('reseller-network/delete&id=<int:reseller_network_id>/', ResellerNetworkView().delete, name='reseller-network-delete-with-id'),
+    path('reseller-network/change-state&id=<int:reseller_network_id>/', ResellerNetworkView().change_state, name='reseller-network-change_state-with-id'),
 
     # Receiver
     path('receiver/list/', ReceiverView().list, name='receiver-list'),
@@ -60,6 +61,7 @@ urlpatterns = [
     path('receiver/detail&id=<int:receiver_id>/', ReceiverView().detail, name='receiver-detail-with-id'),
     path('receiver/modify&id=<int:receiver_id>/', ReceiverView().modify, name='receiver-modify-with-id'),
     path('receiver/delete&id=<int:receiver_id>/', ReceiverView().delete, name='receiver-delete-with-id'),
+    path('receiver/change-state&id=<int:receiver_id>/', ReceiverView().change_state, name='receiver-change_state-with-id'),
 
     # Advertise Content
     path('advertise-content/list/', AdvertiseContentView().list, name='advertise-content-list'),
@@ -68,6 +70,7 @@ urlpatterns = [
     path('advertise-content/detail&id=<int:advertise_content_id>/', AdvertiseContentView().detail, name='advertise-content-detail-with-id'),
     path('advertise-content/modify&id=<int:advertise_content_id>/', AdvertiseContentView().modify, name='advertise-content-modify-with-id'),
     path('advertise-content/delete&id=<int:advertise_content_id>/', AdvertiseContentView().delete, name='advertise-content-delete-with-id'),
+    path('advertise-content/change-state&id=<int:advertise_content_id>/', AdvertiseContentView().change_state, name='advertise-content-change_state-with-id'),
 
     # Forward To Portal
     path('forward-to-portal/list/', ForwardToPortalView().list, name='forward-to-portal-list'),
@@ -76,6 +79,7 @@ urlpatterns = [
     path('forward-to-portal/detail&id=<int:forward_to_portal_id>/', ForwardToPortalView().detail, name='forward-to-portal-detail-with-id'),
     path('forward-to-portal/modify&id=<int:forward_to_portal_id>/', ForwardToPortalView().modify, name='forward-to-portal-modify-with-id'),
     path('forward-to-portal/delete&id=<int:forward_to_portal_id>/', ForwardToPortalView().delete, name='forward-to-portal-delete-with-id'),
+    path('forward-to-portal/change-state&id=<int:forward_to_portal_id>/', ForwardToPortalView().change_state, name='forward-to-portal-change_state-with-id'),
 
     # Communication Channel
     path('communication-channel/list/', CommunicationChannelView().list, name='communication-channel-list'),
@@ -84,6 +88,7 @@ urlpatterns = [
     path('communication-channel/detail&id=<int:communication_channel_id>/', CommunicationChannelView().detail, name='communication-channel-detail-with-id'),
     path('communication-channel/modify&id=<int:communication_channel_id>/', CommunicationChannelView().modify, name='communication-channel-modify-with-id'),
     path('communication-channel/delete&id=<int:communication_channel_id>/', CommunicationChannelView().delete, name='communication-channel-delete-with-id'),
+    path('communication-channel/change-state&id=<int:communication_channel_id>/', CommunicationChannelView().change_state, name='communication-channel-change_state-with-id'),
 
     # Registrar
     path('registrar/list/', RegistrarView().list, name='registrar-list'),
@@ -92,24 +97,23 @@ urlpatterns = [
     path('registrar/detail&id=<int:registrar_id>/', RegistrarView().detail, name='registrar-detail-with-id'),
     path('registrar/modify&id=<int:registrar_id>/', RegistrarView().modify, name='registrar-modify-with-id'),
     path('registrar/delete&id=<int:registrar_id>/', RegistrarView().delete, name='registrar-delete-with-id'),
+    path('registrar/change-state&id=<int:registrar_id>/', RegistrarView().change_state, name='registrar-change_state-with-id'),
 
     # Credit Card
     path('credit-card/list/', CreditCardView().list, name='credit-card-list'),
     path('credit-card/filter/', CreditCardView().filter, name='credit-card-filter'),
     path('credit-card/create/', CreditCardView().create, name='credit-card-create'),
-    path('credit-card/detail&id=<int:credit_card_id>/', CreditCardView().detail, name='credit-card-detail-with-id'),
-    path('credit-card/modify&id=<int:credit_card_id>/', CreditCardView().modify, name='credit-card-modify-with-id'),
+    path('credit-card/detail/', CreditCardView().detail, name='credit-card-detail'),
+    path('credit-card/modify/', CreditCardView().modify, name='credit-card-modify'),
     path('credit-card/delete&id=<int:credit_card_id>/', CreditCardView().delete, name='credit-card-delete-with-id'),
     path('credit-card/change-state&id=<int:credit_card_id>/', CreditCardView().change_state, name='credit-card-change_state-with-id'),
 
     # Customer
     path('customer/list/', CustomerView().list, name='customer-list'),
     path('customer/filter/', CustomerView().filter, name='customer-filter'),
-    path('customer/create/', CustomerView().create, name='customer-create'),
     path('customer/detail&id=<int:customer_id>/', CustomerView().detail, name='customer-detail-with-id'),
     path('customer/modify&id=<int:customer_id>/', CustomerView().modify, name='customer-modify-with-id'),
     path('customer/delete&id=<int:customer_id>/', CustomerView().delete, name='customer-delete-with-id'),
-    path('customer/change-state&id=<int:customer_id>/', CustomerView().change_state, name='customer-change_state-with-id'),
 
     # Requested Product
     path('requested-product/list/', RequestedProductView().list, name='requested-product-list'),

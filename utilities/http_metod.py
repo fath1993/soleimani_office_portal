@@ -11,6 +11,21 @@ def fetch_data_from_http_post(request, item, context, empty_none: bool = None):
     return result_item
 
 
+def fetch_data_list_from_http_post(request, item, context, empty_none: bool = None):
+    try:
+        result_item = request.POST.getlist(f'{item}')
+        if len(result_item) == 0:
+            result_item = None
+            context[f'{item}'] = result_item
+        else:
+            for item in result_item:
+                context[f'{item}'] = item
+    except:
+        result_item = None
+    print(f'{result_item}')
+    return result_item
+
+
 def fetch_data_from_http_get(request, item, context):
     try:
         result_item = request.GET[f'{item}']

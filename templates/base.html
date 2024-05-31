@@ -36,6 +36,10 @@
     <link rel="stylesheet" href="{% static 'assets/vendor/libs/apex-charts/apex-charts.css' %}">
     <link rel="stylesheet" href="{% static 'assets/vendor/libs/spinkit/spinkit.css' %}">
 
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/select2/select2.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/tagify/tagify.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/bootstrap-select/bootstrap-select.css' %}">
+
     <!-- Page CSS -->
 
     <!-- Helpers -->
@@ -57,6 +61,8 @@
 
     <!-- Vendors JS -->
     <script src="{% static 'assets/vendor/libs/toastr/toastr.js' %}"></script>
+    <script src="{% static 'assets/vendor/libs/select2/select2.js' %}"></script>
+    <script src="{% static 'assets/vendor/libs/tagify/tagify.js' %}"></script>
     <script>
         function toast_maker(status, message) {
             toastr.options = {
@@ -189,6 +195,23 @@
                 price_numbers[i].innerText = n.toLocaleString('en-US') + ' تومان '
             }
         }
+    });
+    
+    function initializeSelect2(container) {
+            $(container).find('.select2').each(function () {
+                var $this = $(this);
+                $this.wrap('<div class="position-relative"></div>').select2({
+                    placeholder: 'انتخاب',
+                    dropdownParent: $this.parent()
+                });
+            });
+        }
+    $('.modal').on('shown.bs.modal', function (e) {
+        initializeSelect2(this);
+    });
+    
+    $('.offcanvas').on('shown.bs.offcanvas', function (e) {
+        initializeSelect2(this);
     });
 
 </script>

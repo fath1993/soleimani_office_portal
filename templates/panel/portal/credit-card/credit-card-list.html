@@ -1,0 +1,597 @@
+{% extends 'base.html' %}
+{% load account_custom_tag %}
+{% load static %}
+{% load panel_custom_tag %}
+
+{% block extra_head %}
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/typeahead-js/typeahead.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'assets/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/flatpickr/flatpickr.css' %}">
+    
+    <!-- Row Group CSS -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css' %}">
+    <!-- Form Validation -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/formvalidation/dist/css/formValidation.min.css' %}">
+{% endblock %}
+
+
+{% block content %}
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <h4 class="py-3 breadcrumb-wrapper mb-4">
+            <span class="text-muted fw-light">اداری / <span class="text-black">کارت های بانکی</span></span>
+        </h4>
+        <div class="card mb-3">
+            <h5 class="card-header heading-color">
+                فیلتر کارت بانکی
+            </h5>
+            <div class="card-body">
+                <div class="row">
+                    <form method="get" action="{% url 'panel:credit-card-filter' %}">
+                        <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
+                            <label class="form-label" for="search">جستجو <span class="text-muted">(نام, کد, شناسه)</span></label>
+                            <div class="input-group">
+                                <input type="text" id="search" name="search" class="form-control text-start"
+                                       placeholder="جستجو" dir="rtl" value="">
+                                <button type="submit" class="input-group-text"><i class="fa fa-search"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="row">
+                    <form method="get" action="{% url 'panel:teaser-maker-filter' %}">
+                        <div class="row">
+                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
+                                <label for="defaultSelect" class="form-label">نوع محتوا</label>
+                                <select id="defaultSelect" name="content_type" class="form-select dt-user-role">
+                                    <option {% if not content_type %} selected {% endif %} value="">انتخاب</option>
+                                    <option {% if content_type == 'صوتی' %} selected {% endif %} value="صوتی">صوتی</option>
+                                    <option {% if content_type == 'تصویری' %} selected {% endif %}value="تصویری">تصویری</option>
+                                    <option {% if content_type == 'ویدیویی' %} selected {% endif %} value="ویدیویی">ویدیویی</option>
+                                    <option {% if content_type == 'متنی' %} selected {% endif %}value="متنی">متنی</option>
+                                    <option {% if content_type == 'تلفیقی' %} selected {% endif %} value="تلفیقی">تلفیقی</option>
+                                    <option {% if content_type == 'اینستاگرامی' %} selected {% endif %}value="اینستاگرامی">اینستاگرامی</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
+                                <label for="defaultSelect" class="form-label">وضعیت</label>
+                                <select id="defaultSelect" name="is_active" class="form-select dt-is_active">
+                                    <option {% if is_active != 'فعال' and type != 'غیر فعال' %} selected {% endif %} value="">انتخاب</option>
+                                    <option {% if is_active == 'فعال' %} selected {% endif %} value="فعال">فعال</option>
+                                    <option {% if is_active == 'غیر فعال' %} selected {% endif %} value="غیر فعال">غیر فعال</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
+                                <label class="form-label" for="address">
+                                    آدرس</label>
+                                <div class="input-group input-group-merge">
+                                    <input type="text" id="address"
+                                           class="form-control dt-address"
+                                           name="address"
+                                           placeholder="" aria-label="address"
+                                           aria-describedby="address"
+                                           value="{{ address|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
+                                <label class="form-label" for="phone_number">
+                                    شماره تماس</label>
+                                <div class="input-group input-group-merge">
+                                    <input type="text" id="phone_number"
+                                           class="form-control dt-phone_number"
+                                           name="phone_number"
+                                           placeholder="" aria-label="phone_number"
+                                           aria-describedby="phone_number"
+                                           value="{{ phone_number|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
+                                <label class="form-label" for="creation_price_from">
+                                    هزینه ساخت از...تا</label>
+                                <div class="input-group input-group-merge">
+                                    <input class="form-control d-inline-block" type="number"
+                                           id="creation_price_from"
+                                           name="creation_price_from"
+                                           value="{{ creation_price_from|default:'' }}">
+                                    <input class="form-control d-inline-block" type="number"
+                                           id="creation_price_to" name="creation_price_to"
+                                           value="{{ creation_price_to|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
+                                <label class="form-label" for="editing_price_from">
+                                    هزینه ویرایش از...تا</label>
+                                <div class="input-group input-group-merge">
+                                    <input class="form-control d-inline-block" type="number"
+                                           id="editing_price_from"
+                                           name="editing_price_from"
+                                           value="{{ editing_price_from|default:'' }}">
+                                    <input class="form-control d-inline-block" type="number"
+                                           id="editing_price_to" name="editing_price_to"
+                                           value="{{ editing_price_to|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-outline-secondary"><i class="fa fa-search"> فیلتر</i></button>
+                            <a href="{% url 'panel:teaser-maker-filter' %}" target="_self" class="btn btn-outline-gray"><i class="fa fa-refresh"> ریست</i></a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            {% if request|has_access_to_section:'create,credit_card' %}
+                <h5 class="card-header heading-color">
+                    <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
+                        <i class="ti-plus m-r-5"></i> ایجاد کارت بانکی جدید
+                    </button>
+                    {% if err %}
+                        <strong class="text-danger">{{ err }}</strong>
+                    {% endif %}
+                    {% if message %}
+                        <strong class="text-success">{{ message }}</strong>
+                    {% endif %}
+                    <div class="offcanvas offcanvas-end" id="add-new-record">
+                        <div class="offcanvas-header border-bottom">
+                            <h5 class="offcanvas-title" id="exampleModalLabel">کارت بانکی جدید</h5>
+                            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
+                                    aria-label="Close"></button>
+                        </div>
+                        <div class="offcanvas-body flex-grow-1">
+                            <form class="add-new-record pt-0 row g-2" method="post"
+                                  action="{% url 'panel:credit-card-create' %}">
+                                {% csrf_token %}
+                                <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+                                    <label class="form-label" for="bank_name">نام بانک</label>
+                                    <div class="input-group input-group-merge">
+                                        <input type="text" id="bank_name" class="form-control"
+                                               name="bank_name" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="نام بانک"
+                                               aria-describedby="نام بانک"
+                                               value="{{ bank_name|default:'' }}">
+                                    </div>
+                                </div>
+                                <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+                                    <label class="form-label" for="account_number">شماره حساب</label>
+                                    <div class="input-group input-group-merge">
+                                        <input type="text" id="account_number" class="form-control"
+                                               name="account_number" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="شماره حساب"
+                                               aria-describedby="شماره حساب"
+                                               value="{{ bank_name|default:'' }}">
+                                    </div>
+                                </div>
+                                <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+                                    <label class="form-label" for="card_number">شماره کارت</label>
+                                    <div class="input-group input-group-merge">
+                                        <input type="text" id="card_number" class="form-control"
+                                               name="card_number" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="شماره کارت"
+                                               aria-describedby="شماره کارت"
+                                               value="{{ card_number|default:'' }}">
+                                    </div>
+                                </div>
+                                <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+                                    <label class="form-label" for="isbn">شماره شبا</label>
+                                    <div class="input-group input-group-merge">
+                                        <input type="text" id="isbn" class="form-control"
+                                               name="isbn"
+                                               placeholder="" aria-label="شماره شبا"
+                                               aria-describedby="شماره شبا"
+                                               value="{{ isbn|default:'' }}">
+                                    </div>
+                                </div>
+                                <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+                                    <label for="select2Basic" class="form-label">دارنده حساب</label>
+                                    <select id="select2Basic" name="owner_id"
+                                            class="select2 form-select" required>
+                                        {% for profile in request|profile_list %}
+                                        <option {% if owner_id == profile.id %} selected {% endif %} value="{{ profile.id }}">
+                                            {{ profile.user.username }}</option>
+                                        {% empty %}
+                                        <option selected value="">کاربر قابل انتخاب وجود ندارد</option>    
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+                                    <label for="select2Multiple" class="form-label">کارگزاران حساب</label>
+                                    <select id="select2Multiple" name="brokers"
+                                            class="select2 form-select" multiple>
+                                        {% for profile in request|profile_list %}
+                                            <option {% if owner_id == profile.id %} selected {% endif %} value="{{ profile.id }}">{{ profile.user.username }}</option>
+                                        {% empty %}
+                                        <option selected value="">کارگزار قابل انتخاب وجود ندارد</option>    
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+                                    <div class="form-check form-check-primary mt-3">
+                                        <input class="form-check-input" type="checkbox" value="true" id="is_active" name="is_active"
+                                               checked>
+                                        <label class="form-check-label" for="is_active">فعال</label>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12 col-md-12 col-lg-12 mt-3">
+                                    <button type="submit" class="btn btn-primary data-submit me-sm-3 me-1">ایجاد</button>
+                                    <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">
+                                        انصراف
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </h5>
+            {% endif %}
+            <div class="card-body">
+                <div class="table-responsive text-nowrap" style="min-height: 250px">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th style="width: 5%">#</th>
+                            <th style="width: 15%">نام بانک</th>
+                            <th style="width: 15%">شماره حساب</th>
+                            <th style="width: 15%">شماره کارت</th>
+                            <th style="width: 15%">مالک حساب</th>
+                            <th style="width: 15%">کارگزاران</th>
+                            <th style="width: 15%">وضعیت</th>
+                            <th style="width: 5%">عملیات</th>
+                        </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                        {% for credit_card in page %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td id="table_credit_card_id_{{ credit_card.id }}" data-bs-toggle="modal" data-bs-target="#creditCardModal" onclick="set_important_and_get_data('{{ credit_card.id }}', '{{ credit_card.card_number }}')">
+                                    <span id="table_credit_card_bank_name_{{ credit_card.id }}" class="btn text-primary">{{ credit_card.bank_name }}</span>
+                                </td>
+                                <td id="table_credit_card_account_number_{{ credit_card.id }}">{{ credit_card.account_number }}</td>
+                                <td id="table_credit_card_card_number_{{ credit_card.id }}">{{ credit_card.card_number }}</td>
+                                <td id="table_credit_card_card_owner_{{ credit_card.id }}">{{ credit_card.owner }}</td>
+                                <td id="table_credit_card_card_brokers_{{ credit_card.id }}">
+                                    {% for broker in credit_card.brokers.all %}
+                                        <span class="text-secondary">- {{ broker.user.username }}</span><br>
+                                    {% empty %}
+                                        -
+                                    {% endfor %}   
+                                </td>
+                                <td id="td_credit_card_is_active_{{ credit_card.id }}">
+                                    {% if credit_card.is_active %}
+                                        <span class="badge bg-success">فعال</span>
+                                    {% else %}
+                                        <span class="badge bg-dark">غیر فعال</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if request|has_access_to_section:'modify,delete,credit_card' %}
+                                        <div class="dropdown">
+                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                    data-bs-toggle="dropdown">
+                                                <i class="bx bx-dots-vertical-rounded"></i>
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                {% if request|has_access_to_section:'modify,credit_card' %}
+                                                    <a id="credit_card_is_active_change_btn_{{ credit_card.id }}" class="dropdown-item" href="javascript:void(0)" onclick="credit_card_change_state('{{ credit_card.id }}')"><span>{% if credit_card.is_active %}<i
+                                                            class="bx bx-lock me-1"></i> غیر فعال{% else %}<i class="bx bx-lock-open me-1"></i> فعال{% endif %}</span></a>
+                                                    
+                                                {% endif %}
+                                                {% if request|has_access_to_section:'delete,credit_card' %}
+                                                    <a class="dropdown-item" href="javascript:void(0);"
+                                                       data-bs-toggle="modal"
+                                                       data-bs-target="#deleteModal_{{ forloop.counter }}"><i
+                                                            class="bx bx-trash me-1"></i> حذف</a>
+                                                {% endif %}
+                                            </div>
+                                            <div class="modal fade" id="deleteModal_{{ forloop.counter }}"
+                                                 tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-simple modal-enable-otp modal-dialog-centered">
+                                                    <div class="modal-content p-3 p-md-5">
+                                                        <div class="modal-body">
+                                                            <button type="button" class="btn-close"
+                                                                    data-bs-dismiss="modal"
+                                                                    aria-label="Close"></button>
+                                                            <div class="text-center mb-4 mt-0 mt-md-n2">
+                                                                <h3 class="mb-4 secondary-font">تایید حذف</h3>
+                                                            </div>
+                                                            <h6>آیا از حذف کارت بانکی <strong class="bg-warning">{{ credit_card.card_number }}</strong> مطمئن هستید؟</h6>
+                                                            <form class="row g-3 mt-3" method="post" action="{% url 'panel:credit-card-delete-with-id' credit_card_id=credit_card.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                                {% csrf_token %}
+                                                                <div class="col-12">
+                                                                    <button type="submit"
+                                                                            class="btn btn-primary me-sm-3 me-1">
+                                                                        بله
+                                                                    </button>
+                                                                    <button type="reset" class="btn btn-label-secondary"
+                                                                            data-bs-dismiss="modal" aria-label="Close">
+                                                                        انصراف
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="demo-inline-spacing">
+                            <!-- Display page links -->
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination justify-content-center">
+                                    {% if page.has_previous %}
+                                        <li class="page-item prev">
+                                            <a class="page-link" href="?page={{ page.previous_page_number }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"><i
+                                                    class="tf-icon bx bx-chevrons-left"></i></a>
+                                        </li>
+                                    {% endif %}
+                                    {% for num in page.paginator.page_range %}
+                                        {% if num == page.number %}
+                                            <li class="page-item active">
+                                                <a class="page-link" href="?page={{ num }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">{{ num }}</a>
+                                            </li>
+                                        {% elif num == page.paginator.page_range.0 or num == page.paginator.page_range.1 or num == page.paginator.page_range.2 or num == page.paginator.page_range.3 or num == page.paginator.page_range.4 %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">{{ num }}</a>
+                                            </li>
+                                        {% elif num == page.paginator.page_range.5 %}
+                                            <li class="page-item">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if page.has_next %}
+                                        <li class="page-item next">
+                                            <a class="page-link" href="?page={{ page.next_page_number }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"><i
+                                                    class="tf-icon bx bx-chevrons-right"></i></a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <form id="ccl_data_form" hidden>
+        <input type="hidden" id="ccl_credit_card_id" value="none">
+        <input type="hidden" id="ccl_credit_card_title" value="none">
+    </form>
+    {% include 'panel/portal/credit-card/modal-credit-card-create-modify.html' %}
+{% endblock %}
+
+{% block extra_body %}
+    
+    
+    <!-- Main JS -->
+    <script src="{% static 'assets/js/main.js' %}"></script>
+    
+    <script>
+        'use strict';
+        let fv, offCanvasEl;
+        document.addEventListener('DOMContentLoaded', function (e) {
+            (function () {
+                const formAddNewRecord = document.getElementById('form-add-new-record');
+
+                setTimeout(() => {
+                    const newRecord = document.querySelector('#create-new'),
+                        offCanvasElement = document.querySelector('#add-new-record');
+
+                    // To open offCanvas, to add new record
+                    if (newRecord) {
+                        newRecord.addEventListener('click', function () {
+                            offCanvasEl = new bootstrap.Offcanvas(offCanvasElement);
+                            offCanvasEl.show();
+                        });
+                    }
+                }, 200);
+            })();
+        });
+        
+        function set_important_and_get_data(credit_card_id, credit_card_title){
+            document.getElementById('ccl_credit_card_id').value=credit_card_id
+            document.getElementById('ccl_credit_card_title').value=credit_card_title
+            get_credit_card_data()
+        }
+        
+        function get_credit_card_data() {
+            const ccl_credit_card_id = document.getElementById('ccl_credit_card_id').value
+            const ccl_credit_card_title = document.getElementById('ccl_credit_card_title')
+            const mcccm_credit_card_title = document.getElementById('mcccm_credit_card_title')
+            const mcccm_credit_card_container = document.getElementById('mcccm_credit_card_container')
+            const mcccm_credit_card_title_innerHTML = mcccm_credit_card_title.innerHTML
+            const mcccm_credit_card_container_innerHTML = mcccm_credit_card_container.innerHTML
+            
+            const table_credit_card_id_ = document.getElementById(`table_credit_card_id_${ccl_credit_card_id}`)
+            const table_credit_card_bank_name_ = document.getElementById(`table_credit_card_bank_name_${ccl_credit_card_id}`)
+            const table_credit_card_account_number_ = document.getElementById(`table_credit_card_account_number_${ccl_credit_card_id}`)
+            const table_credit_card_card_number_ = document.getElementById(`table_credit_card_card_number_${ccl_credit_card_id}`)
+            const table_credit_card_card_owner_ = document.getElementById(`table_credit_card_card_owner_${ccl_credit_card_id}`)
+            const table_credit_card_card_brokers_ = document.getElementById(`table_credit_card_card_brokers_${ccl_credit_card_id}`)
+            const td_credit_card_is_active_ = document.getElementById(`td_credit_card_is_active_${ccl_credit_card_id}`)
+            const credit_card_is_active_change_btn_ = document.getElementById(`credit_card_is_active_change_btn_${ccl_credit_card_id}`)
+            
+                
+            const loading_text = 'در حال بارگذاری ...'
+            const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                      <span class="visually-hidden">${loading_text}</span>
+                                    </div>`
+            const formData = new FormData();
+            formData.append('credit_card_id', `${ccl_credit_card_id}`)
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+            const options = {
+                method: 'POST',
+                body: formData,
+            }
+            mcccm_credit_card_title.innerText = `اطلاعات کارت بانکی ${ccl_credit_card_title.value}`
+            mcccm_credit_card_container.innerHTML=loading_html
+            fetch('{% url 'panel:credit-card-detail' %}', options)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log(data)
+                    ccl_credit_card_title.value=`${data['data'][0]['card_number']}`
+                    mcccm_credit_card_title.innerText = `اطلاعات کارت بانکی ${ccl_credit_card_title.value}`
+                    table_credit_card_bank_name_.innerHTML=`${data['data'][0]['bank_name']}`
+                    table_credit_card_account_number_.innerHTML=`${data['data'][0]['account_number']}`
+                    table_credit_card_card_number_.innerHTML=`${data['data'][0]['card_number']}`
+                    table_credit_card_card_owner_.innerHTML=`${data['data'][0]['owner']['user']['username']}`
+                    table_credit_card_card_brokers_.innerHTML=``
+                    if (data['data'][0]['brokers'].length === 0) {
+                        table_credit_card_card_brokers_.innerHTML=`-`
+                    }
+                    data['data'][0]['brokers'].forEach((item) => {
+                        table_credit_card_card_brokers_.innerHTML+=`<span class="text-secondary">- ${item['user']['username']}</span><br>`
+                    })
+                    if (data['data'][0]['is_active'] === true) {
+                        td_credit_card_is_active_.innerHTML = '<span class="badge bg-success">فعال</span>'
+                        credit_card_is_active_change_btn_.innerHTML = '<span><i class="bx bx-lock me-1"></i> غیر فعال</span>'
+                    } else {
+                        td_credit_card_is_active_.innerHTML = '<span class="badge bg-dark">غیر فعال</span>'
+                        credit_card_is_active_change_btn_.innerHTML = '<span><i class="bx bx-lock-open me-1"></i> فعال</span>'
+                    }
+                    
+                    mcccm_credit_card_container.innerHTML=`{% include 'panel/portal/credit-card/form-credit-card.html' %}`
+                    mcccm_credit_card_title.value=`${data['data'][0]['card_number']}`
+                    document.getElementById('fcc_form_credit_card_data_bank_name').value=`${data['data'][0]['bank_name']}`
+                    document.getElementById('fcc_form_credit_card_data_account_number').value=`${data['data'][0]['account_number']}`
+                    document.getElementById('fcc_form_credit_card_data_card_number').value=`${data['data'][0]['card_number']}`
+                    document.getElementById('fcc_form_credit_card_data_isbn').value=`${data['data'][0]['isbn']}`
+                    document.querySelector('[name="fcc_form_credit_card_data_owner_id"]').value=`${data['data'][0]['owner']['id']}`
+                    const fcc_form_credit_card_data_brokers = document.querySelector('[name="fcc_form_credit_card_data_brokers"]')
+                    fcc_form_credit_card_data_brokers.querySelectorAll('option').forEach((option) => {
+                        data['data'][0]['brokers'].forEach((item) => {
+                            if (parseInt(option.value) === parseInt(item['id'])) {
+                                option.selected = true;
+                            }
+                        })
+                    })
+                    
+                    if (data['data'][0]['is_active'] === true) {
+                        document.getElementById('fcc_form_credit_card_data_is_active').checked=true
+                    } else {
+                        document.getElementById('fcc_form_credit_card_data_is_active').checked=false
+                    }
+                    
+                    const form_element = document.getElementById('fcc_form_credit_card_data')
+                    initializeSelect2(form_element);
+                })
+                .catch(error => {
+                    mcccm_credit_card_container.innerHTML = mcccm_credit_card_container_innerHTML
+                    console.log(error)
+                });
+        }
+        function set_credit_card_data() {
+            const ccl_credit_card_id = document.getElementById('ccl_credit_card_id').value
+            const fcc_form_credit_card_data = document.getElementById('fcc_form_credit_card_data')
+            
+            const formData = new FormData(fcc_form_credit_card_data);
+            formData.append('credit_card_id', `${ccl_credit_card_id}`)
+            const options = {
+                method: 'POST',
+                body: formData,
+            }
+            fetch('{% url 'panel:credit-card-modify' %}', options)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data['message'] === 'credit card not found') {
+                        toast_maker('error', `کارت بانکی با شماره ${ccl_credit_card_id} یافت نشد`)
+                    }  else {
+                        toast_maker('success', `${data['message']}`)
+                        get_credit_card_data()
+                    }
+                    console.log(data)
+                })
+                .catch(error => {
+                    console.log(error)
+                });
+        }
+        
+        function credit_card_change_state(credit_card_id) {
+            const td_credit_card_is_active = document.getElementById(`td_credit_card_is_active_${credit_card_id}`)
+            const credit_card_is_active_change_btn = document.getElementById(`credit_card_is_active_change_btn_${credit_card_id}`)
+            const td_credit_card_is_active_innerHTML = td_credit_card_is_active.innerHTML
+            const credit_card_is_active_change_btn_innerHTML = credit_card_is_active_change_btn.innerHTML
+            const loading_text = 'در حال بارگذاری ...'
+            const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                  <span class="visually-hidden">${loading_text}</span>
+                                </div>`
+            const formData = new FormData();
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+            const options = {
+                method: 'POST',
+                body: formData,
+            }
+            td_credit_card_is_active.innerHTML = loading_html
+            credit_card_is_active_change_btn.innerHTML = loading_html
+            fetch('{% url 'panel:credit-card-change_state-with-id' credit_card_id=0 %}'.replace('0', credit_card_id).replace('amp;', ''), options)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data['credit_card_is_active'] === 'false') {
+                        td_credit_card_is_active.innerHTML = '<span class="badge bg-dark">غیر فعال</span>'
+                        credit_card_is_active_change_btn.innerHTML = '<span><i class="bx bx-lock-open me-1"></i> فعال</span>'
+                        toast_maker('success', 'با موفقیت غیر فعال شد')
+                    } else {
+                        td_credit_card_is_active.innerHTML = '<span class="badge bg-success">فعال</span>'
+                        credit_card_is_active_change_btn.innerHTML = '<span><i class="bx bx-lock me-1"></i> غیر فعال</span>'
+                        toast_maker('success', 'با موفقیت فعال شد')
+                    }
+                })
+                .catch(error => {
+                    td_credit_card_is_active.innerHTML = td_credit_card_is_active_innerHTML
+                    credit_card_is_active_change_btn.innerHTML = credit_card_is_active_change_btn_innerHTML
+                    toast_maker('error', 'عملیات ناموفق')
+                    console.error('Error change credit_card state:', error);
+                });
+            }
+        
+        
+    </script>
+{% endblock %}

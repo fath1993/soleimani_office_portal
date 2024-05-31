@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django_jalali.db import models as jmodel
 
-from accounts.models import SellerProfile, WarehouseProfile, DeliveryProfile
+from accounts.models import SellerProfile, WarehouseProfile, DeliveryProfile, Profile
 from portal.models import Product, Receiver
 
 REQUESTED_PRODUCT_PROCESSING_IN_DEPARTMENT_STATUS = (('sale', 'فروش'), ('warehouse', 'انبار'),
@@ -53,15 +53,17 @@ class CreditCard(models.Model):
     account_number = models.CharField(max_length=255, null=False, blank=False, verbose_name='شماره حساب')
     card_number = models.CharField(max_length=255, null=True, blank=True, verbose_name='شماره کارت')
     isbn = models.CharField(max_length=255, null=True, blank=True, verbose_name='شماره شبا')
-    owner = models.ForeignKey(User, related_name='owner_credit_card', on_delete=models.CASCADE, null=False,
+    owner = models.ForeignKey(Profile, related_name='owner_credit_card', on_delete=models.CASCADE, null=False,
                               blank=False, verbose_name='مالک')
-    broker = models.ManyToManyField(User, related_name='broker_credit_card', blank=True, verbose_name='کارگزار')
+    brokers = models.ManyToManyField(Profile, related_name='brokers_credit_card', blank=True, verbose_name='کارگزاران')
     created_at = jmodel.jDateTimeField(auto_now_add=True, verbose_name='تاریخ و زمان ایجاد')
     updated_at = jmodel.jDateTimeField(auto_now=True, verbose_name='تاریخ و زمان بروزرسانی')
     created_by = models.ForeignKey(User, related_name='created_by_credit_card', on_delete=models.CASCADE, null=False,
                                    blank=False, editable=False, verbose_name='ایجاد شده توسط')
     updated_by = models.ForeignKey(User, related_name='updated_by_credit_card', on_delete=models.CASCADE, null=False,
                                    blank=False, editable=False, verbose_name='بروز شده توسط')
+
+    is_active = models.BooleanField(default=False, verbose_name='فعال')
 
     def __str__(self):
         return f'{self.id} | {self.bank_name}'

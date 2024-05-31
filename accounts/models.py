@@ -7,19 +7,23 @@ from django_jalali.db import models as jmodel
 
 from tickets.models import Notification
 
-SECTIONS = (('file', 'فایل'), ('user', 'کاربر'), ('permission', 'مجوز'), ('role', 'نقش'),
+SECTIONS = (
+            ('file', 'فایل'),
+            ('user', 'کاربر'),
+            ('permission', 'مجوز'),
+            ('role', 'نقش'),
             ('resource', 'منابع'), ('product', 'محصولات'), ('teaser_maker', 'تیزر ساز'),
-            ('reseller_network', 'شبکه'),
-            ('receiver', 'دریافت کننده'), ('advertise_content', 'محتوای تبلیغاتی'),
-            ('forward_to_portal', 'انتقال دهنده'), ('communication_channel', 'کانال ارتباطی'),
-            ('registrar', 'تخصیص دهنده'),
-            ('ticket_admin', 'تیکت ادمین'),
-            ('ticket', 'تیکت'),
-            ('message', 'پیام'),
-            ('notification', 'اطلاعیه'),
+            ('reseller_network', 'شبکه'), ('receiver', 'دریافت کننده'),
+            ('advertise_content', 'محتوای تبلیغاتی'), ('forward_to_portal', 'انتقال دهنده'),
+            ('communication_channel', 'کانال ارتباطی'), ('registrar', 'تخصیص دهنده'),
+            ('ticket_admin', 'تیکت ادمین'), ('ticket', 'تیکت'),
+            ('message', 'پیام'), ('notification', 'اطلاعیه'),
             ('sale', 'فروش'),
             ('warehouse', 'انبار'),
-            ('delivery', 'ارسال'),)
+            ('delivery', 'ارسال'),
+            ('credit_card', 'کارت بانکی'), ('customer', 'مشتری'),
+)
+
 
 ROLES = (('manager', 'مدیر'), ('user', 'کاربر'), ('seller', 'فروشنده'), ('warehouse_keeper', 'انباردار'),
          ('delivery_person', 'ارسال کننده'),)

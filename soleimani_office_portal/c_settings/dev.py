@@ -1,6 +1,9 @@
+import requests
+
 from soleimani_office_portal.settings import *
 
 SECRET_KEY = env('SECRET_KEY')
+
 
 DEBUG = True
 

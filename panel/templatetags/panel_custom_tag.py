@@ -2,7 +2,7 @@ from django import template
 from django.contrib.auth.models import User
 from django.db.models import Q
 
-from accounts.models import Role, Permission, Section
+from accounts.models import Role, Permission, Section, Profile
 from portal.models import Product, TeaserMaker, ResellerNetwork, Receiver, AdvertiseContent, ForwardToPortal, \
     CommunicationChannel, Registrar
 
@@ -12,6 +12,11 @@ register = template.Library()
 @register.filter
 def role_list(request):
     return Role.objects.filter()
+
+
+@register.filter
+def profile_list(request):
+    return Profile.objects.filter()
 
 
 @register.filter

@@ -1,18 +1,21 @@
+from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from accounts.models import WarehouseProfile
+from accounts.models import WarehouseProfile, Profile
 from automation.models import RequestedProductProcessing, create_requested_product_processing_report, \
     RequestedProductProcessingReport, pick_seller, pick_warehouse_keeper, pick_delivery_man, Customer, \
-    create_requested_product_processing_cancel_report, report_requested_product_processing_cancel_number
+    create_requested_product_processing_cancel_report, report_requested_product_processing_cancel_number, CreditCard
 from gallery.models import FileGallery
 from accounts.custom_decorator import CheckLogin, CheckPermissions, RequireMethod
-from panel.serializer import RequestedProductProcessingReportSerializer, ProductSerializer, CustomerSerializer
+from panel.serializer import RequestedProductProcessingReportSerializer, ProductSerializer, CustomerSerializer, \
+    CreditCardSerializer
 from portal.models import Product
 from soleimani_office_portal.settings import BASE_URL
-from utilities.http_metod import fetch_data_from_http_post, fetch_files_from_http_post_data, fetch_data_from_http_get
+from utilities.http_metod import fetch_data_from_http_post, fetch_files_from_http_post_data, fetch_data_from_http_get, \
+    fetch_data_list_from_http_post
 
 
 class CreditCardView:
@@ -20,426 +23,213 @@ class CreditCardView:
         super().__init__()
 
     @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='read')
+    @CheckPermissions(section='credit_card', allowed_actions='read')
     def list(self, request, *args, **kwargs):
-        context = {'page_title': 'لیست محصولات', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'لیست کارت های بانکی', 'get_params': request.GET.urlencode()}
 
-        products = Product.objects.filter().order_by('id')
-        context['products'] = products
+        search = request.GET.get('search')
+        if search:
+            context = {'page_title': f'لیست کارت های بانکی شامل *{search}*', 'get_params': request.GET.urlencode()}
 
-        items_per_page = 50
-        paginator = Paginator(products, items_per_page)
-        page_number = request.GET.get('page')
-        page = paginator.get_page(page_number)
-        context['page'] = page
-
-        return render(request, 'panel/products/product-list.html', context)
-
-    @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='read')
-    def detail(self, request, product_id, *args, **kwargs):
-        try:
-            product = Product.objects.get(id=product_id)
-            context = {'page_title': f'اطلاعات محصول *{product.name}*',
-                       'product': product, 'get_params': request.GET.urlencode()}
-            return render(request, 'panel/products/product-detail.html', context)
-        except:
-            return render(request, 'panel/err/err-not-found.html')
-
-    @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='read')
-    def filter(self, request, *args, **kwargs):
-        context = {}
-        search = fetch_data_from_http_get(request, 'search', context)
-        product_type = fetch_data_from_http_get(request, 'type', context)
-        is_active = fetch_data_from_http_get(request, 'is_active', context)
-        color = fetch_data_from_http_get(request, 'color', context)
-        weight_from = fetch_data_from_http_get(request, 'weight_from', context)
-        weight_to = fetch_data_from_http_get(request, 'weight_to', context)
-        size_from = fetch_data_from_http_get(request, 'size_from', context)
-        size_to = fetch_data_from_http_get(request, 'size_to', context)
-        product_price_from = fetch_data_from_http_get(request, 'product_price_from', context)
-        product_price_to = fetch_data_from_http_get(request, 'product_price_to', context)
-        shipping_price_from = fetch_data_from_http_get(request, 'shipping_price_from', context)
-        shipping_price_to = fetch_data_from_http_get(request, 'shipping_price_to', context)
-        send_link_price_from = fetch_data_from_http_get(request, 'send_link_price_from', context)
-        send_link_price_to = fetch_data_from_http_get(request, 'send_link_price_to', context)
-        packing_price_from = fetch_data_from_http_get(request, 'packing_price_from', context)
-        packing_price_to = fetch_data_from_http_get(request, 'packing_price_to', context)
-        seller_commission_from = fetch_data_from_http_get(request, 'seller_commission_from', context)
-        seller_commission_to = fetch_data_from_http_get(request, 'seller_commission_to', context)
-
-        page_title = f''''''
         q = Q()
         if search:
-            page_title += f'search: {search}, '
-            if search.isdigit():
-                q &= (
-                    Q(**{'id__exact': search})
-                )
-            else:
-                q &= (
-                        Q(**{'name__icontains': search}) |
-                        Q(**{'code': search})
-                )
-
-        if product_type:
-            page_title += f'product_type: {product_type}, '
             q &= (
-                Q(**{'type': product_type})
+                    Q(**{'bank_name__icontains': search}) |
+                    Q(**{'account_number__icontains': search}) |
+                    Q(**{'card_number__icontains': search}) |
+                    Q(**{'isbn__icontains': search})
             )
 
-        if is_active:
-            page_title += f'is_active: {is_active}, '
-            if is_active == 'فعال':
-                is_active = True
-            else:
-                is_active = False
-            q &= (
-                Q(**{'is_active': is_active})
-            )
-
-        if color:
-            page_title += f'color: {color}, '
-            q &= (
-                Q(**{'color': color})
-            )
-
-        if weight_from:
-            page_title += f'weight_from: {weight_from}, '
-            q &= (
-                Q(**{'weight__gte': int(weight_from)})
-            )
-
-        if weight_to:
-            page_title += f'weight_to: {weight_to}, '
-            q &= (
-                Q(**{'weight__lte': int(weight_to)})
-            )
-
-        if size_from:
-            page_title += f'size_from: {size_from}, '
-            q &= (
-                Q(**{'size__gte': float(size_from)})
-            )
-
-        if size_to:
-            page_title += f'size_to: {size_to}, '
-            q &= (
-                Q(**{'size__lte': float(size_to)})
-            )
-
-        if product_price_from:
-            page_title += f'product_price_from: {product_price_from}, '
-            q &= (
-                Q(**{'product_price__gte': int(product_price_from)})
-            )
-
-        if product_price_to:
-            page_title += f'product_price_to: {product_price_to}, '
-            q &= (
-                Q(**{'product_price__lte': int(product_price_to)})
-            )
-
-        if shipping_price_from:
-            page_title += f'shipping_price_from: {shipping_price_from}, '
-            q &= (
-                Q(**{'shipping_price__gte': int(shipping_price_from)})
-            )
-
-        if shipping_price_to:
-            page_title += f'shipping_price_to: {shipping_price_to}, '
-            q &= (
-                Q(**{'shipping_price__lte': int(shipping_price_to)})
-            )
-
-        if send_link_price_from:
-            page_title += f'send_link_price_from: {send_link_price_from}, '
-            q &= (
-                Q(**{'send_link_price__gte': int(send_link_price_from)})
-            )
-
-        if send_link_price_to:
-            page_title += f'send_link_price_to: {send_link_price_to}, '
-            q &= (
-                Q(**{'send_link_price__lte': int(send_link_price_to)})
-            )
-
-        if packing_price_from:
-            page_title += f'packing_price_from: {packing_price_from}, '
-            q &= (
-                Q(**{'packing_price__gte': int(packing_price_from)})
-            )
-
-        if packing_price_to:
-            page_title += f'packing_price_to: {packing_price_to}, '
-            q &= (
-                Q(**{'packing_price__lte': int(packing_price_to)})
-            )
-
-        if seller_commission_from:
-            page_title += f'seller_commission_from: {seller_commission_from}, '
-            q &= (
-                Q(**{'seller_commission__gte': int(seller_commission_from)})
-            )
-
-        if seller_commission_to:
-            page_title += f'seller_commission_to: {seller_commission_to}, '
-            q &= (
-                Q(**{'seller_commission__lte': int(seller_commission_to)})
-            )
-        context['page_title'] = f'لیست محصولات شامل *{page_title}*'
-        context['get_params'] = request.GET.urlencode()
-
-        products = Product.objects.filter(q).order_by('id')
-        context['products'] = products
+        credit_cards = CreditCard.objects.filter(q).order_by('id')
+        context['credit_cards'] = credit_cards
 
         items_per_page = 50
-        paginator = Paginator(products, items_per_page)
+        paginator = Paginator(credit_cards, items_per_page)
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         context['page'] = page
 
-        return render(request, 'panel/products/product-list.html', context)
+        return render(request, 'panel/portal/credit-card/credit-card-list.html', context)
 
     @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='create')
+    @CheckPermissions(section='credit_card', allowed_actions='read')
     @RequireMethod(allowed_method='POST')
-    def create(self, request, *args, **kwargs):
-        context = {'page_title': 'ساخت محصول جدید', 'get_params': request.GET.urlencode()}
-
-        name = fetch_data_from_http_post(request, 'name', context)
-        product_type = fetch_data_from_http_post(request, 'type', context)
-        code = fetch_data_from_http_post(request, 'code', context)
-        weight = fetch_data_from_http_post(request, 'weight', context)
-        size = fetch_data_from_http_post(request, 'size', context)
-        color = fetch_data_from_http_post(request, 'color', context)
-        images = fetch_files_from_http_post_data(request, 'images', context)
-        videos = fetch_files_from_http_post_data(request, 'videos', context)
-        product_price = fetch_data_from_http_post(request, 'product_price', context)
-        shipping_price = fetch_data_from_http_post(request, 'shipping_price', context)
-        send_link_price = fetch_data_from_http_post(request, 'send_link_price', context)
-        packing_price = fetch_data_from_http_post(request, 'packing_price', context)
-        seller_commission = fetch_data_from_http_post(request, 'seller_commission', context)
-        is_active = fetch_data_from_http_post(request, 'is_active', context)
-
-        if not name:
-            context['err'] = 'نام محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not product_type:
-            context['err'] = 'نوع محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not code:
-            context['err'] = 'کد محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not weight:
-            context['err'] = 'وزن محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not size:
-            context['err'] = 'سایز محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not color:
-            context['err'] = 'رنگ محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not product_price:
-            context['err'] = 'هزینه خام محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not shipping_price:
-            context['err'] = 'هزینه حمل محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not send_link_price:
-            context['err'] = 'هزینه ارسال لینک محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not packing_price:
-            context['err'] = 'هزینه بسته بندی محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not seller_commission:
-            context['err'] = 'نام محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if is_active == 'true':
-            is_active = True
-        else:
-            is_active = False
-
+    def detail(self, request, *args, **kwargs):
+        context = {}
+        credit_card_id = fetch_data_from_http_post(request, 'credit_card_id', context)
         try:
-            Product.objects.get(code=code)
-            context['err'] = f'محصول با کد {code} از قبل موجود است'
-            return render(request, 'panel/products/product-list.html', context)
-        except:
-            new_product = Product.objects.create(
-                name=name,
-                type=product_type,
-                code=code,
-                weight=weight,
-                size=size,
-                color=color,
-                product_price=product_price,
-                shipping_price=shipping_price,
-                send_link_price=send_link_price,
-                packing_price=packing_price,
-                seller_commission=seller_commission,
-                is_active=is_active,
-                created_by=request.user,
-                updated_by=request.user,
-            )
-
-            for image in images:
-                try:
-                    new_file = FileGallery.objects.create(
-                        alt=image.name,
-                        file=image,
-                        created_by=request.user,
-                    )
-                    new_product.images.add(new_file)
-                except:
-                    pass
-
-            for video in videos:
-                try:
-                    new_file = FileGallery.objects.create(
-                        alt=video.name,
-                        file=video,
-                        created_by=request.user,
-                    )
-                    new_product.videos.add(new_file)
-                except:
-                    pass
-
-            context['message'] = f'محصول با کد {code} ایجاد گردید'
-            return redirect('panel:product-list')
-
-    @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='modify')
-    def modify(self, request, product_id, *args, **kwargs):
-        try:
-            product = Product.objects.get(id=product_id)
-            context = {'page_title': f'ویرایش اطلاعات محصول *{product.name}*',
-                       'product': product, 'get_params': request.GET.urlencode()}
-
-            if request.method == 'GET':
-                return render(request, 'panel/products/product-edit.html', context)
-            else:
-                name = fetch_data_from_http_post(request, 'name', context)
-                product_type = fetch_data_from_http_post(request, 'type', context)
-                code = fetch_data_from_http_post(request, 'code', context)
-                weight = fetch_data_from_http_post(request, 'weight', context)
-                size = fetch_data_from_http_post(request, 'size', context)
-                color = fetch_data_from_http_post(request, 'color', context)
-                images = fetch_files_from_http_post_data(request, 'images', context)
-                videos = fetch_files_from_http_post_data(request, 'videos', context)
-                product_price = fetch_data_from_http_post(request, 'product_price', context)
-                shipping_price = fetch_data_from_http_post(request, 'shipping_price', context)
-                send_link_price = fetch_data_from_http_post(request, 'send_link_price', context)
-                packing_price = fetch_data_from_http_post(request, 'packing_price', context)
-                seller_commission = fetch_data_from_http_post(request, 'seller_commission', context)
-                is_active = fetch_data_from_http_post(request, 'is_active', context)
-
-                try:
-                    if name:
-                        product.name = name
-                    if product_type:
-                        product.product_type = product_type
-                    if code:
-                        product.code = code
-                    if weight:
-                        product.weight = weight
-                    if size:
-                        product.size = size
-                    if color:
-                        product.color = color
-                    if product_price:
-                        product.product_price = product_price
-                    if shipping_price:
-                        product.shipping_price = shipping_price
-                    if send_link_price:
-                        product.send_link_price = send_link_price
-                    if packing_price:
-                        product.packing_price = packing_price
-                    if seller_commission:
-                        product.seller_commission = seller_commission
-                    if is_active == 'true':
-                        is_active = True
-                    else:
-                        is_active = False
-                    product.is_active = is_active
-                    product.save()
-                    if images:
-                        for image in images:
-                            try:
-                                new_file = FileGallery.objects.create(
-                                    alt=image.name,
-                                    file=image,
-                                    created_by=request.user,
-                                )
-                                product.images.add(new_file)
-                            except:
-                                pass
-                    if videos:
-                        for video in videos:
-                            try:
-                                new_file = FileGallery.objects.create(
-                                    alt=video.name,
-                                    file=video,
-                                    created_by=request.user,
-                                )
-                                product.videos.add(new_file)
-                            except:
-                                pass
-                    context['message'] = f'محصول با شناسه یکتا {product.id} ویرایش گردید'
-                    return redirect(
-                        reverse('panel:product-detail-with-id',
-                                kwargs={'product_id': product_id}) + f'?{request.GET.urlencode()}')
-                except:
-                    return render(request, 'panel/err/err-not-found.html')
+            credit_cards = CreditCard.objects.filter(id=credit_card_id)
+            serializer = CreditCardSerializer(credit_cards, many=True)
+            json_response_body = {
+                "method": "post",
+                "request": f"دیتای کارت بانکی با ایدی {credit_card_id}",
+                "result": "موفق",
+                "data": serializer.data
+            }
+            return JsonResponse(json_response_body)
         except Exception as e:
             print(e)
-            return render(request, 'panel/err/err-not-found.html')
+            return JsonResponse({'message': 'failed'})
 
     @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='delete')
+    @CheckPermissions(section='credit_card', allowed_actions='read')
+    def filter(self, request, *args, **kwargs):
+        search = request.GET.get('search')
+        context = {'page_title': f'لیست کارت های بانکی شامل *{search}*', 'get_params': request.GET.urlencode()}
+
+        q = Q()
+        if search:
+            q &= (
+                    Q(**{'bank_name__icontains': search}) |
+                    Q(**{'account_number__icontains': search}) |
+                    Q(**{'card_number__icontains': search}) |
+                    Q(**{'isbn__icontains': search})
+            )
+
+        credit_cards = CreditCard.objects.filter(q).order_by('id')
+        context['credit_cards'] = credit_cards
+
+        items_per_page = 50
+        paginator = Paginator(credit_cards, items_per_page)
+        page_number = request.GET.get('page')
+        page = paginator.get_page(page_number)
+        context['page'] = page
+
+        return render(request, 'panel/portal/credit-card/credit-card-list.html', context)
+
+    @CheckLogin()
+    @CheckPermissions(section='credit_card', allowed_actions='create')
+    def create(self, request, *args, **kwargs):
+        context = {'page_title': 'ساخت کارت بانکی جدید', 'get_params': request.GET.urlencode()}
+
+        bank_name = fetch_data_from_http_post(request, 'bank_name', context)
+        account_number = fetch_data_from_http_post(request, 'account_number', context)
+        card_number = fetch_data_from_http_post(request, 'card_number', context)
+        isbn = fetch_data_from_http_post(request, 'isbn', context)
+        owner_id = fetch_data_from_http_post(request, 'owner_id', context)
+        brokers = fetch_data_list_from_http_post(request, 'brokers', context)
+
+        if not bank_name:
+            context['err'] = 'نام بانک بدرستی وارد نشده است'
+            return render(request, 'panel/portal/registrar/registrar-list.html', context)
+        if not account_number:
+            context['err'] = 'شماره حساب بدرستی وارد نشده است'
+            return render(request, 'panel/portal/registrar/registrar-list.html', context)
+        if not card_number:
+            context['err'] = 'شماره کارت بدرستی وارد نشده است'
+            return render(request, 'panel/portal/registrar/registrar-list.html', context)
+        if not isbn:
+            context['err'] = 'شماره شبا بدرستی وارد نشده است'
+            return render(request, 'panel/portal/registrar/registrar-list.html', context)
+        if not owner_id:
+            context['err'] = 'مالک کارت بدرستی وارد نشده است'
+            return render(request, 'panel/portal/registrar/registrar-list.html', context)
+        else:
+            try:
+                owner = Profile.objects.get(id=owner_id)
+            except:
+                context['err'] = 'مالک کارت بدرستی وارد نشده است'
+                return render(request, 'panel/portal/registrar/registrar-list.html', context)
+        try:
+            CreditCard.objects.get(account_number=account_number, card_number=card_number)
+            context['err'] = f'کارت بانکی {card_number} با شماره حساب {account_number} از قبل موجود است'
+        except:
+            new_credit_card = CreditCard.objects.create(
+                bank_name=bank_name,
+                account_number=account_number,
+                card_number=card_number,
+                isbn=isbn,
+                owner=owner,
+                created_by=request.user,
+                updated_by=request.user,
+                is_active=True,
+            )
+            for profile_id in brokers:
+                try:
+                    broker = Profile.objects.get(id=profile_id)
+                    new_credit_card.brokers.add(broker)
+                except:
+                    pass
+
+            context['message'] = f'کارت بانکی {card_number} با شماره حساب {account_number} ایجاد گردید'
+
+        return redirect('panel:credit-card-list')
+
+    @CheckLogin()
+    @CheckPermissions(section='credit_card', allowed_actions='modify')
     @RequireMethod(allowed_method='POST')
-    def delete_file(self, request, file_id, *args, **kwargs):
+    def modify(self, request, *args, **kwargs):
+        context = {}
+        credit_card_id = fetch_data_from_http_post(request, 'credit_card_id', context)
         try:
-            file = FileGallery.objects.get(id=file_id)
-            file.delete()
-            return JsonResponse({"message": 'deleted'})
+            credit_card = CreditCard.objects.get(id=credit_card_id)
+            context = {'page_title': f'ویرایش کارت بانکی *{credit_card.card_number}*',
+                       'credit_card': credit_card, 'get_params': request.GET.urlencode()}
+            bank_name = fetch_data_from_http_post(request, 'fcc_form_credit_card_data_bank_name', context, False)
+            account_number = fetch_data_from_http_post(request, 'fcc_form_credit_card_data_account_number', context)
+            card_number = fetch_data_from_http_post(request, 'fcc_form_credit_card_data_card_number', context)
+            isbn = fetch_data_from_http_post(request, 'fcc_form_credit_card_data_isbn', context, False)
+            owner_id = fetch_data_from_http_post(request, 'fcc_form_credit_card_data_owner_id', context, False)
+            brokers = fetch_data_list_from_http_post(request, 'fcc_form_credit_card_data_brokers', context, False)
+            is_active = fetch_data_from_http_post(request, 'fcc_form_credit_card_data_is_active', context)
+
+            if bank_name:
+                credit_card.bank_name = bank_name
+            if account_number:
+                credit_card.account_number = account_number
+            if card_number:
+                credit_card.card_number = card_number
+            if isbn:
+                credit_card.isbn = isbn
+            if owner_id:
+                try:
+                    credit_card.owner_id = Profile.objects.get(id=owner_id)
+                except:
+                    pass
+            if is_active == 'true':
+                credit_card.is_active = True
+            else:
+                credit_card.is_active = False
+            credit_card.save()
+
+            credit_card.brokers.clear()
+            if brokers:
+                for profile_id in brokers:
+                    try:
+                        broker = Profile.objects.get(id=profile_id)
+                        credit_card.brokers.add(broker)
+                    except:
+                        pass
+
+            return JsonResponse({'message': f'کارت بانکی {card_number} با شماره حساب {account_number} ویرایش گردید'})
         except:
-            return JsonResponse({"message": 'failed'})
+            return JsonResponse({'message': f'credit card not found'})
 
     @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='delete')
-    def delete(self, request, product_id, *args, **kwargs):
+    @CheckPermissions(section='credit_card', allowed_actions='delete')
+    def delete(self, request, credit_card_id, *args, **kwargs):
         try:
-            product = Product.objects.get(id=product_id)
-            context = {'page_title': f'حذف محصول {product.name}', 'get_params': request.GET.urlencode()}
-
-            images = product.images.all()
-            videos = product.videos.all()
-
-            for image in images:
-                image.delete()
-            for video in videos:
-                video.delete()
-
-            product.delete()
-            return redirect(reverse('panel:product-list') + f'?{request.GET.urlencode()}')
+            credit_card = CreditCard.objects.get(id=credit_card_id)
+            context = {'page_title': f'حذف کارت بانکی {credit_card.card_number}', 'get_params': request.GET.urlencode()}
+            credit_card.delete()
+            return redirect(reverse('panel:credit-card-list') + f'?{request.GET.urlencode()}')
         except:
             return render(request, 'panel/err/err-not-found.html')
 
     @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='modify')
-    def change_state(self, request, product_id, *args, **kwargs):
+    @CheckPermissions(section='credit_card', allowed_actions='modify')
+    def change_state(self, request, credit_card_id, *args, **kwargs):
         try:
-            product = Product.objects.get(id=product_id)
-            context = {'page_title': f'تغییر وضعیت محصول {product.name}', 'get_params': request.GET.urlencode()}
-            if product.is_active:
-                product.is_active = False
-                product_is_active = 'false'
+            credit_card = CreditCard.objects.get(id=credit_card_id)
+            context = {'page_title': f'تغییر وضعیت کارت بانکی {credit_card.card_number}', 'get_params': request.GET.urlencode()}
+            if credit_card.is_active:
+                credit_card.is_active = False
+                credit_card_is_active = 'false'
             else:
-                product.is_active = True
-                product_is_active = 'true'
-            product.save()
-            return JsonResponse({"product_is_active": product_is_active})
+                credit_card.is_active = True
+                credit_card_is_active = 'true'
+            credit_card.save()
+            return JsonResponse({"credit_card_is_active": credit_card_is_active})
         except:
             return render(request, 'panel/err/err-not-found.html')
 
@@ -449,426 +239,108 @@ class CustomerView:
         super().__init__()
 
     @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='read')
+    @CheckPermissions(section='customer', allowed_actions='read')
     def list(self, request, *args, **kwargs):
-        context = {'page_title': 'لیست محصولات', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'لیست مشتری ها', 'get_params': request.GET.urlencode()}
 
-        products = Product.objects.filter().order_by('id')
-        context['products'] = products
+        search = request.GET.get('search')
+        if search:
+            context = {'page_title': f'لیست مشتری ها شامل *{search}*', 'get_params': request.GET.urlencode()}
 
-        items_per_page = 50
-        paginator = Paginator(products, items_per_page)
-        page_number = request.GET.get('page')
-        page = paginator.get_page(page_number)
-        context['page'] = page
-
-        return render(request, 'panel/products/product-list.html', context)
-
-    @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='read')
-    def detail(self, request, product_id, *args, **kwargs):
-        try:
-            product = Product.objects.get(id=product_id)
-            context = {'page_title': f'اطلاعات محصول *{product.name}*',
-                       'product': product, 'get_params': request.GET.urlencode()}
-            return render(request, 'panel/products/product-detail.html', context)
-        except:
-            return render(request, 'panel/err/err-not-found.html')
-
-    @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='read')
-    def filter(self, request, *args, **kwargs):
-        context = {}
-        search = fetch_data_from_http_get(request, 'search', context)
-        product_type = fetch_data_from_http_get(request, 'type', context)
-        is_active = fetch_data_from_http_get(request, 'is_active', context)
-        color = fetch_data_from_http_get(request, 'color', context)
-        weight_from = fetch_data_from_http_get(request, 'weight_from', context)
-        weight_to = fetch_data_from_http_get(request, 'weight_to', context)
-        size_from = fetch_data_from_http_get(request, 'size_from', context)
-        size_to = fetch_data_from_http_get(request, 'size_to', context)
-        product_price_from = fetch_data_from_http_get(request, 'product_price_from', context)
-        product_price_to = fetch_data_from_http_get(request, 'product_price_to', context)
-        shipping_price_from = fetch_data_from_http_get(request, 'shipping_price_from', context)
-        shipping_price_to = fetch_data_from_http_get(request, 'shipping_price_to', context)
-        send_link_price_from = fetch_data_from_http_get(request, 'send_link_price_from', context)
-        send_link_price_to = fetch_data_from_http_get(request, 'send_link_price_to', context)
-        packing_price_from = fetch_data_from_http_get(request, 'packing_price_from', context)
-        packing_price_to = fetch_data_from_http_get(request, 'packing_price_to', context)
-        seller_commission_from = fetch_data_from_http_get(request, 'seller_commission_from', context)
-        seller_commission_to = fetch_data_from_http_get(request, 'seller_commission_to', context)
-
-        page_title = f''''''
         q = Q()
         if search:
-            page_title += f'search: {search}, '
-            if search.isdigit():
-                q &= (
-                    Q(**{'id__exact': search})
-                )
-            else:
-                q &= (
-                        Q(**{'name__icontains': search}) |
-                        Q(**{'code': search})
-                )
-
-        if product_type:
-            page_title += f'product_type: {product_type}, '
             q &= (
-                Q(**{'type': product_type})
+                    Q(**{'phone_number__icontains': search}) |
+                    Q(**{'full_name__icontains': search}) |
+                    Q(**{'age__icontains': search}) |
+                    Q(**{'address__icontains': search})
             )
 
-        if is_active:
-            page_title += f'is_active: {is_active}, '
-            if is_active == 'فعال':
-                is_active = True
-            else:
-                is_active = False
-            q &= (
-                Q(**{'is_active': is_active})
-            )
-
-        if color:
-            page_title += f'color: {color}, '
-            q &= (
-                Q(**{'color': color})
-            )
-
-        if weight_from:
-            page_title += f'weight_from: {weight_from}, '
-            q &= (
-                Q(**{'weight__gte': int(weight_from)})
-            )
-
-        if weight_to:
-            page_title += f'weight_to: {weight_to}, '
-            q &= (
-                Q(**{'weight__lte': int(weight_to)})
-            )
-
-        if size_from:
-            page_title += f'size_from: {size_from}, '
-            q &= (
-                Q(**{'size__gte': float(size_from)})
-            )
-
-        if size_to:
-            page_title += f'size_to: {size_to}, '
-            q &= (
-                Q(**{'size__lte': float(size_to)})
-            )
-
-        if product_price_from:
-            page_title += f'product_price_from: {product_price_from}, '
-            q &= (
-                Q(**{'product_price__gte': int(product_price_from)})
-            )
-
-        if product_price_to:
-            page_title += f'product_price_to: {product_price_to}, '
-            q &= (
-                Q(**{'product_price__lte': int(product_price_to)})
-            )
-
-        if shipping_price_from:
-            page_title += f'shipping_price_from: {shipping_price_from}, '
-            q &= (
-                Q(**{'shipping_price__gte': int(shipping_price_from)})
-            )
-
-        if shipping_price_to:
-            page_title += f'shipping_price_to: {shipping_price_to}, '
-            q &= (
-                Q(**{'shipping_price__lte': int(shipping_price_to)})
-            )
-
-        if send_link_price_from:
-            page_title += f'send_link_price_from: {send_link_price_from}, '
-            q &= (
-                Q(**{'send_link_price__gte': int(send_link_price_from)})
-            )
-
-        if send_link_price_to:
-            page_title += f'send_link_price_to: {send_link_price_to}, '
-            q &= (
-                Q(**{'send_link_price__lte': int(send_link_price_to)})
-            )
-
-        if packing_price_from:
-            page_title += f'packing_price_from: {packing_price_from}, '
-            q &= (
-                Q(**{'packing_price__gte': int(packing_price_from)})
-            )
-
-        if packing_price_to:
-            page_title += f'packing_price_to: {packing_price_to}, '
-            q &= (
-                Q(**{'packing_price__lte': int(packing_price_to)})
-            )
-
-        if seller_commission_from:
-            page_title += f'seller_commission_from: {seller_commission_from}, '
-            q &= (
-                Q(**{'seller_commission__gte': int(seller_commission_from)})
-            )
-
-        if seller_commission_to:
-            page_title += f'seller_commission_to: {seller_commission_to}, '
-            q &= (
-                Q(**{'seller_commission__lte': int(seller_commission_to)})
-            )
-        context['page_title'] = f'لیست محصولات شامل *{page_title}*'
-        context['get_params'] = request.GET.urlencode()
-
-        products = Product.objects.filter(q).order_by('id')
-        context['products'] = products
+        customers = Customer.objects.filter(q).order_by('id')
+        context['customers'] = customers
 
         items_per_page = 50
-        paginator = Paginator(products, items_per_page)
+        paginator = Paginator(customers, items_per_page)
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         context['page'] = page
 
-        return render(request, 'panel/products/product-list.html', context)
+        return render(request, 'panel/portal/customer/customer-list.html', context)
 
     @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='create')
-    @RequireMethod(allowed_method='POST')
-    def create(self, request, *args, **kwargs):
-        context = {'page_title': 'ساخت محصول جدید', 'get_params': request.GET.urlencode()}
-
-        name = fetch_data_from_http_post(request, 'name', context)
-        product_type = fetch_data_from_http_post(request, 'type', context)
-        code = fetch_data_from_http_post(request, 'code', context)
-        weight = fetch_data_from_http_post(request, 'weight', context)
-        size = fetch_data_from_http_post(request, 'size', context)
-        color = fetch_data_from_http_post(request, 'color', context)
-        images = fetch_files_from_http_post_data(request, 'images', context)
-        videos = fetch_files_from_http_post_data(request, 'videos', context)
-        product_price = fetch_data_from_http_post(request, 'product_price', context)
-        shipping_price = fetch_data_from_http_post(request, 'shipping_price', context)
-        send_link_price = fetch_data_from_http_post(request, 'send_link_price', context)
-        packing_price = fetch_data_from_http_post(request, 'packing_price', context)
-        seller_commission = fetch_data_from_http_post(request, 'seller_commission', context)
-        is_active = fetch_data_from_http_post(request, 'is_active', context)
-
-        if not name:
-            context['err'] = 'نام محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not product_type:
-            context['err'] = 'نوع محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not code:
-            context['err'] = 'کد محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not weight:
-            context['err'] = 'وزن محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not size:
-            context['err'] = 'سایز محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not color:
-            context['err'] = 'رنگ محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not product_price:
-            context['err'] = 'هزینه خام محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not shipping_price:
-            context['err'] = 'هزینه حمل محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not send_link_price:
-            context['err'] = 'هزینه ارسال لینک محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not packing_price:
-            context['err'] = 'هزینه بسته بندی محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if not seller_commission:
-            context['err'] = 'نام محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
-        if is_active == 'true':
-            is_active = True
-        else:
-            is_active = False
-
+    @CheckPermissions(section='customer', allowed_actions='read')
+    def detail(self, request, customer_id, *args, **kwargs):
         try:
-            Product.objects.get(code=code)
-            context['err'] = f'محصول با کد {code} از قبل موجود است'
-            return render(request, 'panel/products/product-list.html', context)
+            customer = Customer.objects.get(id=customer_id)
+            context = {'page_title': f'اطلاعات مشتری *{customer.phone_number}*',
+                       'customer': customer, 'get_params': request.GET.urlencode()}
+            return render(request, 'panel/portal/customer/customer-detail.html', context)
         except:
-            new_product = Product.objects.create(
-                name=name,
-                type=product_type,
-                code=code,
-                weight=weight,
-                size=size,
-                color=color,
-                product_price=product_price,
-                shipping_price=shipping_price,
-                send_link_price=send_link_price,
-                packing_price=packing_price,
-                seller_commission=seller_commission,
-                is_active=is_active,
-                created_by=request.user,
-                updated_by=request.user,
+            return render(request, 'panel/err/err-not-found.html')
+
+    @CheckLogin()
+    @CheckPermissions(section='customer', allowed_actions='read')
+    def filter(self, request, *args, **kwargs):
+        search = request.GET.get('search')
+        context = {'page_title': f'لیست مشتری ها شامل *{search}*', 'get_params': request.GET.urlencode()}
+
+        q = Q()
+        if search:
+            q &= (
+                    Q(**{'phone_number__icontains': search}) |
+                    Q(**{'full_name__icontains': search}) |
+                    Q(**{'age__icontains': search}) |
+                    Q(**{'address__icontains': search})
             )
 
-            for image in images:
-                try:
-                    new_file = FileGallery.objects.create(
-                        alt=image.name,
-                        file=image,
-                        created_by=request.user,
-                    )
-                    new_product.images.add(new_file)
-                except:
-                    pass
+        customers = Customer.objects.filter(q).order_by('id')
+        context['customers'] = customers
 
-            for video in videos:
-                try:
-                    new_file = FileGallery.objects.create(
-                        alt=video.name,
-                        file=video,
-                        created_by=request.user,
-                    )
-                    new_product.videos.add(new_file)
-                except:
-                    pass
+        items_per_page = 50
+        paginator = Paginator(customers, items_per_page)
+        page_number = request.GET.get('page')
+        page = paginator.get_page(page_number)
+        context['page'] = page
 
-            context['message'] = f'محصول با کد {code} ایجاد گردید'
-            return redirect('panel:product-list')
+        return render(request, 'panel/portal/customer/customer-list.html', context)
 
     @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='modify')
-    def modify(self, request, product_id, *args, **kwargs):
+    @CheckPermissions(section='customer', allowed_actions='modify')
+    def modify(self, request, customer_id, *args, **kwargs):
         try:
-            product = Product.objects.get(id=product_id)
-            context = {'page_title': f'ویرایش اطلاعات محصول *{product.name}*',
-                       'product': product, 'get_params': request.GET.urlencode()}
-
+            customer = Customer.objects.get(id=customer_id)
+            context = {'page_title': f'ویرایش اطلاعات مشتری *{customer.phone_number}*',
+                       'customer': customer, 'get_params': request.GET.urlencode()}
             if request.method == 'GET':
-                return render(request, 'panel/products/product-edit.html', context)
+                return render(request, 'panel/portal/customer/customer-edit.html', context)
             else:
-                name = fetch_data_from_http_post(request, 'name', context)
-                product_type = fetch_data_from_http_post(request, 'type', context)
-                code = fetch_data_from_http_post(request, 'code', context)
-                weight = fetch_data_from_http_post(request, 'weight', context)
-                size = fetch_data_from_http_post(request, 'size', context)
-                color = fetch_data_from_http_post(request, 'color', context)
-                images = fetch_files_from_http_post_data(request, 'images', context)
-                videos = fetch_files_from_http_post_data(request, 'videos', context)
-                product_price = fetch_data_from_http_post(request, 'product_price', context)
-                shipping_price = fetch_data_from_http_post(request, 'shipping_price', context)
-                send_link_price = fetch_data_from_http_post(request, 'send_link_price', context)
-                packing_price = fetch_data_from_http_post(request, 'packing_price', context)
-                seller_commission = fetch_data_from_http_post(request, 'seller_commission', context)
-                is_active = fetch_data_from_http_post(request, 'is_active', context)
+                full_name = fetch_data_from_http_post(request, 'full_name', context, False)
+                age = fetch_data_from_http_post(request, 'age', context, False)
+                address = fetch_data_from_http_post(request, 'address', context, False)
 
-                try:
-                    if name:
-                        product.name = name
-                    if product_type:
-                        product.product_type = product_type
-                    if code:
-                        product.code = code
-                    if weight:
-                        product.weight = weight
-                    if size:
-                        product.size = size
-                    if color:
-                        product.color = color
-                    if product_price:
-                        product.product_price = product_price
-                    if shipping_price:
-                        product.shipping_price = shipping_price
-                    if send_link_price:
-                        product.send_link_price = send_link_price
-                    if packing_price:
-                        product.packing_price = packing_price
-                    if seller_commission:
-                        product.seller_commission = seller_commission
-                    if is_active == 'true':
-                        is_active = True
-                    else:
-                        is_active = False
-                    product.is_active = is_active
-                    product.save()
-                    if images:
-                        for image in images:
-                            try:
-                                new_file = FileGallery.objects.create(
-                                    alt=image.name,
-                                    file=image,
-                                    created_by=request.user,
-                                )
-                                product.images.add(new_file)
-                            except:
-                                pass
-                    if videos:
-                        for video in videos:
-                            try:
-                                new_file = FileGallery.objects.create(
-                                    alt=video.name,
-                                    file=video,
-                                    created_by=request.user,
-                                )
-                                product.videos.add(new_file)
-                            except:
-                                pass
-                    context['message'] = f'محصول با شناسه یکتا {product.id} ویرایش گردید'
-                    return redirect(
-                        reverse('panel:product-detail-with-id',
-                                kwargs={'product_id': product_id}) + f'?{request.GET.urlencode()}')
-                except:
-                    return render(request, 'panel/err/err-not-found.html')
-        except Exception as e:
-            print(e)
-            return render(request, 'panel/err/err-not-found.html')
+                if full_name:
+                    customer.full_name = full_name
+                if age:
+                    customer.age = age
+                if address:
+                    customer.address = address
 
-    @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='delete')
-    @RequireMethod(allowed_method='POST')
-    def delete_file(self, request, file_id, *args, **kwargs):
-        try:
-            file = FileGallery.objects.get(id=file_id)
-            file.delete()
-            return JsonResponse({"message": 'deleted'})
-        except:
-            return JsonResponse({"message": 'failed'})
-
-    @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='delete')
-    def delete(self, request, product_id, *args, **kwargs):
-        try:
-            product = Product.objects.get(id=product_id)
-            context = {'page_title': f'حذف محصول {product.name}', 'get_params': request.GET.urlencode()}
-
-            images = product.images.all()
-            videos = product.videos.all()
-
-            for image in images:
-                image.delete()
-            for video in videos:
-                video.delete()
-
-            product.delete()
-            return redirect(reverse('panel:product-list') + f'?{request.GET.urlencode()}')
+                customer.save()
+                context['message'] = f'مشتری با شماره همراه {customer.phone_number} ویرایش گردید'
+                return redirect(
+                    reverse('panel:customer-modify-with-id',
+                            kwargs={'customer_id': customer_id}) + f'?{request.GET.urlencode()}')
         except:
             return render(request, 'panel/err/err-not-found.html')
 
     @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='modify')
-    def change_state(self, request, product_id, *args, **kwargs):
+    @CheckPermissions(section='customer', allowed_actions='delete')
+    def delete(self, request, customer_id, *args, **kwargs):
         try:
-            product = Product.objects.get(id=product_id)
-            context = {'page_title': f'تغییر وضعیت محصول {product.name}', 'get_params': request.GET.urlencode()}
-            if product.is_active:
-                product.is_active = False
-                product_is_active = 'false'
-            else:
-                product.is_active = True
-                product_is_active = 'true'
-            product.save()
-            return JsonResponse({"product_is_active": product_is_active})
+            customer = Customer.objects.get(id=customer_id)
+            context = {'page_title': f'حذف مشتری با شماره همراه {customer.phone_number}', 'get_params': request.GET.urlencode()}
+            customer.delete()
+            return redirect(reverse('panel:customer-list') + f'?{request.GET.urlencode()}')
         except:
             return render(request, 'panel/err/err-not-found.html')
 
@@ -891,7 +363,7 @@ class RequestedProductView:
         page = paginator.get_page(page_number)
         context['page'] = page
 
-        return render(request, 'panel/products/product-list.html', context)
+        return render(request, 'panel/portal/products/product-list.html', context)
 
     @CheckLogin()
     @CheckPermissions(section='product', allowed_actions='read')
@@ -900,7 +372,7 @@ class RequestedProductView:
             product = Product.objects.get(id=product_id)
             context = {'page_title': f'اطلاعات محصول *{product.name}*',
                        'product': product, 'get_params': request.GET.urlencode()}
-            return render(request, 'panel/products/product-detail.html', context)
+            return render(request, 'panel/portal/products/product-detail.html', context)
         except:
             return render(request, 'panel/err/err-not-found.html')
 
@@ -1058,7 +530,7 @@ class RequestedProductView:
         page = paginator.get_page(page_number)
         context['page'] = page
 
-        return render(request, 'panel/products/product-list.html', context)
+        return render(request, 'panel/portal/products/product-list.html', context)
 
     @CheckLogin()
     @CheckPermissions(section='product', allowed_actions='create')
@@ -1083,37 +555,37 @@ class RequestedProductView:
 
         if not name:
             context['err'] = 'نام محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
+            return render(request, 'panel/portal/products/product-list.html', context)
         if not product_type:
             context['err'] = 'نوع محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
+            return render(request, 'panel/portal/products/product-list.html', context)
         if not code:
             context['err'] = 'کد محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
+            return render(request, 'panel/portal/products/product-list.html', context)
         if not weight:
             context['err'] = 'وزن محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
+            return render(request, 'panel/portal/products/product-list.html', context)
         if not size:
             context['err'] = 'سایز محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
+            return render(request, 'panel/portal/products/product-list.html', context)
         if not color:
             context['err'] = 'رنگ محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
+            return render(request, 'panel/portal/products/product-list.html', context)
         if not product_price:
             context['err'] = 'هزینه خام محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
+            return render(request, 'panel/portal/products/product-list.html', context)
         if not shipping_price:
             context['err'] = 'هزینه حمل محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
+            return render(request, 'panel/portal/products/product-list.html', context)
         if not send_link_price:
             context['err'] = 'هزینه ارسال لینک محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
+            return render(request, 'panel/portal/products/product-list.html', context)
         if not packing_price:
             context['err'] = 'هزینه بسته بندی محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
+            return render(request, 'panel/portal/products/product-list.html', context)
         if not seller_commission:
             context['err'] = 'نام محصول بدرستی وارد نشده است'
-            return render(request, 'panel/products/product-list.html', context)
+            return render(request, 'panel/portal/products/product-list.html', context)
         if is_active == 'true':
             is_active = True
         else:
@@ -1122,7 +594,7 @@ class RequestedProductView:
         try:
             Product.objects.get(code=code)
             context['err'] = f'محصول با کد {code} از قبل موجود است'
-            return render(request, 'panel/products/product-list.html', context)
+            return render(request, 'panel/portal/products/product-list.html', context)
         except:
             new_product = Product.objects.create(
                 name=name,
@@ -1175,7 +647,7 @@ class RequestedProductView:
                        'product': product, 'get_params': request.GET.urlencode()}
 
             if request.method == 'GET':
-                return render(request, 'panel/products/product-edit.html', context)
+                return render(request, 'panel/portal/products/product-edit.html', context)
             else:
                 name = fetch_data_from_http_post(request, 'name', context)
                 product_type = fetch_data_from_http_post(request, 'type', context)
@@ -1347,7 +819,8 @@ class RequestedProductProcessingView:
 
     @CheckLogin()
     def list(self, request, *args, **kwargs):
-        context = {'page_title': f'لیست پردازش سفارش های اختصاصی فروشنده {request.user.username}', 'get_params': request.GET.urlencode()}
+        context = {'page_title': f'لیست پردازش سفارش های اختصاصی فروشنده {request.user.username}',
+                   'get_params': request.GET.urlencode()}
 
         profile = request.user.user_profile
 
@@ -1466,7 +939,8 @@ class RequestedProductProcessingView:
                 "data": {
                     'customer_phone_number': f'{requested_product_processing.requested_product.customer.phone_number}',
                     'product_name': f'{requested_product_processing.requested_product.product.name}',
-                    'product_link': f'{BASE_URL}{reverse('panel:product-detail-with-id', kwargs={'product_id': requested_product_processing.requested_product.product.id})}'.replace('//', '/'),
+                    'product_link': f'{BASE_URL}{reverse('panel:product-detail-with-id', kwargs={'product_id': requested_product_processing.requested_product.product.id})}'.replace(
+                        '//', '/'),
                 }
             }
             return JsonResponse(json_response_body)
@@ -1549,13 +1023,13 @@ class RequestedProductProcessingView:
         try:
             requested_product_processing = RequestedProductProcessing.objects.get(id=requested_product_processing_id)
             full_name = fetch_data_from_http_post(request, 'fc_form_customer_data_full_name',
-                                                                        context)
+                                                  context)
 
             age = fetch_data_from_http_post(request, 'fc_form_customer_data_age',
-                                                                        context)
+                                            context)
 
             address = fetch_data_from_http_post(request, 'fc_form_customer_data_address',
-                                                                        context)
+                                                context)
             customer = requested_product_processing.requested_product.customer
             if full_name:
                 customer.full_name = full_name
@@ -1578,7 +1052,8 @@ class RequestedProductProcessingView:
             return JsonResponse(json_response_body)
         except Exception as e:
             print(e)
-            return JsonResponse({'message': f'پردازش محصول درخواستی با ایدی {requested_product_processing_id} پیدا نشد'})
+            return JsonResponse(
+                {'message': f'پردازش محصول درخواستی با ایدی {requested_product_processing_id} پیدا نشد'})
 
     @CheckLogin()
     @RequireMethod(allowed_method='POST')
@@ -1643,7 +1118,8 @@ class RequestedProductProcessingView:
                 requested_product_processing.save()
 
             requested_product_processing_action(request, requested_product_processing, 'sale', mss_status, mss_message)
-            return JsonResponse({"message": f'{mss_status}', 'cancel_number': (requested_product_processing.cancel_multiply * 3) + requested_product_processing.cancel_number})
+            return JsonResponse({"message": f'{mss_status}', 'cancel_number': (
+                                                                                          requested_product_processing.cancel_multiply * 3) + requested_product_processing.cancel_number})
 
         except Exception as e:
             print(e)
@@ -1762,7 +1238,8 @@ class RequestedProductProcessingView:
 
 
 def requested_product_processing_action(request, requested_product_processing, report_from_department, status, message):
-    create_requested_product_processing_report(requested_product_processing, report_from_department, status, message, request.user)
+    create_requested_product_processing_report(requested_product_processing, report_from_department, status, message,
+                                               request.user)
 
     if status == 'sold':
         requested_product_processing.in_department_status = 'sale'
@@ -1772,7 +1249,8 @@ def requested_product_processing_action(request, requested_product_processing, r
         requested_product_processing.request_total_income = requested_product_processing.requested_product.product.product_price * requested_product_processing.product_number
 
     if status == 'canceled':
-        create_requested_product_processing_cancel_report(requested_product_processing, requested_product_processing.seller, request.user)
+        create_requested_product_processing_cancel_report(requested_product_processing,
+                                                          requested_product_processing.seller, request.user)
         requested_product_processing.in_department_status = 'sale'
         requested_product_processing.cancel_number += 1
         if requested_product_processing.cancel_number >= 3:

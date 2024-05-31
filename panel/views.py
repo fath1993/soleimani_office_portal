@@ -7,7 +7,8 @@ from django.urls import reverse
 from accounts.models import Role, Permission
 from gallery.models import FileGallery, create_file
 from accounts.custom_decorator import CheckLogin, CheckPermissions, RequireMethod
-from portal.models import Product, TeaserMaker, ResellerNetwork, Receiver, AdvertiseContent, ForwardToPortal
+from portal.models import Product, TeaserMaker, ResellerNetwork, Receiver, AdvertiseContent, ForwardToPortal, \
+    CommunicationChannel, Registrar
 from utilities.http_metod import fetch_data_from_http_post, fetch_files_from_http_post_data, fetch_data_from_http_get
 
 
@@ -777,17 +778,6 @@ class ProductView:
 
     @CheckLogin()
     @CheckPermissions(section='product', allowed_actions='delete')
-    @RequireMethod(allowed_method='POST')
-    def delete_file(self, request, file_id, *args, **kwargs):
-        try:
-            file = FileGallery.objects.get(id=file_id)
-            file.delete()
-            return JsonResponse({"message": 'deleted'})
-        except:
-            return JsonResponse({"message": 'failed'})
-
-    @CheckLogin()
-    @CheckPermissions(section='product', allowed_actions='delete')
     def delete(self, request, product_id, *args, **kwargs):
         try:
             product = Product.objects.get(id=product_id)
@@ -1289,6 +1279,24 @@ class ResellerNetworkView:
         except:
             return render(request, 'panel/err/err-not-found.html')
 
+    @CheckLogin()
+    @CheckPermissions(section='reseller_network', allowed_actions='modify')
+    def change_state(self, request, reseller_network_id, *args, **kwargs):
+        try:
+            reseller_network = ResellerNetwork.objects.get(id=reseller_network_id)
+            context = {'page_title': f'تغییر وضعیت شبکه های تبلیغ کننده {reseller_network.code}',
+                       'get_params': request.GET.urlencode()}
+            if reseller_network.is_active:
+                reseller_network.is_active = False
+                reseller_network_is_active = 'false'
+            else:
+                reseller_network.is_active = True
+                reseller_network_is_active = 'true'
+            reseller_network.save()
+            return JsonResponse({"reseller_network_is_active": reseller_network_is_active})
+        except:
+            return render(request, 'panel/err/err-not-found.html')
+
 
 class ReceiverView:
     def __init__(self):
@@ -1449,6 +1457,24 @@ class ReceiverView:
             context = {'page_title': f'حذف دریافت کننده {receiver.code}', 'get_params': request.GET.urlencode()}
             receiver.delete()
             return redirect(reverse('panel:receiver-list') + f'?{request.GET.urlencode()}')
+        except:
+            return render(request, 'panel/err/err-not-found.html')
+
+    @CheckLogin()
+    @CheckPermissions(section='receiver', allowed_actions='modify')
+    def change_state(self, request, receiver_id, *args, **kwargs):
+        try:
+            receiver = Receiver.objects.get(id=receiver_id)
+            context = {'page_title': f'تغییر وضعیت دریافت کننده {receiver.code}',
+                       'get_params': request.GET.urlencode()}
+            if receiver.is_active:
+                receiver.is_active = False
+                receiver_is_active = 'false'
+            else:
+                receiver.is_active = True
+                receiver_is_active = 'true'
+            receiver.save()
+            return JsonResponse({"receiver_is_active": receiver_is_active})
         except:
             return render(request, 'panel/err/err-not-found.html')
 
@@ -1679,9 +1705,28 @@ class AdvertiseContentView:
     def delete(self, request, advertise_content_id, *args, **kwargs):
         try:
             advertise_content = AdvertiseContent.objects.get(id=advertise_content_id)
-            context = {'page_title': f'حذف محتوای تبلیغاتی {advertise_content.code}', 'get_params': request.GET.urlencode()}
+            context = {'page_title': f'حذف محتوای تبلیغاتی {advertise_content.code}',
+                       'get_params': request.GET.urlencode()}
             advertise_content.delete()
             return redirect(reverse('panel:advertise-content-list') + f'?{request.GET.urlencode()}')
+        except:
+            return render(request, 'panel/err/err-not-found.html')
+
+    @CheckLogin()
+    @CheckPermissions(section='advertise_content', allowed_actions='modify')
+    def change_state(self, request, advertise_content_id, *args, **kwargs):
+        try:
+            advertise_content = AdvertiseContent.objects.get(id=advertise_content_id)
+            context = {'page_title': f'تغییر وضعیت محتوای تبلیغاتی {advertise_content.code}',
+                       'get_params': request.GET.urlencode()}
+            if advertise_content.is_active:
+                advertise_content.is_active = False
+                advertise_content_is_active = 'false'
+            else:
+                advertise_content.is_active = True
+                advertise_content_is_active = 'true'
+            advertise_content.save()
+            return JsonResponse({"advertise_content_is_active": advertise_content_is_active})
         except:
             return render(request, 'panel/err/err-not-found.html')
 
@@ -1771,78 +1816,98 @@ class ForwardToPortalView:
             return render(request, 'panel/portal/forward-to-portal/forward-to-portal-list.html', context)
         if not communication_type:
             context['err'] = 'نوع ارتباط بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            return render(request, 'panel/portal/forward-to-portal/forward-to-portal-list.html', context)
         if not code:
             context['err'] = 'کد بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            return render(request, 'panel/portal/forward-to-portal/forward-to-portal-list.html', context)
         if not address:
             context['err'] = 'آدرس بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            return render(request, 'panel/portal/forward-to-portal/forward-to-portal-list.html', context)
         if not price:
             context['err'] = 'قیمت بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            return render(request, 'panel/portal/forward-to-portal/forward-to-portal-list.html', context)
 
         try:
-            Receiver.objects.get(code=code)
-            context['err'] = f'دریافت کننده با کد {code} از قبل موجود است'
+            ForwardToPortal.objects.get(code=code)
+            context['err'] = f'انتقال دهنده با کد {code} از قبل موجود است'
         except:
-            Receiver.objects.create(
+            ForwardToPortal.objects.create(
                 name=name,
-                receiving_type=receiving_type,
+                communication_type=communication_type,
                 code=code,
-                receiver_phone_number=receiver_phone_number,
+                address=address,
                 price=price,
+                created_by=request.user,
+                updated_by=request.user,
                 is_active=True,
             )
-            context['message'] = f'دریافت کننده با شناسه یکتا {code} ایجاد گردید'
-
-        return redirect('panel:receiver-list')
+            context['message'] = f'انتقال دهنده با شناسه یکتا {code} ایجاد گردید'
+        return redirect('panel:forward-to-portal-list')
 
     @CheckLogin()
     @CheckPermissions(section='forward_to_portal', allowed_actions='modify')
-    def modify(self, request, receiver_id, *args, **kwargs):
+    def modify(self, request, forward_to_portal_id, *args, **kwargs):
         try:
-            receiver = Receiver.objects.get(id=receiver_id)
-            context = {'page_title': f'ویرایش اطلاعات دریافت کننده *{receiver.code}*',
-                       'receiver': receiver, 'get_params': request.GET.urlencode()}
+            forward_to_portal = ForwardToPortal.objects.get(id=forward_to_portal_id)
+            context = {'page_title': f'ویرایش اطلاعات انتقال دهنده *{forward_to_portal.code}*',
+                       'forward_to_portal': forward_to_portal, 'get_params': request.GET.urlencode()}
             if request.method == 'GET':
-                return render(request, 'panel/portal/receiver/receiver-edit.html', context)
+                return render(request, 'panel/portal/forward-to-portal/forward-to-portal-edit.html', context)
             else:
                 name = fetch_data_from_http_post(request, 'name', context, False)
-                receiving_type = fetch_data_from_http_post(request, 'network_type', context, False)
-                receiver_phone_number = fetch_data_from_http_post(request, 'receiver_phone_number', context, False)
+                communication_type = fetch_data_from_http_post(request, 'communication_type', context, False)
+                address = fetch_data_from_http_post(request, 'address', context, False)
                 price = fetch_data_from_http_post(request, 'price', context, False)
                 is_active = fetch_data_from_http_post(request, 'is_active', context, False)
 
                 if name:
-                    receiver.name = name
-                if receiving_type:
-                    receiver.receiving_type = receiving_type
-                if receiver_phone_number:
-                    receiver.receiver_phone_number = receiver_phone_number
+                    forward_to_portal.name = name
+                if communication_type:
+                    forward_to_portal.communication_type = communication_type
+                if address:
+                    forward_to_portal.address = address
                 if price:
-                    receiver.price = price
+                    forward_to_portal.price = price
                 if is_active == 'true':
-                    receiver.is_active = True
+                    forward_to_portal.is_active = True
                 else:
-                    receiver.is_active = False
+                    forward_to_portal.is_active = False
 
-                receiver.save()
-                context['message'] = f'دریافت کننده با کد {receiver.code} ویرایش گردید'
+                forward_to_portal.save()
+                context['message'] = f'دریافت کننده با کد {forward_to_portal.code} ویرایش گردید'
                 return redirect(
-                    reverse('panel:receiver-modify-with-id',
-                            kwargs={'receiver_id': receiver_id}) + f'?{request.GET.urlencode()}')
+                    reverse('panel:forward-to-portal-modify-with-id',
+                            kwargs={'forward_to_portal_id': forward_to_portal_id}) + f'?{request.GET.urlencode()}')
         except:
             return render(request, 'panel/err/err-not-found.html')
 
     @CheckLogin()
     @CheckPermissions(section='forward_to_portal', allowed_actions='delete')
-    def delete(self, request, receiver_id, *args, **kwargs):
+    def delete(self, request, forward_to_portal_id, *args, **kwargs):
         try:
-            receiver = Receiver.objects.get(id=receiver_id)
-            context = {'page_title': f'حذف دریافت کننده {receiver.code}', 'get_params': request.GET.urlencode()}
-            receiver.delete()
+            forward_to_portal = ForwardToPortal.objects.get(id=forward_to_portal_id)
+            context = {'page_title': f'حذف انتقال دهنده {forward_to_portal.code}',
+                       'get_params': request.GET.urlencode()}
+            forward_to_portal.delete()
             return redirect(reverse('panel:receiver-list') + f'?{request.GET.urlencode()}')
+        except:
+            return render(request, 'panel/err/err-not-found.html')
+
+    @CheckLogin()
+    @CheckPermissions(section='forward_to_portal', allowed_actions='modify')
+    def change_state(self, request, forward_to_portal_id, *args, **kwargs):
+        try:
+            forward_to_portal = ForwardToPortal.objects.get(id=forward_to_portal_id)
+            context = {'page_title': f'تغییر وضعیت انتقال دهنده {forward_to_portal.code}',
+                       'get_params': request.GET.urlencode()}
+            if forward_to_portal.is_active:
+                forward_to_portal.is_active = False
+                forward_to_portal_is_active = 'false'
+            else:
+                forward_to_portal.is_active = True
+                forward_to_portal_is_active = 'true'
+            forward_to_portal.save()
+            return JsonResponse({"forward_to_portal_is_active": forward_to_portal_is_active})
         except:
             return render(request, 'panel/err/err-not-found.html')
 
@@ -1854,40 +1919,40 @@ class CommunicationChannelView:
     @CheckLogin()
     @CheckPermissions(section='communication_channel', allowed_actions='read')
     def list(self, request, *args, **kwargs):
-        context = {'page_title': 'لیست دریافت کننده ها', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'لیست کانال های ارتباطی', 'get_params': request.GET.urlencode()}
 
         search = request.GET.get('search')
         if search:
-            context = {'page_title': f'لیست دریافت کننده ها شامل *{search}*', 'get_params': request.GET.urlencode()}
+            context = {'page_title': f'لیست کانال های ارتباطی شامل *{search}*', 'get_params': request.GET.urlencode()}
 
         q = Q()
         if search:
             q &= (
                     Q(**{'name__icontains': search}) |
-                    Q(**{'receiving_type__icontains': search}) |
+                    Q(**{'communication_type__icontains': search}) |
                     Q(**{'code__icontains': search}) |
-                    Q(**{'receiver_phone_number__icontains': search})
+                    Q(**{'phone_number__icontains': search})
             )
 
-        receiver = Receiver.objects.filter(q).order_by('id')
-        context['receiver'] = receiver
+        communication_channels = CommunicationChannel.objects.filter(q).order_by('id')
+        context['communication_channels'] = communication_channels
 
         items_per_page = 50
-        paginator = Paginator(receiver, items_per_page)
+        paginator = Paginator(communication_channels, items_per_page)
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         context['page'] = page
 
-        return render(request, 'panel/portal/receiver/receiver-list.html', context)
+        return render(request, 'panel/portal/communication-channel/communication-channel-list.html', context)
 
     @CheckLogin()
     @CheckPermissions(section='communication_channel', allowed_actions='read')
-    def detail(self, request, receiver_id, *args, **kwargs):
+    def detail(self, request, communication_channel_id, *args, **kwargs):
         try:
-            receiver = Receiver.objects.get(id=receiver_id)
-            context = {'page_title': f'اطلاعات دریافت کننده *{receiver.name}*',
-                       'receiver': receiver, 'get_params': request.GET.urlencode()}
-            return render(request, 'panel/portal/receiver/receiver-detail.html', context)
+            communication_channel = CommunicationChannel.objects.get(id=communication_channel_id)
+            context = {'page_title': f'اطلاعات کانال ارتباطی *{communication_channel.code}*',
+                       'communication_channel': communication_channel, 'get_params': request.GET.urlencode()}
+            return render(request, 'panel/portal/communication-channel/communication-channel-detail.html', context)
         except:
             return render(request, 'panel/err/err-not-found.html')
 
@@ -1895,115 +1960,135 @@ class CommunicationChannelView:
     @CheckPermissions(section='communication_channel', allowed_actions='read')
     def filter(self, request, *args, **kwargs):
         search = request.GET.get('search')
-        context = {'page_title': f'لیست کاربران شامل *{search}*', 'get_params': request.GET.urlencode()}
+        context = {'page_title': f'لیست کانال های ارتباطی شامل *{search}*', 'get_params': request.GET.urlencode()}
 
         q = Q()
         if search:
             q &= (
                     Q(**{'name__icontains': search}) |
-                    Q(**{'receiving_type__icontains': search}) |
+                    Q(**{'communication_type__icontains': search}) |
                     Q(**{'code__icontains': search}) |
-                    Q(**{'receiver_phone_number__icontains': search})
+                    Q(**{'phone_number__icontains': search})
             )
-        receiver = Receiver.objects.filter(q).order_by('id')
-        context['receiver'] = receiver
+        communication_channels = CommunicationChannel.objects.filter(q).order_by('id')
+        context['communication_channels'] = communication_channels
 
         items_per_page = 50
-        paginator = Paginator(receiver, items_per_page)
+        paginator = Paginator(communication_channels, items_per_page)
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         context['page'] = page
 
-        return render(request, 'panel/portal/receiver/receiver-list.html', context)
+        return render(request, 'panel/portal/communication-channel/communication-channel-list.html', context)
 
     @CheckLogin()
     @CheckPermissions(section='communication_channel', allowed_actions='create')
     def create(self, request, *args, **kwargs):
-        context = {'page_title': 'ساخت شبکه تبلیغ کننده جدید', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'ساخت کانال ارتباطی جدید', 'get_params': request.GET.urlencode()}
 
         name = fetch_data_from_http_post(request, 'name', context)
-        receiving_type = fetch_data_from_http_post(request, 'network_type', context)
+        communication_type = fetch_data_from_http_post(request, 'communication_type', context)
         code = fetch_data_from_http_post(request, 'code', context)
-        receiver_phone_number = fetch_data_from_http_post(request, 'receiver_phone_number', context)
+        phone_number = fetch_data_from_http_post(request, 'phone_number', context)
         price = fetch_data_from_http_post(request, 'price', context)
 
         if not name:
             context['err'] = 'نام بدرستی وارد نشده است'
             return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
-        if not receiving_type:
-            context['err'] = 'نوع دریافت کننده بدرستی وارد نشده است'
+        if not communication_type:
+            context['err'] = 'نوع ارتباط بدرستی وارد نشده است'
             return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
         if not code:
             context['err'] = 'کد بدرستی وارد نشده است'
             return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
-        if not receiver_phone_number:
-            context['err'] = 'شماره دریافت کننده بدرستی وارد نشده است'
+        if not phone_number:
+            context['err'] = 'شماره بدرستی وارد نشده است'
             return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
         if not price:
             context['err'] = 'قیمت بدرستی وارد نشده است'
             return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
 
         try:
-            Receiver.objects.get(code=code)
-            context['err'] = f'دریافت کننده با کد {code} از قبل موجود است'
+            CommunicationChannel.objects.get(code=code)
+            context['err'] = f'کانال ارتباطی با کد {code} از قبل موجود است'
         except:
-            Receiver.objects.create(
+            CommunicationChannel.objects.create(
                 name=name,
-                receiving_type=receiving_type,
+                communication_type=communication_type,
                 code=code,
-                receiver_phone_number=receiver_phone_number,
+                phone_number=phone_number,
                 price=price,
                 is_active=True,
             )
-            context['message'] = f'دریافت کننده با شناسه یکتا {code} ایجاد گردید'
+            context['message'] = f'کانال ارتباطی با شناسه یکتا {code} ایجاد گردید'
 
-        return redirect('panel:receiver-list')
+        return redirect('panel:communication-channel-list')
 
     @CheckLogin()
     @CheckPermissions(section='communication_channel', allowed_actions='modify')
-    def modify(self, request, receiver_id, *args, **kwargs):
+    def modify(self, request, communication_channel_id, *args, **kwargs):
         try:
-            receiver = Receiver.objects.get(id=receiver_id)
-            context = {'page_title': f'ویرایش اطلاعات دریافت کننده *{receiver.code}*',
-                       'receiver': receiver, 'get_params': request.GET.urlencode()}
+            communication_channel = CommunicationChannel.objects.get(id=communication_channel_id)
+            context = {'page_title': f'ویرایش کانال ارتباطی *{communication_channel.code}*',
+                       'communication_channel': communication_channel, 'get_params': request.GET.urlencode()}
             if request.method == 'GET':
-                return render(request, 'panel/portal/receiver/receiver-edit.html', context)
+                return render(request, 'panel/portal/communication-channel/communication-channel-edit.html', context)
             else:
                 name = fetch_data_from_http_post(request, 'name', context, False)
-                receiving_type = fetch_data_from_http_post(request, 'network_type', context, False)
-                receiver_phone_number = fetch_data_from_http_post(request, 'receiver_phone_number', context, False)
+                communication_type = fetch_data_from_http_post(request, 'communication_type', context, False)
+                phone_number = fetch_data_from_http_post(request, 'phone_number', context, False)
                 price = fetch_data_from_http_post(request, 'price', context, False)
                 is_active = fetch_data_from_http_post(request, 'is_active', context, False)
 
                 if name:
-                    receiver.name = name
-                if receiving_type:
-                    receiver.receiving_type = receiving_type
-                if receiver_phone_number:
-                    receiver.receiver_phone_number = receiver_phone_number
+                    communication_channel.name = name
+                if communication_type:
+                    communication_channel.communication_type = communication_type
+                if phone_number:
+                    communication_channel.phone_number = phone_number
                 if price:
-                    receiver.price = price
+                    communication_channel.price = price
                 if is_active == 'true':
-                    receiver.is_active = True
+                    communication_channel.is_active = True
                 else:
-                    receiver.is_active = False
+                    communication_channel.is_active = False
 
-                receiver.save()
-                context['message'] = f'دریافت کننده با کد {receiver.code} ویرایش گردید'
+                communication_channel.save()
+                context['message'] = f'کانال ارتباطی با کد {communication_channel.code} ویرایش گردید'
                 return redirect(
-                    reverse('panel:receiver-modify-with-id',
-                            kwargs={'receiver_id': receiver_id}) + f'?{request.GET.urlencode()}')
+                    reverse('panel:communication-channel-modify-with-id',
+                            kwargs={
+                                'communication_channel_id': communication_channel_id}) + f'?{request.GET.urlencode()}')
         except:
             return render(request, 'panel/err/err-not-found.html')
 
     @CheckLogin()
     @CheckPermissions(section='communication_channel', allowed_actions='delete')
-    def delete(self, request, receiver_id, *args, **kwargs):
+    def delete(self, request, communication_channel_id, *args, **kwargs):
         try:
-            receiver = Receiver.objects.get(id=receiver_id)
-            context = {'page_title': f'حذف دریافت کننده {receiver.code}', 'get_params': request.GET.urlencode()}
-            receiver.delete()
-            return redirect(reverse('panel:receiver-list') + f'?{request.GET.urlencode()}')
+            communication_channel = CommunicationChannel.objects.get(id=communication_channel_id)
+            context = {'page_title': f'حذف کانال ارتباطی {communication_channel.code}',
+                       'get_params': request.GET.urlencode()}
+            communication_channel.delete()
+            return redirect(reverse('panel:communication-channel-list') + f'?{request.GET.urlencode()}')
+        except:
+            return render(request, 'panel/err/err-not-found.html')
+
+    @CheckLogin()
+    @CheckPermissions(section='communication_channel', allowed_actions='modify')
+    def change_state(self, request, communication_channel_id, *args, **kwargs):
+        try:
+            communication_channel = CommunicationChannel.objects.get(id=communication_channel_id)
+            context = {'page_title': f'تغییر وضعیت شبکه ارتباطی {communication_channel.code}',
+                       'get_params': request.GET.urlencode()}
+            if communication_channel.is_active:
+                communication_channel.is_active = False
+                communication_channel_is_active = 'false'
+            else:
+                communication_channel.is_active = True
+                communication_channel_is_active = 'true'
+            communication_channel.save()
+            return JsonResponse({"communication_channel_is_active": communication_channel_is_active})
         except:
             return render(request, 'panel/err/err-not-found.html')
 
@@ -2015,40 +2100,39 @@ class RegistrarView:
     @CheckLogin()
     @CheckPermissions(section='registrar', allowed_actions='read')
     def list(self, request, *args, **kwargs):
-        context = {'page_title': 'لیست دریافت کننده ها', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'لیست تخصیص دهنده ها', 'get_params': request.GET.urlencode()}
 
         search = request.GET.get('search')
         if search:
-            context = {'page_title': f'لیست دریافت کننده ها شامل *{search}*', 'get_params': request.GET.urlencode()}
+            context = {'page_title': f'لیست تخصیص دهنده ها شامل *{search}*', 'get_params': request.GET.urlencode()}
 
         q = Q()
         if search:
             q &= (
                     Q(**{'name__icontains': search}) |
-                    Q(**{'receiving_type__icontains': search}) |
-                    Q(**{'code__icontains': search}) |
-                    Q(**{'receiver_phone_number__icontains': search})
+                    Q(**{'register_type__icontains': search}) |
+                    Q(**{'code__icontains': search})
             )
 
-        receiver = Receiver.objects.filter(q).order_by('id')
-        context['receiver'] = receiver
+        registrars = Registrar.objects.filter(q).order_by('id')
+        context['registrars'] = registrars
 
         items_per_page = 50
-        paginator = Paginator(receiver, items_per_page)
+        paginator = Paginator(registrars, items_per_page)
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         context['page'] = page
 
-        return render(request, 'panel/portal/receiver/receiver-list.html', context)
+        return render(request, 'panel/portal/registrar/registrar-list.html', context)
 
     @CheckLogin()
     @CheckPermissions(section='registrar', allowed_actions='read')
-    def detail(self, request, receiver_id, *args, **kwargs):
+    def detail(self, request, registrar_id, *args, **kwargs):
         try:
-            receiver = Receiver.objects.get(id=receiver_id)
-            context = {'page_title': f'اطلاعات دریافت کننده *{receiver.name}*',
-                       'receiver': receiver, 'get_params': request.GET.urlencode()}
-            return render(request, 'panel/portal/receiver/receiver-detail.html', context)
+            registrar = Registrar.objects.get(id=registrar_id)
+            context = {'page_title': f'اطلاعات تخصیص دهنده *{registrar.code}*',
+                       'registrar': registrar, 'get_params': request.GET.urlencode()}
+            return render(request, 'panel/portal/registrar/registrar-detail.html', context)
         except:
             return render(request, 'panel/err/err-not-found.html')
 
@@ -2056,114 +2140,118 @@ class RegistrarView:
     @CheckPermissions(section='registrar', allowed_actions='read')
     def filter(self, request, *args, **kwargs):
         search = request.GET.get('search')
-        context = {'page_title': f'لیست کاربران شامل *{search}*', 'get_params': request.GET.urlencode()}
+        context = {'page_title': f'لیست تخصیص دهندگان شامل *{search}*', 'get_params': request.GET.urlencode()}
 
         q = Q()
         if search:
             q &= (
                     Q(**{'name__icontains': search}) |
-                    Q(**{'receiving_type__icontains': search}) |
-                    Q(**{'code__icontains': search}) |
-                    Q(**{'receiver_phone_number__icontains': search})
+                    Q(**{'register_type__icontains': search}) |
+                    Q(**{'code__icontains': search})
             )
-        receiver = Receiver.objects.filter(q).order_by('id')
-        context['receiver'] = receiver
+
+        registrars = Registrar.objects.filter(q).order_by('id')
+        context['registrars'] = registrars
 
         items_per_page = 50
-        paginator = Paginator(receiver, items_per_page)
+        paginator = Paginator(registrars, items_per_page)
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         context['page'] = page
 
-        return render(request, 'panel/portal/receiver/receiver-list.html', context)
+        return render(request, 'panel/portal/registrar/registrar-list.html', context)
 
     @CheckLogin()
     @CheckPermissions(section='registrar', allowed_actions='create')
     def create(self, request, *args, **kwargs):
-        context = {'page_title': 'ساخت شبکه تبلیغ کننده جدید', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'ساخت تخصیص دهنده جدید', 'get_params': request.GET.urlencode()}
 
         name = fetch_data_from_http_post(request, 'name', context)
-        receiving_type = fetch_data_from_http_post(request, 'network_type', context)
+        register_type = fetch_data_from_http_post(request, 'register_type', context)
         code = fetch_data_from_http_post(request, 'code', context)
-        receiver_phone_number = fetch_data_from_http_post(request, 'receiver_phone_number', context)
-        price = fetch_data_from_http_post(request, 'price', context)
 
         if not name:
             context['err'] = 'نام بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
-        if not receiving_type:
-            context['err'] = 'نوع دریافت کننده بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            return render(request, 'panel/portal/registrar/registrar-list.html', context)
+        if not register_type:
+            context['err'] = 'نوع تخصیص دهنده بدرستی وارد نشده است'
+            return render(request, 'panel/portal/registrar/registrar-list.html', context)
         if not code:
             context['err'] = 'کد بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
-        if not receiver_phone_number:
-            context['err'] = 'شماره دریافت کننده بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
-        if not price:
-            context['err'] = 'قیمت بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            return render(request, 'panel/portal/registrar/registrar-list.html', context)
 
         try:
-            Receiver.objects.get(code=code)
-            context['err'] = f'دریافت کننده با کد {code} از قبل موجود است'
+            Registrar.objects.get(code=code)
+            context['err'] = f'تخصیص دهنده با کد {code} از قبل موجود است'
         except:
             Receiver.objects.create(
                 name=name,
-                receiving_type=receiving_type,
+                register_type=register_type,
                 code=code,
-                receiver_phone_number=receiver_phone_number,
-                price=price,
+                created_by=request.user,
+                updated_by=request.user,
                 is_active=True,
             )
-            context['message'] = f'دریافت کننده با شناسه یکتا {code} ایجاد گردید'
+            context['message'] = f'تخصیصی دهنده با شناسه یکتا {code} ایجاد گردید'
 
-        return redirect('panel:receiver-list')
+        return redirect('panel:registrar-list')
 
     @CheckLogin()
     @CheckPermissions(section='registrar', allowed_actions='modify')
-    def modify(self, request, receiver_id, *args, **kwargs):
+    def modify(self, request, registrar_id, *args, **kwargs):
         try:
-            receiver = Receiver.objects.get(id=receiver_id)
-            context = {'page_title': f'ویرایش اطلاعات دریافت کننده *{receiver.code}*',
-                       'receiver': receiver, 'get_params': request.GET.urlencode()}
+            registrar = Registrar.objects.get(id=registrar_id)
+            context = {'page_title': f'ویرایش اطلاعات تخصیص دهنده *{registrar.code}*',
+                       'registrar': registrar, 'get_params': request.GET.urlencode()}
             if request.method == 'GET':
-                return render(request, 'panel/portal/receiver/receiver-edit.html', context)
+                return render(request, 'panel/portal/registrar/registrar-detail.html', context)
             else:
                 name = fetch_data_from_http_post(request, 'name', context, False)
-                receiving_type = fetch_data_from_http_post(request, 'network_type', context, False)
-                receiver_phone_number = fetch_data_from_http_post(request, 'receiver_phone_number', context, False)
-                price = fetch_data_from_http_post(request, 'price', context, False)
+                register_type = fetch_data_from_http_post(request, 'register_type', context, False)
                 is_active = fetch_data_from_http_post(request, 'is_active', context, False)
 
                 if name:
-                    receiver.name = name
-                if receiving_type:
-                    receiver.receiving_type = receiving_type
-                if receiver_phone_number:
-                    receiver.receiver_phone_number = receiver_phone_number
-                if price:
-                    receiver.price = price
+                    registrar.name = name
+                if register_type:
+                    registrar.register_type = register_type
                 if is_active == 'true':
-                    receiver.is_active = True
+                    registrar.is_active = True
                 else:
-                    receiver.is_active = False
+                    registrar.is_active = False
 
-                receiver.save()
-                context['message'] = f'دریافت کننده با کد {receiver.code} ویرایش گردید'
+                registrar.save()
+                context['message'] = f'تخصیص دهنده با کد {registrar.code} ویرایش گردید'
                 return redirect(
-                    reverse('panel:receiver-modify-with-id',
-                            kwargs={'receiver_id': receiver_id}) + f'?{request.GET.urlencode()}')
+                    reverse('panel:registrar-modify-with-id',
+                            kwargs={'registrar_id': registrar_id}) + f'?{request.GET.urlencode()}')
         except:
             return render(request, 'panel/err/err-not-found.html')
 
     @CheckLogin()
     @CheckPermissions(section='registrar', allowed_actions='delete')
-    def delete(self, request, receiver_id, *args, **kwargs):
+    def delete(self, request, registrar_id, *args, **kwargs):
         try:
-            receiver = Receiver.objects.get(id=receiver_id)
-            context = {'page_title': f'حذف دریافت کننده {receiver.code}', 'get_params': request.GET.urlencode()}
-            receiver.delete()
-            return redirect(reverse('panel:receiver-list') + f'?{request.GET.urlencode()}')
+            registrar = Registrar.objects.get(id=registrar_id)
+            context = {'page_title': f'حذف تخصیص دهنده {registrar.code}', 'get_params': request.GET.urlencode()}
+            registrar.delete()
+            return redirect(reverse('panel:registrar-list') + f'?{request.GET.urlencode()}')
+        except:
+            return render(request, 'panel/err/err-not-found.html')
+
+    @CheckLogin()
+    @CheckPermissions(section='registrar', allowed_actions='modify')
+    def change_state(self, request, registrar_id, *args, **kwargs):
+        try:
+            registrar = Registrar.objects.get(id=registrar_id)
+            context = {'page_title': f'تغییر وضعیت تخصیص دهنده {registrar.code}',
+                       'get_params': request.GET.urlencode()}
+            if registrar.is_active:
+                registrar.is_active = False
+                registrar_is_active = 'false'
+            else:
+                registrar.is_active = True
+                registrar_is_active = 'true'
+            registrar.save()
+            return JsonResponse({"registrar_is_active": registrar_is_active})
         except:
             return render(request, 'panel/err/err-not-found.html')
