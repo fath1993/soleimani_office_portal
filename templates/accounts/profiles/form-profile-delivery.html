@@ -1,0 +1,24 @@
+{% load account_custom_tag %}
+{% load static %}
+
+<form id="fpd_form_profile_delivery">
+    {% csrf_token %}
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <div class="form-check form-check-primary mt-3">
+            <input class="form-check-input" type="checkbox" value="true" id="fpd_form_profile_delivery_delivery_allowance" name="fpd_form_profile_delivery_delivery_allowance">
+            <label class="form-check-label" for="fpd_form_profile_delivery_delivery_allowance">اجازه ارسال</label>
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-3">
+        <div class="form-check form-check-primary mt-3">
+            <input class="form-check-input" type="checkbox" value="true" id="fpd_form_profile_delivery_is_delivery_admin" name="fpd_form_profile_delivery_is_delivery_admin">
+            <label class="form-check-label" for="fpd_form_profile_delivery_is_delivery_admin">ادمین ارسال</label>
+        </div>
+    </div>
+    {% if request|has_access_to_section:'modify,user' %}
+    <div>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+            aria-label="Close" onclick="set_delivery_profile_data()">ویرایش</button>
+    </div>
+    {% endif %}
+</form>

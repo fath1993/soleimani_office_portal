@@ -72,6 +72,7 @@ class ProductWarehouseAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = (
+        'product',
         'created_at',
         'updated_at',
         'created_by',

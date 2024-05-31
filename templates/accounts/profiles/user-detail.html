@@ -67,7 +67,7 @@
                                         <a href="{% url 'panel:user-edit-with-id' user_id=user.id %}{% if get_params %}?{{ get_params }}{% endif %}"
                                            class="btn btn-primary me-3">ویرایش</a>
                                     {% endif %}
-                                    <a href="{% url 'panel:user-list' %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                    <a href="{% url 'accounts:profile-list' %}{% if get_params %}?{{ get_params }}{% endif %}"
                                        class="btn btn-outline-gray me-3">بازگشت</a>
                                 </div>
                                 {% if request|has_access_to_section:'delete,user' %}
@@ -84,7 +84,7 @@
                                                         <h3 class="mb-4 secondary-font">تایید حذف</h3>
                                                     </div>
                                                     <h6>آیا از حذف کاربر {{ user.username }} مطمئن هستید؟</h6>
-                                                    <form class="row g-3 mt-3" method="post" action="{% url 'panel:user-remove-with-id' user_id=user.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                    <form class="row g-3 mt-3" method="post" action="{% url 'accounts:profile-remove-with-id' user_id=user.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
                                                         {% csrf_token %}
                                                         <div class="col-12">
                                                             <button type="submit" class="btn btn-primary me-sm-3 me-1">

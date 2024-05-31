@@ -336,12 +336,15 @@
                     cl_product_link.value=`${data['data']['product_link']}`
                     
                     const mc_customer_phone_number = document.getElementById('mc_customer_phone_number')
-                    const mc_product_name = document.getElementById('mc_product_name')
+                    const mp_modal_product_title = document.getElementById('mp_modal_product_title')
                     mc_customer_phone_number.innerText=`شماره همراه مشتری: ${data['data']['customer_phone_number']}`
-                    mc_product_name.innerText=`نام محصول: ${data['data']['product_name']}`
-                    mc_product_name.href=`${data['data']['product_link']}`
-                    mc_product_name.target='_blank'
+                    mp_modal_product_title.innerText=`نام محصول: ${data['data']['product_name']}`
+                    mp_modal_product_title.href=`${data['data']['product_link']}`
+                    mp_modal_product_title.target='_blank'
                     
+                    document.getElementById('mrp_customer_phone_number').innerText=`اطلاعات مشتری با شماره همراه ${data['data']['customer_phone_number']}`
+                    document.getElementById('mrp_product_title').innerText=`اطلاعات محصول با نام ${data['data']['product_name']}`
+
                 })
                 .catch(error => {
                     console.log(error)

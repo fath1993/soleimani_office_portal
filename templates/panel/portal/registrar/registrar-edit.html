@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load panel_custom_tag %}
+
+{% block extra_head %}
+
+{% endblock %}
+
+
+{% block content %}
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <h4 class="py-3 breadcrumb-wrapper mb-4">
+            <span class="text-muted fw-light">مدیریت منابع / تیزر سازها / <span class="text-black">ویرایش تیزر ساز : {{ teaser_maker.name }} با شناسه یکتای {{ teaser_maker.id }}</span></span>
+        </h4>
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-header">ویرایش تیزر ساز <span class="text-info">{{ teaser_maker.name }}</span> با شناسه یکتای <span class="text-info">{{ teaser_maker.id }}</span></h4>
+                <form class="add-new-record pt-0 row g-2" method="post" enctype="multipart/form-data"
+                      action="{% url 'panel:teaser-maker-modify-with-id' teaser_maker_id=teaser_maker.id %}{% if get_params %}?{{ get_params }}{% endif %}">
+                    {% csrf_token %}
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <label class="form-label" for="name">نام</label>
+                        <div class="input-group input-group-merge">
+                        <span id="name" class="input-group-text"></span>
+                            <input type="text" id="name" class="form-control"
+                                   name="name"
+                                   placeholder="" aria-label="نام"
+                                   aria-describedby="نام"
+                                   value="{{ teaser_maker.name|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <label for="defaultSelect" class="form-label">نوع محصول</label>
+                        <select id="defaultSelect" name="content_type"
+                                class="form-select dt-content_type">
+                            <option {% if teaser_maker.content_type == 'صوتی' %} selected {% endif %} value="صوتی">صوتی</option>
+                            <option {% if teaser_maker.content_type == 'تصویری' %} selected {% endif %} value="تصویری">تصویری</option>
+                            <option {% if teaser_maker.content_type == 'ویدیویی' %} selected {% endif %} value="ویدیویی">ویدیویی</option>
+                            <option {% if teaser_maker.content_type == 'متنی' %} selected {% endif %} value="متنی">متنی</option>
+                            <option {% if teaser_maker.content_type == 'تلفیقی' %} selected {% endif %} value="تلفیقی">تلفیقی</option>
+                            <option {% if teaser_maker.content_type == 'اینستاگرامی' %} selected {% endif %} value="اینستاگرامی">اینستاگرامی</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <label class="form-label" for="code">کد</label>
+                        <div class="input-group input-group-merge">
+                        <span id="code" class="input-group-text"></span>
+                            <input type="text" id="code" class="form-control"
+                                   name="code"
+                                   placeholder="123456" aria-label="کد"
+                                   aria-describedby="کد"
+                                   value="{{ teaser_maker.code|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <label class="form-label" for="address">آدرس</label>
+                        <div class="input-group input-group-merge">
+                        <span id="address" class="input-group-text"></span>
+                            <input type="text" id="address" class="form-control"
+                                   name="address"
+                                   placeholder="آدرس" aria-label="آدرس"
+                                   aria-describedby="آدرس"
+                                   value="{{ teaser_maker.address|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <label class="form-label" for="phone_number">شماره تماس</label>
+                        <div class="input-group input-group-merge">
+                        <span id="phone_number" class="input-group-text"></span>
+                            <input type="text" id="phone_number" class="form-control"
+                                   name="phone_number"
+                                   placeholder="شماره تماس" aria-label="شماره تماس"
+                                   aria-describedby="شماره تماس"
+                                   value="{{ teaser_maker.phone_number|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <label class="form-label" for="creation_price">هزینه ساخت</label>
+                        <div class="input-group input-group-merge">
+                        <span id="creation_price" class="input-group-text"></span>
+                            <input type="number" min="0" id="creation_price" class="form-control"
+                                   name="creation_price"
+                                   placeholder="ریال" aria-label="هزینه ساخت"
+                                   aria-describedby="هزینه ساخت"
+                                   value="{{ teaser_maker.creation_price|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <label class="form-label" for="editing_price">هزینه ویرایش</label>
+                        <div class="input-group input-group-merge">
+                        <span id="editing_price" class="input-group-text"></span>
+                            <input type="number" min="0" id="editing_price" class="form-control"
+                                   name="editing_price"
+                                   placeholder="ریال" aria-label="هزینه ویرایش"
+                                   aria-describedby="هزینه ویرایش"
+                                   value="{{ teaser_maker.editing_price|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <div class="form-check form-check-primary mt-3">
+                            <input class="form-check-input" type="checkbox" value="true" id="is_active" name="is_active"
+                                   {% if teaser_maker.is_active %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">فعال</label>
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <button type="submit" class="btn btn-primary data-submit me-sm-3 me-1">ویرایش</button>
+                        <a href="{% url 'panel:teaser-maker-detail-with-id' teaser_maker_id=teaser_maker.id %}{% if get_params %}?{{ get_params }}{% endif %}" class="btn btn-outline-secondary">
+                            انصراف
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_body %}
+    <!-- Main JS -->
+    <script src="{% static 'assets/js/main.js' %}"></script>
+{% endblock %}

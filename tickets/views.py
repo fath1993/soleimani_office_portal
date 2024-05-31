@@ -10,7 +10,7 @@ from django.shortcuts import render, redirect
 from accounts.models import UserNotification
 from accounts.templatetags.account_custom_tag import has_access_to_section
 from gallery.models import FileGallery
-from panel.custom_decorator import RequireMethod
+from accounts.custom_decorator import RequireMethod
 from panel.views import CheckLogin, CheckPermissions
 from portal.models import TeaserMaker
 

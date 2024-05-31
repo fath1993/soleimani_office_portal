@@ -1,0 +1,122 @@
+{% load account_custom_tag %}
+{% load panel_custom_tag %}
+{% load static %}
+
+<form id="muf_form_user_data">
+    {% csrf_token %}
+    <div class="col-sm-12 mb-1">
+        <label class="form-label" for="muf_form_user_data_first_name">نام</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="muf_form_user_data_first_name" class="form-control"
+                   name="muf_form_user_data_first_name"
+                   placeholder="نام" aria-label="نام"
+                   aria-describedby="muf_form_user_data_first_name">
+        </div>
+    </div>
+    <div class="col-sm-12 mb-1">
+        <label class="form-label" for="muf_form_user_data_last_name">نام خانوادگی</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="muf_form_user_data_last_name" class="form-control"
+                   name="muf_form_user_data_last_name"
+                   placeholder="نام خانوادگی" aria-label="نام خانوادگی"
+                   aria-describedby="muf_form_user_data_last_name">
+        </div>
+    </div>
+    <div class="col-sm-12 mb-1">
+        <label class="form-label" for="muf_form_user_data_national_code">کد ملی</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="muf_form_user_data_national_code" class="form-control"
+                   name="muf_form_user_data_national_code"
+                   placeholder="کد ملی" aria-label="کد ملی"
+                   aria-describedby="muf_form_user_data_national_code">
+        </div>
+    </div>
+    <div class="col-sm-12 mb-1">
+        <label class="form-label" for="muf_form_user_data_email">ایمیل</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="muf_form_user_data_email" class="form-control dt-email" name="muf_form_user_data_email"
+                   placeholder="ایمیل" aria-label="ایمیل" aria-describedby="muf_form_user_data_email">
+        </div>
+    </div>
+    <div class="col-sm-12 mb-1">
+        <label class="form-label" for="muf_form_user_data_mobile_phone_number">شماره موبایل</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="muf_form_user_data_mobile_phone_number" class="form-control dt-mobile-number"
+                   name="muf_form_user_data_mobile_phone_number"
+                   placeholder="شماره موبایل" aria-label="شماره موبایل"
+                   aria-describedby="muf_form_user_data_mobile_phone_number">
+        </div>
+    </div>
+    <div class="col-sm-12 mb-1">
+        <label class="form-label" for="muf_form_user_data_landline">شماره ثابت</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="muf_form_user_data_landline" class="form-control dt-landline"
+                   name="muf_form_user_data_landline"
+                   placeholder="شماره ثابت" aria-label="شماره ثابت"
+                   aria-describedby="muf_form_user_data_landline">
+        </div>
+    </div>
+    <div class="col-sm-12 mb-1">
+        <label class="form-label" for="muf_form_user_data_card_number">شماره کارت</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="muf_form_user_data_card_number" class="form-control dt-card_number"
+                   name="muf_form_user_data_card_number"
+                   placeholder="شماره کارت" aria-label="شماره کارت"
+                   aria-describedby="muf_form_user_data_card_number">
+        </div>
+    </div>
+    <div class="col-sm-12 mb-1">
+        <label class="form-label" for="muf_form_user_data_isbn">شماره شبا</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="muf_form_user_data_isbn" class="form-control dt-isbn"
+                   name="muf_form_user_data_isbn"
+                   placeholder="شماره شبا" aria-label="شماره شبا"
+                   aria-describedby="muf_form_user_data_isbn">
+        </div>
+    </div>
+    <div class="col-sm-12 mb-1">
+        <label class="form-label" for="muf_form_user_data_address">ادرس</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="muf_form_user_data_address" class="form-control dt-address"
+                   name="muf_form_user_data_address"
+                   placeholder="ادرس" aria-label="ادرس"
+                   aria-describedby="muf_form_user_data_address">
+        </div>
+    </div>
+    <div class="col-sm-12 mb-1">
+        <label for="defaultSelect" class="form-label">نقش</label>
+        <select id="defaultSelect" name="muf_form_user_data_role_id"
+                class="form-select dt-user-role muf_form_user_data_role_id" required>
+            {% for role in request|role_list %}
+                <option {% if role_id == role.id %} selected {% endif %} value="{{ role.id }}">{{ role.title }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-1 form-password-toggle">
+        <label class="form-label" for="muf_form_user_data_password1">رمز عبور</label>
+        <div class="input-group input-group-merge">
+            <input type="password" id="muf_form_user_data_password1" class="form-control text-start"
+                   name="muf_form_user_data_password1"
+                   placeholder="············" aria-describedby="password" dir="rtl"
+                   autocomplete="new-password"
+                   value="">
+            <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+        </div>
+    </div>
+    <div class="mb-1 form-password-toggle">
+        <label class="form-label" for="muf_form_user_data_password2">تکرار رمز عبور</label>
+        <div class="input-group input-group-merge">
+            <input type="password" id="muf_form_user_data_password2" class="form-control text-start"
+                   name="muf_form_user_data_password2"
+                   placeholder="············" aria-describedby="password" dir="rtl"
+                   value="">
+            <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+        </div>
+    </div>
+    {% if request|has_access_to_section:'modify,user' %}
+    <div class="col-sm-12 mt-3">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+            aria-label="Close" onclick="set_profile_data()">ویرایش</button>
+    </div>
+    {% endif %}
+</form>

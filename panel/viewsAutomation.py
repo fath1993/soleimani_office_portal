@@ -1,21 +1,17 @@
-import random
-
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from accounts.models import Role, Permission, WarehouseProfile
-from accounts.templatetags.account_custom_tag import has_access_to_section
+from accounts.models import WarehouseProfile
 from automation.models import RequestedProductProcessing, create_requested_product_processing_report, \
     RequestedProductProcessingReport, pick_seller, pick_warehouse_keeper, pick_delivery_man, Customer, \
     create_requested_product_processing_cancel_report, report_requested_product_processing_cancel_number
 from gallery.models import FileGallery
-from panel.custom_decorator import CheckLogin, CheckPermissions, RequireMethod
+from accounts.custom_decorator import CheckLogin, CheckPermissions, RequireMethod
 from panel.serializer import RequestedProductProcessingReportSerializer, ProductSerializer, CustomerSerializer
-from portal.models import Product, TeaserMaker
-from soleimani_office_portal.settings import BASE_DIR, BASE_URL
+from portal.models import Product
+from soleimani_office_portal.settings import BASE_URL
 from utilities.http_metod import fetch_data_from_http_post, fetch_files_from_http_post_data, fetch_data_from_http_get
 
 
@@ -1360,35 +1356,12 @@ class RequestedProductProcessingView:
             Q(**{'seller__isnull': False})
         )
 
-        user_is_seller = False
-        user_is_warehouse_keeper = False
-        user_is_delivery_man = False
-
-        try:
-            seller_profile = profile.profile_seller_profile
-            user_is_seller = True
-        except:
-            pass
-        try:
-            warehouse_profile = profile.profile_warehouse_profile
-            user_is_warehouse_keeper = True
-        except:
-            pass
-        try:
-            delivery_profile = profile.profile_delivery_profile
-            user_is_delivery_man = True
-        except:
-            pass
-
-        if user_is_seller and user_is_warehouse_keeper and user_is_delivery_man:
+        if not request.user.is_superuser:
             q &= (
                     Q(**{'seller': profile.profile_seller_profile}) |
                     Q(**{'warehouse_keeper': profile.profile_warehouse_profile}) |
                     Q(**{'delivery_man': profile.profile_delivery_profile})
-
             )
-
-        print(q)
 
         requested_product_processing = RequestedProductProcessing.objects.filter(q)
         context['requested_product_processing'] = requested_product_processing
@@ -1416,24 +1389,11 @@ class RequestedProductProcessingView:
         page_title = f''''''
 
         if not request.user.is_superuser:
-            try:
-                q |= (
-                    Q(**{'seller': profile.profile_seller_profile})
-                )
-            except:
-                pass
-            try:
-                q |= (
-                    Q(**{'warehouse_keeper': profile.profile_warehouse_profile})
-                )
-            except:
-                pass
-            try:
-                q |= (
+            q &= (
+                    Q(**{'seller': profile.profile_seller_profile}) |
+                    Q(**{'warehouse_keeper': profile.profile_warehouse_profile}) |
                     Q(**{'delivery_man': profile.profile_delivery_profile})
-                )
-            except:
-                pass
+            )
 
         if search:
             page_title += f'search: {search}, '
@@ -1491,24 +1451,12 @@ class RequestedProductProcessingView:
             Q(**{'pk': requested_product_processing_id})
         )
         if not request.user.is_superuser:
-            try:
-                q |= (
-                    Q(**{'seller': profile.profile_seller_profile})
-                )
-            except:
-                pass
-            try:
-                q |= (
-                    Q(**{'warehouse_keeper': profile.profile_warehouse_profile})
-                )
-            except:
-                pass
-            try:
-                q |= (
+            q &= (
+                    Q(**{'seller': profile.profile_seller_profile}) |
+                    Q(**{'warehouse_keeper': profile.profile_warehouse_profile}) |
                     Q(**{'delivery_man': profile.profile_delivery_profile})
-                )
-            except:
-                pass
+            )
+
         try:
             requested_product_processing = RequestedProductProcessing.objects.get(q)
             json_response_body = {
@@ -1539,24 +1487,11 @@ class RequestedProductProcessingView:
             Q(**{'pk': requested_product_processing_id})
         )
         if not request.user.is_superuser:
-            try:
-                q |= (
-                    Q(**{'seller': profile.profile_seller_profile})
-                )
-            except:
-                pass
-            try:
-                q |= (
-                    Q(**{'warehouse_keeper': profile.profile_warehouse_profile})
-                )
-            except:
-                pass
-            try:
-                q |= (
+            q &= (
+                    Q(**{'seller': profile.profile_seller_profile}) |
+                    Q(**{'warehouse_keeper': profile.profile_warehouse_profile}) |
                     Q(**{'delivery_man': profile.profile_delivery_profile})
-                )
-            except:
-                pass
+            )
         try:
             requested_product_processing = RequestedProductProcessing.objects.get(q)
             query_products = Product.objects.filter(id=requested_product_processing.requested_product.product.id)
@@ -1585,24 +1520,11 @@ class RequestedProductProcessingView:
             Q(**{'pk': requested_product_processing_id})
         )
         if not request.user.is_superuser:
-            try:
-                q |= (
-                    Q(**{'seller': profile.profile_seller_profile})
-                )
-            except:
-                pass
-            try:
-                q |= (
-                    Q(**{'warehouse_keeper': profile.profile_warehouse_profile})
-                )
-            except:
-                pass
-            try:
-                q |= (
+            q &= (
+                    Q(**{'seller': profile.profile_seller_profile}) |
+                    Q(**{'warehouse_keeper': profile.profile_warehouse_profile}) |
                     Q(**{'delivery_man': profile.profile_delivery_profile})
-                )
-            except:
-                pass
+            )
         try:
             requested_product_processing = RequestedProductProcessing.objects.get(q)
             customers = Customer.objects.filter(id=requested_product_processing.requested_product.customer.id)
@@ -1619,6 +1541,46 @@ class RequestedProductProcessingView:
             return JsonResponse({"message": 'requested product processing not found'})
 
     @CheckLogin()
+    @CheckPermissions(section='sale', allowed_actions='modify')
+    @RequireMethod(allowed_method='POST')
+    def modify_customer_data(self, request, *args, **kwargs):
+        context = {}
+        requested_product_processing_id = fetch_data_from_http_post(request, 'requested_product_processing_id', context)
+        try:
+            requested_product_processing = RequestedProductProcessing.objects.get(id=requested_product_processing_id)
+            full_name = fetch_data_from_http_post(request, 'fc_form_customer_data_full_name',
+                                                                        context)
+
+            age = fetch_data_from_http_post(request, 'fc_form_customer_data_age',
+                                                                        context)
+
+            address = fetch_data_from_http_post(request, 'fc_form_customer_data_address',
+                                                                        context)
+            customer = requested_product_processing.requested_product.customer
+            if full_name:
+                customer.full_name = full_name
+
+            if age:
+                customer.age = age
+
+            if address:
+                customer.address = address
+            customer.save()
+
+            customers = Customer.objects.filter(id=customer.id)
+            serializer = CustomerSerializer(customers, many=True)
+            json_response_body = {
+                "method": "post",
+                "message": f'اطلاعات مشتری با شماره همراه {customer.phone_number} ویرایش گردید',
+                "result": "موفق",
+                "data": serializer.data
+            }
+            return JsonResponse(json_response_body)
+        except Exception as e:
+            print(e)
+            return JsonResponse({'message': f'پردازش محصول درخواستی با ایدی {requested_product_processing_id} پیدا نشد'})
+
+    @CheckLogin()
     @RequireMethod(allowed_method='POST')
     def reports(self, request, *args, **kwargs):
         context = {}
@@ -1631,24 +1593,12 @@ class RequestedProductProcessingView:
             Q(**{'pk': requested_product_processing_id})
         )
         if not request.user.is_superuser:
-            try:
-                q |= (
-                    Q(**{'seller': profile.profile_seller_profile})
-                )
-            except:
-                pass
-            try:
-                q |= (
-                    Q(**{'warehouse_keeper': profile.profile_warehouse_profile})
-                )
-            except:
-                pass
-            try:
-                q |= (
+            q &= (
+                    Q(**{'seller': profile.profile_seller_profile}) |
+                    Q(**{'warehouse_keeper': profile.profile_warehouse_profile}) |
                     Q(**{'delivery_man': profile.profile_delivery_profile})
-                )
-            except:
-                pass
+            )
+
         try:
             requested_product_processing = RequestedProductProcessing.objects.get(q)
             requested_product_processing_reports = RequestedProductProcessingReport.objects.filter(

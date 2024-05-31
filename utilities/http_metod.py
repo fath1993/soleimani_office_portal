@@ -1,8 +1,9 @@
-def fetch_data_from_http_post(request, item, context):
+def fetch_data_from_http_post(request, item, context, empty_none: bool = None):
     try:
         result_item = request.POST[f'{item}']
-        if result_item == '':
-            result_item = None
+        if empty_none:
+            if result_item == '':
+                result_item = None
     except:
         result_item = None
     context[f'{item}'] = result_item

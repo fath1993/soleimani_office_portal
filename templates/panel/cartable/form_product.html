@@ -1,0 +1,86 @@
+{% load account_custom_tag %}
+{% load static %}
+
+<form id="fp_form_product_data">
+    {% csrf_token %}
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fp_form_product_data_name">نام</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fp_form_product_data_name" class="form-control form-control-plaintext"
+                   name="fp_form_product_data_name">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fp_form_product_data_type">نوع محصول</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fp_form_product_data_type" class="form-control form-control-plaintext"
+                   name="fp_form_product_data_type">
+        </div>
+    </div>
+    
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fp_form_product_data_code">کد</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fp_form_product_data_code" class="form-control form-control-plaintext"
+                   name="fp_form_product_data_code">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fp_form_product_data_weight">وزن</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fp_form_product_data_weight" class="form-control form-control-plaintext"
+                   name="fp_form_product_data_weight">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fp_form_product_data_size">سایز</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fp_form_product_data_size" class="form-control form-control-plaintext"
+                   name="fp_form_product_data_size">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fp_form_product_data_color">رنگ</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fp_form_product_data_color" class="form-control form-control-plaintext"
+                   name="fp_form_product_data_color">
+        </div>
+    </div>
+
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fp_form_product_data_product_price">هزینه خام محصول</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fp_form_product_data_product_price" class="form-control form-control-plaintext"
+                   name="fp_form_product_data_product_price">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fp_form_product_data_shipping_price">هزینه حمل</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fp_form_product_data_shipping_price" class="form-control form-control-plaintext"
+                   name="fp_form_product_data_shipping_price">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fp_form_product_data_send_link_price">هزینه ارسال لینک</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fp_form_product_data_send_link_price" class="form-control form-control-plaintext"
+                   name="fp_form_product_data_send_link_price">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fp_form_product_data_packing_price">هزینه بسته بندی</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fp_form_product_data_packing_price" class="form-control form-control-plaintext"
+                   name="fp_form_product_data_packing_price">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fp_form_product_data_seller_commission">کمیسیون فروشنده</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fp_form_product_data_seller_commission" class="form-control form-control-plaintext"
+                   name="fp_form_product_data_seller_commission">
+        </div>
+    </div>
+    
+</form>

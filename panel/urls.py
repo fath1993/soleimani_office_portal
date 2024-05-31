@@ -141,6 +141,8 @@ urlpatterns = [
          name='requested-product-processing-product-detail'),
     path('requested-product-processing/customer-detail/', RequestedProductProcessingView().customer_detail,
          name='requested-product-processing-customer-detail'),
+    path('requested-product-processing/modify-customer-data/', RequestedProductProcessingView().modify_customer_data,
+         name='requested-product-processing-modify-customer-data'),
     path('requested-product-processing/reports/', RequestedProductProcessingView().reports,
          name='requested-product-processing-reports'),
 ]

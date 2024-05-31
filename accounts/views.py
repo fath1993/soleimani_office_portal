@@ -9,8 +9,9 @@ import re
 from django.urls import reverse
 
 from accounts.custom_decorator import CheckPermissions, CheckLogin, RequireMethod
-from accounts.models import Role
-from accounts.serializer import ProfileSerializer
+from accounts.models import Role, Profile, DeliveryProfile, WarehouseProfile, SellerProfile
+from accounts.serializer import ProfileSerializer, SellerProfileSerializer, WarehouseProfileSerializer, \
+    DeliveryProfileSerializer
 from utilities.http_metod import fetch_data_from_http_post
 
 
@@ -194,15 +195,75 @@ class ProfileView:
     @CheckLogin()
     @CheckPermissions(section='user', allowed_actions='read')
     @RequireMethod(allowed_method='POST')
-    def rest_detail(self, request, *args, **kwargs):
+    def profile_detail(self, request, *args, **kwargs):
         context = {}
         user_id = fetch_data_from_http_post(request, 'user_id', context)
         try:
-            user = User.objects.filter(id=user_id)
-            serializer = ProfileSerializer(user, many=True)
+            profile = Profile.objects.filter(user__id=user_id)
+            serializer = ProfileSerializer(profile, many=True)
             json_response_body = {
                 "method": "post",
-                "request": f"اطلاعات کاربر با ایدی {user_id}",
+                "request": f"اطلاعات پروفایل کاربر با ایدی {user_id}",
+                "result": "موفق",
+                "data": serializer.data
+            }
+            return JsonResponse(json_response_body)
+        except Exception as e:
+            print(e)
+            return JsonResponse({"message": 'user not found'})
+
+    @CheckLogin()
+    @CheckPermissions(section='user', allowed_actions='read')
+    @RequireMethod(allowed_method='POST')
+    def seller_profile_detail(self, request, *args, **kwargs):
+        context = {}
+        user_id = fetch_data_from_http_post(request, 'user_id', context)
+        try:
+            profile = SellerProfile.objects.filter(profile__user__id=user_id)
+            serializer = SellerProfileSerializer(profile, many=True)
+            json_response_body = {
+                "method": "post",
+                "request": f"اطلاعات پروفایل فروشندگی کاربر با ایدی {user_id}",
+                "result": "موفق",
+                "data": serializer.data
+            }
+            return JsonResponse(json_response_body)
+        except Exception as e:
+            print(e)
+            return JsonResponse({"message": 'user not found'})
+
+    @CheckLogin()
+    @CheckPermissions(section='user', allowed_actions='read')
+    @RequireMethod(allowed_method='POST')
+    def warehouse_profile_detail(self, request, *args, **kwargs):
+        context = {}
+        user_id = fetch_data_from_http_post(request, 'user_id', context)
+        try:
+            profile = WarehouseProfile.objects.filter(profile__user__id=user_id)
+            serializer = WarehouseProfileSerializer(profile, many=True)
+            json_response_body = {
+                "method": "post",
+                "request": f"اطلاعات پروفایل انبارداری کاربر با ایدی {user_id}",
+                "result": "موفق",
+                "data": serializer.data
+            }
+            return JsonResponse(json_response_body)
+        except Exception as e:
+            print(e)
+            return JsonResponse({"message": 'user not found'})
+
+    @CheckLogin()
+    @CheckPermissions(section='user', allowed_actions='read')
+    @RequireMethod(allowed_method='POST')
+    def delivery_profile_detail(self, request, *args, **kwargs):
+        context = {}
+        user_id = fetch_data_from_http_post(request, 'user_id', context)
+        try:
+            profile = DeliveryProfile.objects.filter(profile__user__id=user_id)
+            serializer = DeliveryProfileSerializer(profile, many=True)
+            json_response_body = {
+                "method": "post",
+                "request": f"اطلاعات پروفایل ارسال کاربر با ایدی {user_id}",
                 "result": "موفق",
                 "data": serializer.data
             }
@@ -298,80 +359,201 @@ class ProfileView:
             profile.save()
             context['message'] = f'کاربر با نام کاربری {mobile_phone_number} ایجاد گردید'
 
-        return redirect('panel:user-list')
+        return redirect('accounts:profile-list')
 
     @CheckLogin()
     @CheckPermissions(section='user', allowed_actions='modify')
-    def modify(self, request, user_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def modify_profile(self, request, *args, **kwargs):
+        context = {}
+        user_id = fetch_data_from_http_post(request, 'user_id', context)
         try:
-            user = User.objects.get(id=user_id)
-            context = {'page_title': f'ویرایش اطلاعات کاربر *{user.username}*',
-                       'user': user, 'get_params': request.GET.urlencode()}
+            profile = Profile.objects.get(user__id=user_id)
 
-            if request.method == 'GET':
-                return render(request, 'accounts/profiles/user-edit.html', context)
+            first_name = fetch_data_from_http_post(request, 'muf_form_user_data_first_name', context)
+            last_name = fetch_data_from_http_post(request, 'muf_form_user_data_last_name', context)
+            national_code = fetch_data_from_http_post(request, 'muf_form_user_data_national_code', context)
+            email = fetch_data_from_http_post(request, 'muf_form_user_data_email', context)
+            mobile_phone_number = fetch_data_from_http_post(request, 'muf_form_user_data_mobile_phone_number', context)
+            landline = fetch_data_from_http_post(request, 'muf_form_user_data_landline', context)
+            card_number = fetch_data_from_http_post(request, 'muf_form_user_data_card_number', context)
+            isbn = fetch_data_from_http_post(request, 'muf_form_user_data_isbn', context)
+            address = fetch_data_from_http_post(request, 'muf_form_user_data_address', context)
+            role_id = fetch_data_from_http_post(request, 'muf_form_user_data_role_id', context)
+            password1 = fetch_data_from_http_post(request, 'muf_form_user_data_password1', context)
+            password2 = fetch_data_from_http_post(request, 'muf_form_user_data_password2', context)
+
+            if password1 and password2:
+                if password1 != password2:
+                    return JsonResponse({'message': 'رمز عبور و تکرار رمز عبور یکسان نیستند'})
+            elif password1 and not password2:
+                return JsonResponse({'message': 'تکرار رمز عبور بدرستی وارد نشده است'})
+            elif not password1 and password2:
+                return JsonResponse({'message': 'رمز عبور بدرستی وارد نشده است'})
             else:
-                first_name = fetch_data_from_http_post(request, 'first_name', context)
-                last_name = fetch_data_from_http_post(request, 'last_name', context)
-                national_code = fetch_data_from_http_post(request, 'national_code', context)
-                email = fetch_data_from_http_post(request, 'email', context)
-                mobile_phone_number = fetch_data_from_http_post(request, 'mobile_phone_number', context)
-                landline = fetch_data_from_http_post(request, 'landline', context)
-                card_number = fetch_data_from_http_post(request, 'card_number', context)
-                isbn = fetch_data_from_http_post(request, 'isbn', context)
-                address = fetch_data_from_http_post(request, 'address', context)
-                role_id = fetch_data_from_http_post(request, 'role_id', context)
-                password1 = fetch_data_from_http_post(request, 'password1', context)
-                password2 = fetch_data_from_http_post(request, 'password2', context)
+                pass
 
-                if password1 and password2:
-                    if password1 != password2:
-                        context['err'] = 'رمز عبور و تکرار رمز عبور یکسان نیستند'
-                        return render(request, 'accounts/profiles/user-list.html', context)
-                elif password1 and not password2:
-                    context['err'] = 'تکرار رمز عبور بدرستی وارد نشده است'
-                    return render(request, 'accounts/profiles/user-list.html', context)
-                elif not password1 and password2:
-                    context['err'] = 'رمز عبور بدرستی وارد نشده است'
-                    return render(request, 'accounts/profiles/user-list.html', context)
+            try:
+                user = profile.user
+                if email:
+                    user.email = email
+                if password1:
+                    user.set_password(password1)
+                user.save()
+                if first_name:
+                    profile.first_name = first_name
                 else:
-                    pass
-
-                try:
-                    user = User.objects.get(username=mobile_phone_number)
-                    if email:
-                        user.email = email
-                    if password1:
-                        user.set_password(password1)
-                    user.save()
-                    profile = user.user_profile
-                    if first_name:
-                        profile.first_name = first_name
-                    if last_name:
-                        profile.last_name = last_name
-                    if national_code:
-                        profile.national_code = national_code
-                    if mobile_phone_number:
-                        profile.mobile_phone_number = mobile_phone_number
-                    if landline:
-                        profile.landline = landline
-                    if card_number:
-                        profile.card_number = card_number
-                    if isbn:
-                        profile.isbn = isbn
-                    if address:
-                        profile.address = address
-                    if role_id:
-                        profile.role_id = Role.objects.get(id=role_id)
-                    profile.save()
-                    context['message'] = f'کاربر با نام کاربری {mobile_phone_number} ویرایش گردید'
-                    return redirect(
-                        reverse('panel:user-detail-with-id',
-                                kwargs={'user_id': user_id}) + f'?{request.GET.urlencode()}')
-                except:
-                    return render(request, 'panel/err/err-not-found.html')
+                    first_name = profile.first_name
+                    if not profile.first_name:
+                        first_name = ''
+                if last_name:
+                    profile.last_name = last_name
+                else:
+                    last_name = profile.last_name
+                    if not profile.last_name:
+                        last_name = ''
+                if national_code:
+                    profile.national_code = national_code
+                if mobile_phone_number:
+                    profile.mobile_phone_number = mobile_phone_number
+                if landline:
+                    profile.landline = landline
+                if card_number:
+                    profile.card_number = card_number
+                if isbn:
+                    profile.isbn = isbn
+                if address:
+                    profile.address = address
+                if role_id:
+                    role = Role.objects.get(id=role_id)
+                    profile.role_id = role
+                    role_title = role.title
+                else:
+                    role = profile.role
+                    if not role:
+                        role_title = ''
+                    else:
+                        role_title = role.title
+                profile.save()
+                return JsonResponse({'message': f'کاربر با نام کاربری {user.username} ویرایش گردید',
+                                     'first_name': first_name, 'last_name': last_name, 'role_title': role_title})
+            except Exception as e:
+                print(e)
+                return JsonResponse({'message': f'کاربر با ایدی {user_id} پیدا نشد'})
         except:
-            return render(request, 'panel/err/err-not-found.html')
+            return JsonResponse({'message': f'کاربر با ایدی {user_id} پیدا نشد'})
+
+    @CheckLogin()
+    @CheckPermissions(section='user', allowed_actions='modify')
+    @RequireMethod(allowed_method='POST')
+    def modify_seller_profile(self, request, *args, **kwargs):
+        context = {}
+        user_id = fetch_data_from_http_post(request, 'user_id', context)
+        try:
+            seller_profile = SellerProfile.objects.get(profile__user__id=user_id)
+            sale_allowance = fetch_data_from_http_post(request, 'fps_form_profile_seller_sale_allowance', context)
+            is_sales_admin = fetch_data_from_http_post(request, 'fps_form_profile_seller_is_sales_admin', context)
+            daily_allowed_product_processing_number = fetch_data_from_http_post(request, 'fps_form_profile_seller_daily_allowed_product_processing_number', context)
+
+            if sale_allowance == 'true':
+                seller_profile.sale_allowance = True
+            else:
+                seller_profile.sale_allowance = False
+
+            if is_sales_admin == 'true':
+                seller_profile.is_sales_admin = True
+            else:
+                seller_profile.is_sales_admin = False
+
+            if daily_allowed_product_processing_number:
+                seller_profile.daily_allowed_product_processing_number = int(daily_allowed_product_processing_number)
+
+            seller_profile.save()
+
+            seller_profiles = SellerProfile.objects.filter(id=seller_profile.id)
+            serializer = SellerProfileSerializer(seller_profiles, many=True)
+            json_response_body = {
+                "method": "post",
+                "message": f'پروفایل فروشندگی کاربر با نام کاربری {seller_profile.profile.user.username} ویرایش گردید',
+                "result": "موفق",
+                "data": serializer.data
+            }
+            return JsonResponse(json_response_body)
+        except Exception as e:
+            print(e)
+            return JsonResponse({'message': f'کاربر با ایدی {user_id} پیدا نشد'})
+
+    @CheckLogin()
+    @CheckPermissions(section='user', allowed_actions='modify')
+    @RequireMethod(allowed_method='POST')
+    def modify_warehouse_profile(self, request, *args, **kwargs):
+        context = {}
+        user_id = fetch_data_from_http_post(request, 'user_id', context)
+        try:
+            warehouse_profile = WarehouseProfile.objects.get(profile__user__id=user_id)
+            warehouse_allowance = fetch_data_from_http_post(request, 'fpw_form_profile_warehouse_warehouse_allowance', context)
+            is_warehouse_admin = fetch_data_from_http_post(request, 'fpw_form_profile_warehouse_is_warehouse_admin', context)
+
+            if warehouse_allowance == 'true':
+                warehouse_profile.warehouse_allowance = True
+            else:
+                warehouse_profile.warehouse_allowance = False
+
+            if is_warehouse_admin == 'true':
+                warehouse_profile.is_warehouse_admin = True
+            else:
+                warehouse_profile.is_warehouse_admin = False
+
+            warehouse_profile.save()
+
+            warehouse_profiles = WarehouseProfile.objects.filter(id=warehouse_profile.id)
+            serializer = WarehouseProfileSerializer(warehouse_profiles, many=True)
+            json_response_body = {
+                "method": "post",
+                "message": f'پروفایل انبارداری کاربر با نام کاربری {warehouse_profile.profile.user.username} ویرایش گردید',
+                "result": "موفق",
+                "data": serializer.data
+            }
+            return JsonResponse(json_response_body)
+        except Exception as e:
+            print(e)
+            return JsonResponse({'message': f'کاربر با ایدی {user_id} پیدا نشد'})
+
+    @CheckLogin()
+    @CheckPermissions(section='user', allowed_actions='modify')
+    @RequireMethod(allowed_method='POST')
+    def modify_delivery_profile(self, request, *args, **kwargs):
+        context = {}
+        user_id = fetch_data_from_http_post(request, 'user_id', context)
+        try:
+            delivery_profile = DeliveryProfile.objects.get(profile__user__id=user_id)
+            delivery_allowance = fetch_data_from_http_post(request, 'fpd_form_profile_delivery_delivery_allowance', context)
+            is_delivery_admin = fetch_data_from_http_post(request, 'fpd_form_profile_delivery_is_delivery_admin', context)
+
+            if delivery_allowance == 'true':
+                delivery_profile.delivery_allowance = True
+            else:
+                delivery_profile.delivery_allowance = False
+
+            if is_delivery_admin == 'true':
+                delivery_profile.is_delivery_admin = True
+            else:
+                delivery_profile.is_delivery_admin = False
+
+            delivery_profile.save()
+
+            delivery_profiles = DeliveryProfile.objects.filter(id=delivery_profile.id)
+            serializer = DeliveryProfileSerializer(delivery_profiles, many=True)
+            json_response_body = {
+                "method": "post",
+                "message": f'پروفایل ارسال کاربر با نام کاربری {delivery_profile.profile.user.username} ویرایش گردید',
+                "result": "موفق",
+                "data": serializer.data
+            }
+            return JsonResponse(json_response_body)
+        except Exception as e:
+            print(e)
+            return JsonResponse({'message': f'کاربر با ایدی {user_id} پیدا نشد'})
 
     @CheckLogin()
     @CheckPermissions(section='user', allowed_actions='delete')
@@ -380,6 +562,6 @@ class ProfileView:
             user = User.objects.get(id=user_id)
             context = {'page_title': f'حذف کاربر {user.username}', 'get_params': request.GET.urlencode()}
             user.delete()
-            return redirect(reverse('panel:user-list') + f'?{request.GET.urlencode()}')
+            return redirect(reverse('accounts:profile-list') + f'?{request.GET.urlencode()}')
         except:
             return render(request, 'panel/err/err-not-found.html')

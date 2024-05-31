@@ -1,0 +1,382 @@
+{% load static %}
+
+<div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-simple">
+        <div class="modal-content p-3 p-md-5">
+            <div class="modal-body">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                <div class="text-center mb-4 mt-0 mt-md-n2">
+                    <h3 class="mb-2 secondary-font">اطلاعات کاربر</h3>
+                    <p class="text-muted">
+                        جزئیات اطلاعات مرتبط با هر کاربر سامانه را بررسی نمایید.
+                    </p>
+                </div>
+                <div class="row">
+                    {% include 'accounts/profiles/modal-profile-data.html' %}
+                    {% include 'accounts/profiles/modal-profile-seller-data.html' %}
+                    {% include 'accounts/profiles/modal-profile-warehouse-data.html' %}
+                    {% include 'accounts/profiles/modal-profile-delivery-data.html' %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="profileData" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-simple">
+        <div class="modal-content p-3 p-md-5">
+            <div class="modal-body">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                <div class="text-center mb-2 mt-0 mt-md-n2">
+                    <h3 class="mb-0 secondary-font">جزئیات پروفایل اصلی کاربر</h3>
+                </div>
+                <div class="row">
+                    <div id="mp_profile_container" class="col-sm-12 col-md-12 col-lg-12"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="sellerProfileData" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-simple">
+        <div class="modal-content p-3 p-md-5">
+            <div class="modal-body">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                <div class="text-center mb-2 mt-0 mt-md-n2">
+                    <h3 class="mb-0 secondary-font">جزئیات پروفایل فروشندگی کاربر</h3>
+                </div>
+                <div class="row">
+                    <div id="mp_seller_profile_container" class="col-sm-12 col-md-12 col-lg-12"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="warehouseProfileData" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-simple">
+        <div class="modal-content p-3 p-md-5">
+            <div class="modal-body">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                <h4 id="mrp_reports_count" class="modal-header"></h4>
+                <div class="text-center mb-2 mt-0 mt-md-n2">
+                    <h3 class="mb-0 secondary-font">جزئیات پروفایل انبارداری کاربر</h3>
+                </div>
+                <div class="row">
+                    <div id="mp_warehouse_profile_container" class="col-sm-12 col-md-12 col-lg-12"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="deliveryProfileData" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-simple">
+        <div class="modal-content p-3 p-md-5">
+            <div class="modal-body">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                <h4 id="mrp_reports_count" class="modal-header"></h4>
+                <div class="text-center mb-2 mt-0 mt-md-n2">
+                    <h3 class="mb-0 secondary-font">جزئیات پروفایل ارسال کاربر</h3>
+                </div>
+                <div class="row">
+                    <div id="mp_delivery_profile_container" class="col-sm-12 col-md-12 col-lg-12"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function get_profile_data() {
+        const ul_user_id = document.getElementById('ul_user_id').value
+        const mp_profile_container = document.getElementById('mp_profile_container')
+        
+        const loading_text = 'در حال بارگذاری ...'
+        const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                  <span class="visually-hidden">${loading_text}</span>
+                                </div>`
+        const formData = new FormData();
+        formData.append('user_id', `${ul_user_id}`)
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+        const options = {
+            method: 'POST',
+            body: formData,
+        }
+        mp_profile_container.innerHTML=loading_html
+        fetch('{% url 'accounts:profile-detail' %}', options)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                mp_profile_container.innerHTML=`{% include 'accounts/profiles/form-profile.html' %}`
+                document.getElementById('muf_form_user_data_first_name').value=`${data['data'][0]['first_name']}`
+                document.getElementById('muf_form_user_data_last_name').value=`${data['data'][0]['last_name']}`
+                document.getElementById('muf_form_user_data_national_code').value=`${data['data'][0]['national_code']}`
+                document.getElementById('muf_form_user_data_email').value=`${data['data'][0]['user']['email']}`
+                document.getElementById('muf_form_user_data_mobile_phone_number').value=`${data['data'][0]['mobile_phone_number']}`
+                document.getElementById('muf_form_user_data_landline').value=`${data['data'][0]['landline']}`
+                document.getElementById('muf_form_user_data_card_number').value=`${data['data'][0]['card_number']}`
+                document.getElementById('muf_form_user_data_isbn').value=`${data['data'][0]['isbn']}`
+                document.getElementById('muf_form_user_data_address').value=`${data['data'][0]['address']}`
+                document.querySelector('[name="muf_form_user_data_role_id"]').value = data['data'][0]['role']['id'];
+            })
+            .catch(error => {
+                console.log(error)
+            });
+    }
+    function set_profile_data() {
+        const ul_user_id = document.getElementById('ul_user_id').value
+        const muf_form_user_data = document.getElementById('muf_form_user_data')
+        const formData = new FormData(muf_form_user_data);
+        formData.append('user_id', `${ul_user_id}`)
+        const options = {
+            method: 'POST',
+            body: formData,
+        }
+        fetch('{% url 'accounts:profile-modify' %}', options)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data['first_name'] !== '') {
+                    document.getElementById(`first_name_${ul_user_id}`).innerText=`${data['first_name']}`
+                }
+                if (data['last_name'] !== '') {
+                    document.getElementById(`last_name_name_${ul_user_id}`).innerText=`${data['last_name']}`
+                }
+                if (data['role_title'] !== '') {
+                    document.getElementById(`role_title_${ul_user_id}`).innerText=data['data']['role_title'];
+                }
+
+                if (data['message'] === 'رمز عبور و تکرار رمز عبور یکسان نیستند') {
+                    toast_maker('error', 'رمز عبور و تکرار رمز عبور یکسان نیستند')
+                } else if (data['message'] === 'تکرار رمز عبور بدرستی وارد نشده است') {
+                    toast_maker('error', 'تکرار رمز عبور بدرستی وارد نشده است')
+                } else if (data['message'] === 'رمز عبور بدرستی وارد نشده است') {
+                    toast_maker('error', 'رمز عبور بدرستی وارد نشده است')
+                } else if (data['message'] === 'رمز عبور بدرستی وارد نشده است') {
+                    toast_maker('error', 'رمز عبور بدرستی وارد نشده است')
+                }  else if (data['message'] === 'رمز عبور بدرستی وارد نشده است') {
+                    toast_maker('error', 'رمز عبور بدرستی وارد نشده است')
+                }  else {
+                    toast_maker('success', `${data['message']}`)
+                }
+                console.log(data)
+            })
+            .catch(error => {
+                console.log(error)
+            });
+    }
+    function get_seller_profile_data() {
+        const ul_user_id = document.getElementById('ul_user_id').value
+        const mp_seller_profile_container = document.getElementById('mp_seller_profile_container')
+        
+        const loading_text = 'در حال بارگذاری ...'
+        const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                  <span class="visually-hidden">${loading_text}</span>
+                                </div>`
+        const formData = new FormData();
+        formData.append('user_id', `${ul_user_id}`)
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+        const options = {
+            method: 'POST',
+            body: formData,
+        }
+        mp_seller_profile_container.innerHTML=loading_html
+        fetch('{% url 'accounts:seller-profile-detail' %}', options)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data)
+                mp_seller_profile_container.innerHTML=`{% include 'accounts/profiles/form-profile-seller.html' %}`
+                if (data['data'][0]['sale_allowance'] === true) {
+                    document.getElementById('fps_form_profile_seller_sale_allowance').checked=true
+                }
+                if (data['data'][0]['is_sales_admin'] === true) {
+                    document.getElementById('fps_form_profile_seller_is_sales_admin').checked=true
+                }
+                document.getElementById('fps_form_profile_seller_daily_allowed_product_processing_number').value=`${data['data'][0]['daily_allowed_product_processing_number']}`
+            })
+            .catch(error => {
+                console.log(error)
+            });
+    }
+    function set_seller_profile_data() {
+        const ul_user_id = document.getElementById('ul_user_id').value
+        const fps_form_profile_seller = document.getElementById('fps_form_profile_seller')
+        const formData = new FormData(fps_form_profile_seller);
+        formData.append('user_id', `${ul_user_id}`)
+        const options = {
+            method: 'POST',
+            body: formData,
+        }
+        fetch('{% url 'accounts:profile-seller-modify' %}', options)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data['data'][0]['sale_allowance'] === true) {
+                    document.getElementById('fps_form_profile_seller_sale_allowance').checked=true
+                }
+                if (data['data'][0]['is_sales_admin'] === true) {
+                    document.getElementById('fps_form_profile_seller_is_sales_admin').checked=true
+                }
+                document.getElementById('fps_form_profile_seller_daily_allowed_product_processing_number').value=`${data['data'][0]['daily_allowed_product_processing_number']}`
+                toast_maker('success', `${data['message']}`)
+                console.log(data)
+            })
+            .catch(error => {
+                console.log(error)
+            });
+    }
+    function get_warehouse_profile_data() {
+        const ul_user_id = document.getElementById('ul_user_id').value
+        const mp_warehouse_profile_container = document.getElementById('mp_warehouse_profile_container')
+        
+        const loading_text = 'در حال بارگذاری ...'
+        const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                  <span class="visually-hidden">${loading_text}</span>
+                                </div>`
+        const formData = new FormData();
+        formData.append('user_id', `${ul_user_id}`)
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+        const options = {
+            method: 'POST',
+            body: formData,
+        }
+        mp_warehouse_profile_container.innerHTML=loading_html
+        fetch('{% url 'accounts:warehouse-profile-detail' %}', options)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                mp_warehouse_profile_container.innerHTML=`{% include 'accounts/profiles/form-profile-warehouse.html' %}`
+                if (data['data'][0]['warehouse_allowance'] === true) {
+                    document.getElementById('fpw_form_profile_warehouse_warehouse_allowance').checked=true
+                }
+                if (data['data'][0]['is_warehouse_admin'] === true) {
+                    document.getElementById('fpw_form_profile_warehouse_is_warehouse_admin').checked=true
+                }
+            })
+            .catch(error => {
+                console.log(error)
+            });
+    }
+    function set_warehouse_profile_data() {
+        const ul_user_id = document.getElementById('ul_user_id').value
+        const fpw_form_profile_warehouse = document.getElementById('fpw_form_profile_warehouse')
+        const formData = new FormData(fpw_form_profile_warehouse);
+        formData.append('user_id', `${ul_user_id}`)
+        const options = {
+            method: 'POST',
+            body: formData,
+        }
+        fetch('{% url 'accounts:profile-warehouse-modify' %}', options)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data['data'][0]['warehouse_allowance'] === true) {
+                    document.getElementById('fpw_form_profile_warehouse_warehouse_allowance').checked=true
+                }
+                if (data['data'][0]['is_warehouse_admin'] === true) {
+                    document.getElementById('fpw_form_profile_warehouse_is_warehouse_admin').checked=true
+                }
+                toast_maker('success', `${data['message']}`)
+            })
+            .catch(error => {
+                console.log(error)
+            });
+    }
+    
+    
+    function get_delivery_profile_data() {
+        const ul_user_id = document.getElementById('ul_user_id').value
+        const mp_delivery_profile_container = document.getElementById('mp_delivery_profile_container')
+        
+        const loading_text = 'در حال بارگذاری ...'
+        const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                  <span class="visually-hidden">${loading_text}</span>
+                                </div>`
+        const formData = new FormData();
+        formData.append('user_id', `${ul_user_id}`)
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+        const options = {
+            method: 'POST',
+            body: formData,
+        }
+        mp_delivery_profile_container.innerHTML=loading_html
+        fetch('{% url 'accounts:delivery-profile-detail' %}', options)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                mp_delivery_profile_container.innerHTML=`{% include 'accounts/profiles/form-profile-delivery.html' %}`
+                if (data['data'][0]['delivery_allowance'] === true) {
+                    document.getElementById('fpd_form_profile_delivery_delivery_allowance').checked=true
+                }
+                if (data['data'][0]['is_delivery_admin'] === true) {
+                    document.getElementById('fpd_form_profile_delivery_is_delivery_admin').checked=true
+                }
+            })
+            .catch(error => {
+                console.log(error)
+            });
+    }
+    function set_delivery_profile_data() {
+        const ul_user_id = document.getElementById('ul_user_id').value
+        const fpd_form_profile_delivery = document.getElementById('fpd_form_profile_delivery')
+        const formData = new FormData(fpd_form_profile_delivery);
+        formData.append('user_id', `${ul_user_id}`)
+        const options = {
+            method: 'POST',
+            body: formData,
+        }
+        fetch('{% url 'accounts:profile-delivery-modify' %}', options)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data['data'][0]['delivery_allowance'] === true) {
+                    document.getElementById('fpd_form_profile_delivery_delivery_allowance').checked=true
+                }
+                if (data['data'][0]['is_delivery_admin'] === true) {
+                    document.getElementById('fpd_form_profile_delivery_is_delivery_admin').checked=true
+                }
+                toast_maker('success', `${data['message']}`)
+                console.log(data)
+            })
+            .catch(error => {
+                console.log(error)
+            });
+    }
+    
+
+</script>

@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load account_custom_tag %}
+{% load static %}
+{% load panel_custom_tag %}
+
+{% block extra_head %}
+
+{% endblock %}
+
+
+{% block content %}
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <h4 class="py-3 breadcrumb-wrapper mb-4">
+            <span class="text-muted fw-light">مدیریت منابع / تیزر سازها / <span
+                    class="text-black">مشخصات تیزر ساز : {{ teaser_maker.name }}</span></span>
+        </h4>
+        <div class="row gy-4">
+            <div class="col-md-12">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="pb-2 border-bottom mb-4 secondary-font">جزئیات</h5>
+                        <div class="info-container">
+                            <ul class="list-unstyled">
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">نام تیزر ساز:</span>
+                                    <span>{{ teaser_maker.name|default:"-" }}</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">نوع محتوا:</span>
+                                    <span>{{ teaser_maker.content_type|default:"-" }}</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">کد:</span>
+                                    <span>{{ teaser_maker.code|default:"-" }}</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">آدرس:</span>
+                                    <span>{{ teaser_maker.address|default:"-" }}</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">شماره تماس:</span>
+                                    <span>{{ teaser_maker.phone_number|default:"-" }}</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">هزینه ساخت:</span>
+                                    <span>{{ teaser_maker.creation_price|default:"-" }} ریال</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">هزینه ویرایش:</span>
+                                    <span>{{ teaser_maker.editing_price|default:"-" }} ریال</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">تاریخ و زمان ایجاد:</span>
+                                    <span>{{ teaser_maker.created_at|date:'d-m-Y H:i' }}</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">تاریخ و زمان بروزرسانی:</span>
+                                    <span>{{ teaser_maker.updated_at|date:'d-m-Y H:i' }}</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">ایجاد شده توسط:</span>
+                                    <span>{{ teaser_maker.created_by }}</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">بروز شده توسط:</span>
+                                    <span>{{ teaser_maker.updated_by }}</span>
+                                </li>
+                                <li class="mb-3">
+                                    <span class="fw-bold me-2">وضعیت:</span>
+                                    {% if teaser_maker.is_active %}
+                                        <span class="badge bg-success">فعال</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">غیر فعال</span>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                            <div class="d-flex justify-content-between pt-3">
+                                <div class="text-right">
+                                    {% if request|has_access_to_section:'modify,teaser_maker' %}
+                                        <a href="{% url 'panel:teaser-maker-modify-with-id' teaser_maker_id=teaser_maker.id %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                           class="btn btn-primary me-3">ویرایش</a>
+                                    {% endif %}
+                                    {% if get_params %}
+                                        <a href="{% url 'panel:teaser-maker-filter' %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                                       class="btn btn-outline-gray me-3">بازگشت</a>
+                                    {% else %}
+                                        <a href="{% url 'panel:teaser-maker-list' %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                               class="btn btn-outline-gray me-3">بازگشت</a>
+                                    {% endif %}
+                                    
+                                </div>
+                                {% if request|has_access_to_section:'delete,teaser_maker' %}
+                                    <div class="text-left">
+                                        <a href="javascript:void(0)" class="btn btn-label-danger suspend-user"
+                                           data-bs-toggle="modal" data-bs-target="#deleteModal">حذف</a>
+                                        <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-simple modal-enable-otp modal-dialog-centered">
+                                                <div class="modal-content p-3 p-md-5">
+                                                    <div class="modal-body">
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                                aria-label="Close"></button>
+                                                        <div class="text-center mb-4 mt-0 mt-md-n2">
+                                                            <h3 class="mb-4 secondary-font">تایید حذف</h3>
+                                                        </div>
+                                                        <h6>آیا از حذف تیزر ساز <strong
+                                                                class="bg-warning">{{ teaser_maker.name }}</strong> مطمئن
+                                                            هستید؟</h6>
+                                                        <form class="row g-3 mt-3" method="post" action="
+                                                                {% url 'panel:teaser-maker-delete-with-id' teaser_maker_id=teaser_maker.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                            {% csrf_token %}
+                                                            <div class="col-12">
+                                                                <button type="submit"
+                                                                        class="btn btn-primary me-sm-3 me-1">
+                                                                    بله
+                                                                </button>
+                                                                <button type="reset" class="btn btn-label-secondary"
+                                                                        data-bs-dismiss="modal" aria-label="Close">
+                                                                    انصراف
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_body %}
+    <script src="{% static 'assets/js/main.js' %}"></script>
+{% endblock %}

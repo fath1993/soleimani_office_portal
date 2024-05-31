@@ -1,0 +1,63 @@
+{% load account_custom_tag %}
+{% load static %}
+
+<form id="fc_form_customer_data">
+    {% csrf_token %}
+    <div class="col-sm-12 mb-1">
+        <label class="form-label" for="fc_form_customer_data_phone_number">شماره تماس</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fc_form_customer_data_phone_number" class="form-control"
+                   name="fc_form_customer_data_phone_number" readonly disabled
+                   placeholder="" aria-label="شماره تماس"
+                   aria-describedby="شماره تماس">
+        </div>
+    </div>
+    <div class="col-sm-12 mb-1">
+        <label class="form-label" for="fc_form_customer_data_full_name">نام و نام خانوادگی</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fc_form_customer_data_full_name" class="form-control"
+                   name="fc_form_customer_data_full_name"
+                   placeholder="" aria-label="نام و نام خانوادگی"
+                   aria-describedby="نام و نام خانوادگی">
+        </div>
+    </div>
+    <div class="col-sm-12 mb-1">
+        <label class="form-label" for="fc_form_customer_data_age">سن</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fc_form_customer_data_age" class="form-control"
+                   name="fc_form_customer_data_age"
+                   placeholder="" aria-label="سن"
+                   aria-describedby="سن">
+        </div>
+    </div>
+    <div class="col-sm-12 mb-1">
+        <label class="form-label" for="fc_form_customer_data_address">ادرس</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fc_form_customer_data_address" class="form-control"
+                   name="fc_form_customer_data_address"
+                   placeholder="" aria-label="ادرس"
+                   aria-describedby="ادرس">
+        </div>
+    </div>
+    <div class="col-sm-12 mb-1">
+        <label class="form-label" for="fc_form_customer_data_desired_product">محصولات مورد علاقه</label>
+        <div class="input-group input-group-merge">
+            <span id="fc_form_customer_data_desired_product" class="btn text-primary"></span>
+        </div>
+    </div>
+    <div class="col-sm-12 mb-3">
+        <label class="form-label" for="fc_form_customer_data_created_at">تاریخ اولین درخواست</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fc_form_customer_data_created_at" class="form-control form-control-plaintext"
+                   name="fc_form_customer_data_created_at"
+                   placeholder="" aria-label="تاریخ اولین درخواست"
+                   aria-describedby="تاریخ اولین درخواست">
+        </div>
+    </div>
+    {% if request|has_access_to_section:'modify,sale' %}
+    <div class="col-sm-12">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+            aria-label="Close" onclick="set_customer_data()">ویرایش</button>
+    </div>
+    {% endif %}
+</form>

@@ -1,14 +1,7 @@
 import json
-import random
-
-import jdatetime
-from django.contrib.auth.models import User
 from django.http import JsonResponse
-
-from accounts.models import Profile, SellerProfile
 from automation.models import ProductRelation, RequestedProduct, Customer, RequestedProductProcessing, pick_seller
-from panel.custom_decorator import RequireMethod
-from utilities.http_metod import fetch_data_from_http_post
+from accounts.custom_decorator import RequireMethod
 
 
 class WebhookView:

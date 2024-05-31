@@ -76,7 +76,7 @@
                 </li>
                 {% endif %}
                 <li id="user-list" class="menu-item">
-                    <a href="{% url 'panel:user-list' %}" class="menu-link">
+                    <a href="{% url 'accounts:profile-list' %}" class="menu-link">
                         <div><span>کاربران </span><span class="text-muted">({{ request|object_count:'user' }})</span></div>
                     </a>
                 </li>

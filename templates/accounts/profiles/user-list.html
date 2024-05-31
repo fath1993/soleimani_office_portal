@@ -32,7 +32,7 @@
             </h5>
             <div class="card-body">
                 <div class="row">
-                    <form method="get" action="{% url 'panel:user-list' %}">
+                    <form method="get" action="{% url 'accounts:profile-list' %}">
                         <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="search">جستجو</label>
                             <div class="input-group">
@@ -64,7 +64,7 @@
                                     aria-label="Close"></button>
                         </div>
                         <div class="offcanvas-body flex-grow-1">
-                            <form class="add-new-record pt-0 row g-2" method="post" action="{% url 'panel:user-create' %}">
+                            <form class="add-new-record pt-0 row g-2" method="post" action="{% url 'accounts:profile-create' %}">
                                 {% csrf_token %}
                                 <div class="col-sm-12">
                                     <label class="form-label" for="first_name">نام</label>
@@ -237,12 +237,14 @@
                             <tr>
                                 <td>{{ forloop.counter }}</td>
                                 <td>
-                                    <span class="btn" data-bs-toggle="modal" data-bs-target="#userModal" onclick="change_user_id('{{ user.id }}')">{{ user.username }}
+                                    <span class="btn text-primary" data-bs-toggle="modal"
+                                          data-bs-target="#profileModal"
+                                          onclick="change_user_id('{{ user.id }}')">{{ user.username }}
                                     </span>
                                 </td>
-                                <td>{{ user.user_profile.first_name|default:'-' }}</td>
-                                <td>{{ user.user_profile.last_name|default:'-' }}</td>
-                                <td>{{ user.user_profile.role.title|default:'-' }}</td>
+                                <td id="first_name_{{ user.id }}">{{ user.user_profile.first_name|default:'-' }}</td>
+                                <td id="last_name_name_{{ user.id }}">{{ user.user_profile.last_name|default:'-' }}</td>
+                                <td id="role_title_{{ user.id }}">{{ user.user_profile.role.title|default:'-' }}</td>
                                 <td>
                                     {% if request|has_access_to_section:'modify,delete,user' %}
                                     <div class="dropdown">
@@ -267,7 +269,7 @@
                                                         <h3 class="mb-4 secondary-font">تایید حذف</h3>
                                                     </div>
                                                     <h6>آیا از حذف کاربر {{ user.username }} مطمئن هستید؟</h6>
-                                                    <form class="row g-3 mt-3" method="post" action="{% url 'panel:user-remove-with-id' user_id=user.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                    <form class="row g-3 mt-3" method="post" action="{% url 'accounts:profile-remove-with-id' user_id=user.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
                                                         {% csrf_token %}
                                                         <div class="col-12">
                                                             <button type="submit" class="btn btn-primary me-sm-3 me-1">
@@ -349,7 +351,7 @@
     <form hidden>
         <input type="hidden" id="ul_user_id" value="none">
     </form>
-    {% include 'panel/users/modal-user.html' %}
+    {% include 'accounts/profiles/modal-profile.html' %}
     <!-- modals -->
 {% endblock %}
 
@@ -421,54 +423,8 @@
     </script>
     
     <script>
-        function change_user_id_and_get_user_data(user_id) {
+        function change_user_id(user_id) {
             document.getElementById('ul_user_id').value=user_id
-            get_user_data(user_id)
-        }
-        
-        function get_user_data(user_id) {
-            const user_modal_container_innerHTML = document.getElementById('user_modal_container').innerHTML
-            const user_modal_container = document.getElementById('user_modal_container')
-                
-            const loading_text = 'در حال بارگذاری ...'
-            const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
-                                      <span class="visually-hidden">${loading_text}</span>
-                                    </div>`
-            const formData = new FormData();
-            formData.append('user_id', `${user_id}`)
-            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
-            const options = {
-                method: 'POST',
-                body: formData,
-            }
-            user_modal_container.innerHTML=loading_html
-            fetch('{% url 'panel:requested-product-processing-overall-data' %}', options)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log(data)
-                    customer_modal_container.innerHTML=`{% include 'panel/cartable/modal_customer.html' %}`
-                    product_modal_container.innerHTML=`{% include 'panel/cartable/modal_product.html' %}`
-                    reports_modal_container.innerHTML=`{% include 'panel/cartable/modal_reports.html' %}`
-                    cl_customer_phone_number.value=`${data['data']['customer_phone_number']}`
-                    cl_product_name.value=`${data['data']['product_name']}`
-                    cl_product_link.value=`${data['data']['product_link']}`
-                    
-                    const mc_customer_phone_number = document.getElementById('mc_customer_phone_number')
-                    const mc_product_name = document.getElementById('mc_product_name')
-                    mc_customer_phone_number.innerText=`شماره همراه مشتری: ${data['data']['customer_phone_number']}`
-                    mc_product_name.innerText=`نام محصول: ${data['data']['product_name']}`
-                    mc_product_name.href=`${data['data']['product_link']}`
-                    mc_product_name.target='_blank'
-                    
-                })
-                .catch(error => {
-                    console.log(error)
-                });
         }
     </script>
 {% endblock %}
