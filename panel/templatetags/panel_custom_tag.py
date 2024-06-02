@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models import Q
 
 from accounts.models import Role, Permission, Section, Profile
-from portal.models import Product, TeaserMaker, ResellerNetwork, Receiver, AdvertiseContent, ForwardToPortal, \
+from resource.models import Product, TeaserMaker, ResellerNetwork, Receiver, AdvertiseContent, ForwardToPortal, \
     CommunicationChannel, Registrar
 
 register = template.Library()

@@ -1,0 +1,55 @@
+{% load panel_custom_tag %}
+{% load account_custom_tag %}
+{% load static %}
+
+<form id="fc_form_customer_data">
+    {% csrf_token %}
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fc_form_customer_data_phone_number">شماره تماس</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fc_form_customer_data_phone_number" class="form-control"
+                   name="fc_form_customer_data_phone_number">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fc_form_customer_data_full_name">نام کامل</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fc_form_customer_data_full_name" class="form-control"
+                   name="fc_form_customer_data_full_name">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fc_form_customer_data_age">تاریخ تولد</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fc_form_customer_data_age" class="form-control"
+                   name="fc_form_customer_data_age">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fc_form_customer_data_address">آدرس</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fc_form_customer_data_address" class="form-control"
+                   name="fc_form_customer_data_address">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="select2Multiple" class="form-label">محصولات مورد علاقه</label>
+        <select id="select2Multiple" name="fc_form_customer_data_desired_product"
+                class="select2 form-select" multiple disabled readonly>
+            <option selected value="">محصول مورد علاقه وجود ندارد</option>    
+        </select>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fc_form_customer_data_created_at">تاریخ عضویت</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fc_form_customer_data_created_at" class="form-control"
+                   name="fc_form_customer_data_created_at" disabled readonly>
+        </div>
+    </div>
+    {% if request|has_access_to_section:'modify,customer' %}
+    <div class="col-sm-12 mt-3">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+            aria-label="Close" onclick="set_customer_data()">ویرایش</button>
+    </div>
+    {% endif %}
+</form>

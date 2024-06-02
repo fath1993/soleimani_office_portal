@@ -46,7 +46,7 @@
             method: 'POST',
             body: formData,
         }
-        fetch('{% url 'panel:requested-product-processing-confirm-sale' %}', options)
+        fetch('{% url 'automation:requested-product-processing-confirm-sale' %}', options)
             .then(response => {
                 document.getElementById('msa_message').value=''
                 if (!response.ok) {

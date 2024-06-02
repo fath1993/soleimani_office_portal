@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     'custom_logs',
     'accounts',
     'gallery',
-    'portal',
+    'resource',
     'panel',
     'tickets',
     'automation',

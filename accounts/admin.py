@@ -1,8 +1,6 @@
 from django.contrib import admin
-from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 
-from accounts.models import Profile, Permission, Role, UserNotification, SellerProfile, Section, SECTIONS, \
-    create_permissions, create_sections, create_roles, update_sections, update_permissions, DeliveryProfile, \
+from accounts.models import Profile, Role, UserNotification, SellerProfile, DeliveryProfile, \
     WarehouseProfile
 
 

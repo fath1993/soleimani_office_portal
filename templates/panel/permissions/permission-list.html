@@ -31,7 +31,7 @@
             </h5>
             <div class="card-body">
                 <div class="row">
-                    <form method="get" action="{% url 'panel:permission-filter' %}">
+                    <form method="get" action="{% url 'accounts:permission-filter' %}">
                         <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="search">جستجو</label>
                             <div class="input-group">
@@ -64,7 +64,7 @@
                         </div>
                         <div class="offcanvas-body flex-grow-1">
                             <form class="add-new-record pt-0 row g-2" method="post"
-                                  action="{% url 'panel:permission-list' %}">
+                                  action="{% url 'accounts:permission-list' %}">
                                 {% csrf_token %}
                                 <div class="col-sm-12">
                                     <label class="form-label" for="first_name">عنوان</label>
@@ -144,7 +144,7 @@
                             <tr>
                                 <td>{{ forloop.counter }}</td>
                                 <td>
-                                    <strong><a href="{% url 'panel:permission-detail-with-id' permission_id=permission.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+                                    <strong><a href="{% url 'accounts:permission-detail-with-id' permission_id=permission.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
                                                target="_self">{{ permission.title }}</a></strong>
                                 </td>
                                 <td>{{ permission.has_access_to_section }}</td>
@@ -162,7 +162,7 @@
                                             <div class="dropdown-menu">
                                                 {% if request.user|permission_section_is_allowed:'modify' %}
                                                     <a class="dropdown-item" href="
-                                                            {% url 'panel:permission-modify-with-id' permission_id=permission.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"><i
+                                                            {% url 'accounts:permission-modify-with-id' permission_id=permission.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"><i
                                                             class="bx bx-edit-alt me-1"></i> ویرایش</a>
                                                 {% endif %}
                                                 {% if request.user|permission_section_is_allowed:'delete' %}
@@ -185,7 +185,7 @@
                                                             </div>
                                                             <h6>آیا از حذف مجوز <strong class="bg-warning">{{ permission.title }}</strong> مطمئن هستید؟</h6>
                                                             <form class="row g-3 mt-3" method="post" action="
-                                                                    {% url 'panel:permission-delete-with-id' permission_id=permission.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                                    {% url 'accounts:permission-delete-with-id' permission_id=permission.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
                                                                 {% csrf_token %}
                                                                 <div class="col-12">
                                                                     <button type="submit"
@@ -321,7 +321,7 @@
                     title: '<b>ساخت کاربر جدید ممکن نیست</b>',
                     icon: 'info',
                     html:
-                        `نقش و مجوز فعالی ندارید. جهت ایجاد کاربر جدید ابتدا <a href="{% url 'panel:role-list' %} ">نقش جدید</a> ایجاد نمایید`,
+                        `نقش و مجوز فعالی ندارید. جهت ایجاد کاربر جدید ابتدا <a href="{% url 'accounts:role-list' %} ">نقش جدید</a> ایجاد نمایید`,
                     showCloseButton: true,
                     showCancelButton: false,
                     focusConfirm: false,

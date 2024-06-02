@@ -32,7 +32,7 @@
             </h5>
             <div class="card-body">
                 <div class="row">
-                    <form method="get" action="{% url 'panel:role-filter' %}">
+                    <form method="get" action="{% url 'account:role-filter' %}">
                         <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="search">جستجو</label>
                             <div class="input-group">
@@ -235,7 +235,7 @@
                             <tr>
                                 <td>{{ forloop.counter }}</td>
                                 <td>
-                                    <strong><a href="{% url 'panel:role-detail-with-id' role_id=role.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" target="_self">{{ role.title }}</a></strong>
+                                    <strong><a href="{% url 'account:role-detail-with-id' role_id=role.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" target="_self">{{ role.title }}</a></strong>
                                 </td>
                                 <td>
                                     {% for permission in role.permissions.all %}
@@ -252,7 +252,7 @@
                                         </button>
                                         <div class="dropdown-menu">
                                             {% if request|has_access_to_section:'modify,role' %}
-                                            <a class="dropdown-item" href="{% url 'panel:role-modify-with-id' role_id=role.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"><i
+                                            <a class="dropdown-item" href="{% url 'account:role-modify-with-id' role_id=role.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"><i
                                                     class="bx bx-edit-alt me-1"></i> ویرایش</a>
                                             {% endif %}
                                             {% if request|has_access_to_section:'delete,role' %}
@@ -271,7 +271,7 @@
                                                         <h3 class="mb-4 secondary-font">تایید حذف</h3>
                                                     </div>
                                                     <h6>آیا از حذف نقش <strong class="bg-warning">{{ role.title }}</strong> مطمئن هستید؟</h6>
-                                                    <form class="row g-3 mt-3" method="post" action="{% url 'panel:role-delete-with-id' role_id=role.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                    <form class="row g-3 mt-3" method="post" action="{% url 'account:role-delete-with-id' role_id=role.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
                                                         {% csrf_token %}
                                                         <div class="col-12">
                                                             <button type="submit" class="btn btn-primary me-sm-3 me-1">
@@ -402,7 +402,7 @@
                     title: '<b>ساخت کاربر جدید ممکن نیست</b>',
                     icon: 'info',
                     html:
-                        `نقش و مجوز فعالی ندارید. جهت ایجاد کاربر جدید ابتدا <a href="{% url 'panel:role-list' %} ">نقش جدید</a> ایجاد نمایید`,
+                        `نقش و مجوز فعالی ندارید. جهت ایجاد کاربر جدید ابتدا <a href="{% url 'account:role-list' %} ">نقش جدید</a> ایجاد نمایید`,
                     showCloseButton: true,
                     showCancelButton: false,
                     focusConfirm: false,

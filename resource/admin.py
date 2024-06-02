@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from portal.models import Product, Registrar, ForwardToPortal, CommunicationChannel, TeaserMaker, ResellerNetwork, \
+from resource.models import Product, Registrar, ForwardToPortal, CommunicationChannel, TeaserMaker, ResellerNetwork, \
     Receiver, AdvertiseContent, ProductWarehouse
 
 
@@ -133,9 +133,52 @@ class ReceiverAdmin(admin.ModelAdmin):
         return instance
 
 
+@admin.register(Registrar)
+class RegistrarAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'registrar_type',
+        'code',
+        'created_at',
+        'created_by',
+
+        'is_active',
+    )
+
+    readonly_fields = (
+        'created_at',
+        'updated_at',
+        'created_by',
+        'updated_by',
+    )
+
+    fields = (
+        'name',
+        'registrar_type',
+        'code',
+        'created_at',
+        'updated_at',
+        'created_by',
+        'updated_by',
+
+        'is_active',
+    )
+
+    def save_model(self, request, instance, form, change):
+        user = request.user
+        instance = form.save(commit=False)
+        if not change:
+            instance.created_by = user
+            instance.updated_by = user
+        else:
+            instance.updated_by = user
+        instance.save()
+        form.save_m2m()
+        return instance
+
+
 admin.site.register(TeaserMaker)
 admin.site.register(ResellerNetwork)
 admin.site.register(AdvertiseContent)
 admin.site.register(ForwardToPortal)
 admin.site.register(CommunicationChannel)
-admin.site.register(Registrar)

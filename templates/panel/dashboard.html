@@ -22,7 +22,7 @@
                             <h1 class="display-6 text-primary mb-2 pt-3 pb-2">ثبت محصول</h1>
                             <small class="d-block mb-3 lh-1-85">اینجا میتونی منابع شرکت رو مدیریت کنی</small>
 
-                            <a href="{% url 'panel:product-list' %}" class="btn btn-sm btn-primary">ادامه</a>
+                            <a href="{% url 'resource:product-list' %}" class="btn btn-sm btn-primary">ادامه</a>
                         </div>
                         <div class="col-6 text-end">
                             <img src="{% static 'assets/img/illustrations/prize-light.png' %}" width="140"
@@ -38,7 +38,7 @@
 
         <!-- Multi Radial Chart -->
         <div class="col-lg-4 col-md-6 col-12 mb-4">
-            <div class="card h-100" style="cursor: pointer" onclick="window.open('{% url 'panel:permission-list' %}', '_self')">
+            <div class="card h-100" style="cursor: pointer" onclick="window.open('{% url 'accounts:permission-list' %}', '_self')">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h2 class="card-title mb-0 text-center">برای شبکه سازی</h2>
                 </div>
@@ -55,7 +55,7 @@
             <div class="row">
                 <!-- Statistics Cards -->
                 <div class="col-6 col-md-3 col-lg-6 mb-4">
-                    <div class="card h-100" style="cursor: pointer" onclick="window.open('{% url 'panel:product-list' %}', '_self')">
+                    <div class="card h-100" style="cursor: pointer" onclick="window.open('{% url 'resource:product-list' %}', '_self')">
                         <div class="card-body text-center">
                             <div class="avatar mx-auto mb-2">
                                 <span class="avatar-initial rounded-circle bg-label-success"><i
@@ -67,7 +67,7 @@
                     </div>
                 </div>
                 <div class="col-6 col-md-3 col-lg-6 mb-4">
-                    <div class="card h-100" style="cursor: pointer" onclick="window.open('{% url 'panel:teaser-maker-list' %}', '_self')">
+                    <div class="card h-100" style="cursor: pointer" onclick="window.open('{% url 'resource:teaser-maker-list' %}', '_self')">
                         <div class="card-body text-center">
                             <div class="avatar mx-auto mb-2">
                                 <span class="avatar-initial rounded-circle bg-label-danger"><i
@@ -81,7 +81,7 @@
                 <!--/ Statistics Cards -->
                 <!-- Revenue Growth Chart -->
                 <div class="col-12 col-md-6 col-lg-12 mb-4">
-                    <div class="card" style="cursor: pointer" onclick="window.open('{% url 'panel:communication-channel-list' %}', '_self')">
+                    <div class="card" style="cursor: pointer" onclick="window.open('{% url 'resource:communication-channel-list' %}', '_self')">
                         <div class="card-header d-flex justify-content-between align-items-center pb-0">
                             <h5 class="card-title mb-0">کانال های ارتباطی</h5>
                         </div>

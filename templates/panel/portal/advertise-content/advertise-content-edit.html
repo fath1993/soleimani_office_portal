@@ -16,7 +16,7 @@
             <div class="card-body">
                 <h4 class="card-header">ویرایش تیزر ساز <span class="text-info">{{ teaser_maker.name }}</span> با شناسه یکتای <span class="text-info">{{ teaser_maker.id }}</span></h4>
                 <form class="add-new-record pt-0 row g-2" method="post" enctype="multipart/form-data"
-                      action="{% url 'panel:teaser-maker-modify-with-id' teaser_maker_id=teaser_maker.id %}{% if get_params %}?{{ get_params }}{% endif %}">
+                      action="{% url 'resource:teaser-maker-modify-with-id' teaser_maker_id=teaser_maker.id %}{% if get_params %}?{{ get_params }}{% endif %}">
                     {% csrf_token %}
                     <div class="col-sm-12 col-md-12 col-lg-12">
                         <label class="form-label" for="name">نام</label>
@@ -105,7 +105,7 @@
                     </div>
                     <div class="col-sm-12">
                         <button type="submit" class="btn btn-primary data-submit me-sm-3 me-1">ویرایش</button>
-                        <a href="{% url 'panel:teaser-maker-detail-with-id' teaser_maker_id=teaser_maker.id %}{% if get_params %}?{{ get_params }}{% endif %}" class="btn btn-outline-secondary">
+                        <a href="{% url 'resource:teaser-maker-detail-with-id' teaser_maker_id=teaser_maker.id %}{% if get_params %}?{{ get_params }}{% endif %}" class="btn btn-outline-secondary">
                             انصراف
                         </a>
                     </div>

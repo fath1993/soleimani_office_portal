@@ -565,3 +565,377 @@ class ProfileView:
             return redirect(reverse('accounts:profile-list') + f'?{request.GET.urlencode()}')
         except:
             return render(request, 'panel/err/err-not-found.html')
+
+
+class PermissionView:
+    def __init__(self):
+        super().__init__()
+
+    @CheckLogin()
+    @CheckPermissions(section='permission', allowed_actions='read')
+    def list(self, request, *args, **kwargs):
+        context = {'page_title': 'لیست مجوز ها', 'get_params': request.GET.urlencode()}
+        search = request.GET.get('search')
+        if search:
+            context = {'page_title': f'لیست مجوز ها شامل *{search}*', 'get_params': request.GET.urlencode()}
+
+        q = Q()
+        if search:
+            q &= (
+                Q(**{'title__icontains': search})
+            )
+
+        permissions = Permission.objects.filter(q).order_by('id')
+        context['permissions'] = permissions
+
+        items_per_page = 50
+        paginator = Paginator(permissions, items_per_page)
+        page_number = request.GET.get('page')
+        page = paginator.get_page(page_number)
+        context['page'] = page
+
+        return render(request, 'panel/permissions/permission-list.html', context)
+
+    @CheckLogin()
+    @CheckPermissions(section='permission', allowed_actions='read')
+    def detail(self, request, permission_id, *args, **kwargs):
+        try:
+            permission = Permission.objects.get(id=permission_id)
+            context = {'page_title': f'اطلاعات مجوز *{permission.title}*',
+                       'permission': permission, 'get_params': request.GET.urlencode()}
+            return render(request, 'panel/permissions/permission-detail.html', context)
+        except:
+            return render(request, 'panel/err/err-not-found.html')
+
+    @CheckLogin()
+    @CheckPermissions(section='permission', allowed_actions='read')
+    def filter(self, request, *args, **kwargs):
+        search = request.GET.get('search')
+        context = {'page_title': f'لیست مجوز ها شامل *{search}*', 'get_params': request.GET.urlencode()}
+
+        q = Q()
+        if search:
+            q &= (
+                Q(**{'title__icontains': search})
+            )
+        permissions = Permission.objects.filter(q).order_by('id')
+        context['permissions'] = permissions
+
+        items_per_page = 50
+        paginator = Paginator(permissions, items_per_page)
+        page_number = request.GET.get('page')
+        page = paginator.get_page(page_number)
+        context['page'] = page
+
+        return render(request, 'panel/permissions/permission-list.html', context)
+
+    @CheckLogin()
+    @CheckPermissions(section='permission', allowed_actions='create')
+    def create(self, request, *args, **kwargs):
+        context = {'page_title': 'ساخت مجوز جدید', 'get_params': request.GET.urlencode()}
+
+        title = fetch_data_from_http_post(request, 'first_name', context)
+        has_access_to_section = fetch_data_from_http_post(request, 'last_name', context)
+        read = fetch_data_from_http_post(request, 'national_code', context)
+        create = fetch_data_from_http_post(request, 'email', context)
+        modify = fetch_data_from_http_post(request, 'mobile_phone_number', context)
+        delete = fetch_data_from_http_post(request, 'landline', context)
+
+        if not title:
+            context['err'] = 'عنوان بدرستی وارد نشده است'
+            return render(request, 'panel/permissions/permission-list.html', context)
+        if not has_access_to_section:
+            context['err'] = 'بخش دسترسی بدرستی وارد نشده است'
+            return render(request, 'panel/permissions/permission-list.html', context)
+        if read == 'true':
+            read = True
+        else:
+            read = False
+        if create == 'true':
+            create = True
+        else:
+            create = False
+        if modify == 'true':
+            modify = True
+        else:
+            modify = False
+        if delete == 'true':
+            delete = True
+        else:
+            delete = False
+
+        try:
+            User.objects.get(title=title)
+            context['err'] = 'مجوز از قبل موجود است'
+        except:
+            Permission.objects.create(
+                title=title,
+                has_access_to_section=has_access_to_section,
+                read=read,
+                create=create,
+                modify=modify,
+                delete=delete,
+            )
+            context['message'] = f'مجوز با عنوان {title} ایجاد گردید'
+
+        return redirect('accounts:permission-list')
+
+    @CheckLogin()
+    @CheckPermissions(section='permission', allowed_actions='modify')
+    def modify(self, request, permission_id, *args, **kwargs):
+        try:
+            permission = Permission.objects.get(id=permission_id)
+            context = {'page_title': f'ویرایش اطلاعات مجوز *{permission.title}*',
+                       'permission': permission, 'get_params': request.GET.urlencode()}
+            if request.method == 'GET':
+                return render(request, 'panel/permissions/permission-edit.html', context)
+            else:
+                title = fetch_data_from_http_post(request, 'first_name', context)
+                has_access_to_section = fetch_data_from_http_post(request, 'last_name', context)
+                read = fetch_data_from_http_post(request, 'national_code', context)
+                create = fetch_data_from_http_post(request, 'email', context)
+                modify = fetch_data_from_http_post(request, 'mobile_phone_number', context)
+                delete = fetch_data_from_http_post(request, 'landline', context)
+
+                if not title:
+                    context['err'] = 'عنوان بدرستی وارد نشده است'
+                    return render(request, 'panel/permissions/permission-edit.html', context)
+                if not has_access_to_section:
+                    context['err'] = 'بخش دسترسی بدرستی وارد نشده است'
+                    return render(request, 'panel/permissions/permission-edit.html', context)
+                if read == 'true':
+                    read = True
+                else:
+                    read = False
+                if create == 'true':
+                    create = True
+                else:
+                    create = False
+                if modify == 'true':
+                    modify = True
+                else:
+                    modify = False
+                if delete == 'true':
+                    delete = True
+                else:
+                    delete = False
+
+                if title:
+                    permission.title = title
+                if has_access_to_section:
+                    permission.has_access_to_section = has_access_to_section
+
+                if read:
+                    permission.read = read
+                if create:
+                    permission.create = create
+                if modify:
+                    permission.modify = modify
+                if delete:
+                    permission.delete = delete
+
+                permission.save()
+                context['message'] = f'مجوز با عنوان {title} ویرایش گردید'
+                return redirect(
+                    reverse('accounts:permission-modify-with-id',
+                            kwargs={'permission_id': permission_id}) + f'?{request.GET.urlencode()}')
+        except:
+            return render(request, 'panel/err/err-not-found.html')
+
+    @CheckLogin()
+    @CheckPermissions(section='permission', allowed_actions='delete')
+    def delete(self, request, permission_id, *args, **kwargs):
+        try:
+            permission = Permission.objects.get(id=permission_id)
+            context = {'page_title': f'حذف مجوز {permission.title}', 'get_params': request.GET.urlencode()}
+            permission.delete()
+            return redirect(reverse('accounts:permission-list') + f'?{request.GET.urlencode()}')
+        except:
+            return render(request, 'panel/err/err-not-found.html')
+
+
+class RoleView:
+    def __init__(self):
+        super().__init__()
+
+    @CheckLogin()
+    @CheckPermissions(section='role', allowed_actions='read')
+    def list(self, request, *args, **kwargs):
+        context = {'page_title': 'لیست نقش ها', 'get_params': request.GET.urlencode()}
+        search = request.GET.get('search')
+        if search:
+            context = {'page_title': f'لیست نقش ها شامل *{search}*', 'get_params': request.GET.urlencode()}
+
+        q = Q()
+        if search:
+            q &= (
+                Q(**{'title__icontains': search})
+            )
+
+        roles = Role.objects.filter(q).order_by('id')
+        context['roles'] = roles
+
+        items_per_page = 50
+        paginator = Paginator(roles, items_per_page)
+        page_number = request.GET.get('page')
+        page = paginator.get_page(page_number)
+        context['page'] = page
+
+        return render(request, 'panel/roles/role-list.html', context)
+
+    @CheckLogin()
+    @CheckPermissions(section='role', allowed_actions='read')
+    def detail(self, request, role_id, *args, **kwargs):
+        try:
+            role = Role.objects.get(id=role_id)
+            context = {'page_title': f'اطلاعات نقش *{role.title}*',
+                       'role': role, 'get_params': request.GET.urlencode()}
+            return render(request, 'panel/roles/role-detail.html', context)
+        except:
+            return render(request, 'panel/err/err-not-found.html')
+
+    @CheckLogin()
+    @CheckPermissions(section='role', allowed_actions='read')
+    def filter(self, request, *args, **kwargs):
+        search = request.GET.get('search')
+        context = {'page_title': f'لیست نقش ها شامل *{search}*', 'get_params': request.GET.urlencode()}
+
+        q = Q()
+        if search:
+            q &= (
+                Q(**{'title__icontains': search})
+            )
+        roles = Role.objects.filter(q).order_by('id')
+        context['roles'] = roles
+
+        items_per_page = 50
+        paginator = Paginator(roles, items_per_page)
+        page_number = request.GET.get('page')
+        page = paginator.get_page(page_number)
+        context['page'] = page
+
+        return render(request, 'panel/roles/role-list.html', context)
+
+    @CheckLogin()
+    @CheckPermissions(section='role', allowed_actions='create')
+    def create(self, request, *args, **kwargs):
+        context = {'page_title': 'ساخت نقش جدید', 'get_params': request.GET.urlencode()}
+
+        title = fetch_data_from_http_post(request, 'first_name', context)
+        has_access_to_section = fetch_data_from_http_post(request, 'last_name', context)
+        read = fetch_data_from_http_post(request, 'national_code', context)
+        create = fetch_data_from_http_post(request, 'email', context)
+        modify = fetch_data_from_http_post(request, 'mobile_phone_number', context)
+        delete = fetch_data_from_http_post(request, 'landline', context)
+
+        if not title:
+            context['err'] = 'عنوان بدرستی وارد نشده است'
+            return render(request, 'panel/permissions/permission-list.html', context)
+        if not has_access_to_section:
+            context['err'] = 'بخش دسترسی بدرستی وارد نشده است'
+            return render(request, 'panel/permissions/permission-list.html', context)
+        if read == 'true':
+            read = True
+        else:
+            read = False
+        if create == 'true':
+            create = True
+        else:
+            create = False
+        if modify == 'true':
+            modify = True
+        else:
+            modify = False
+        if delete == 'true':
+            delete = True
+        else:
+            delete = False
+
+        try:
+            User.objects.get(title=title)
+            context['err'] = 'مجوز از قبل موجود است'
+        except:
+            Permission.objects.create(
+                title=title,
+                has_access_to_section=has_access_to_section,
+                read=read,
+                create=create,
+                modify=modify,
+                delete=delete,
+            )
+            context['message'] = f'مجوز با عنوان {title} ایجاد گردید'
+
+        return redirect('accounts:role-list')
+
+    @CheckLogin()
+    @CheckPermissions(section='role', allowed_actions='modify')
+    def modify(self, request, role_id, *args, **kwargs):
+        try:
+            role = Role.objects.get(id=role_id)
+            context = {'page_title': f'ویرایش اطلاعات نقش *{role.title}*',
+                       'permission': role, 'get_params': request.GET.urlencode()}
+            if request.method == 'GET':
+                return render(request, 'panel/roles/role-edit.html', context)
+            else:
+                title = fetch_data_from_http_post(request, 'first_name', context)
+                has_access_to_section = fetch_data_from_http_post(request, 'last_name', context)
+                read = fetch_data_from_http_post(request, 'national_code', context)
+                create = fetch_data_from_http_post(request, 'email', context)
+                modify = fetch_data_from_http_post(request, 'mobile_phone_number', context)
+                delete = fetch_data_from_http_post(request, 'landline', context)
+
+                if not title:
+                    context['err'] = 'عنوان بدرستی وارد نشده است'
+                    return render(request, 'panel/permissions/permission-edit.html', context)
+                if not has_access_to_section:
+                    context['err'] = 'بخش دسترسی بدرستی وارد نشده است'
+                    return render(request, 'panel/permissions/permission-edit.html', context)
+                if read == 'true':
+                    read = True
+                else:
+                    read = False
+                if create == 'true':
+                    create = True
+                else:
+                    create = False
+                if modify == 'true':
+                    modify = True
+                else:
+                    modify = False
+                if delete == 'true':
+                    delete = True
+                else:
+                    delete = False
+
+                if title:
+                    role.title = title
+                if has_access_to_section:
+                    role.has_access_to_section = has_access_to_section
+
+                if read:
+                    role.read = read
+                if create:
+                    role.create = create
+                if modify:
+                    role.modify = modify
+                if delete:
+                    role.delete = delete
+
+                role.save()
+                context['message'] = f'مجوز با عنوان {title} ویرایش گردید'
+                return redirect(
+                    reverse('accounts:role-modify-with-id',
+                            kwargs={'role_id': role_id}) + f'?{request.GET.urlencode()}')
+        except:
+            return render(request, 'panel/err/err-not-found.html')
+
+    @CheckLogin()
+    @CheckPermissions(section='role', allowed_actions='delete')
+    def delete(self, request, role_id, *args, **kwargs):
+        try:
+            role = Role.objects.get(id=role_id)
+            context = {'page_title': f'حذف نقش {role.title}', 'get_params': request.GET.urlencode()}
+            role.delete()
+            return redirect(reverse('accounts:role-list') + f'?{request.GET.urlencode()}')
+        except:
+            return render(request, 'panel/err/err-not-found.html')

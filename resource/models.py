@@ -23,7 +23,7 @@ ADVERTISE_CONTENT_TYPE = (('محتوای ویدیویی تلویزیون', 'مح
                           ('محتوای صوتی (نریشن)', 'محتوای صوتی (نریشن)'),)
 
 COMMUNICATION_CHANNEL_TYPE = (('سامانه پیامکی', 'سامانه پیامکی'), ('ربات تلگرام', 'ربات تلگرام'),)
-REGISTER_TYPE = (('تخصیص دستی', 'تخصیص دستی'), ('تخصیص خودکار', 'تخصیص خودکار'),
+REGISTRAR_TYPE = (('تخصیص دستی', 'تخصیص دستی'), ('تخصیص خودکار', 'تخصیص خودکار'),
                  ('تخصیص خودکار بر اساس عملکرد', 'تخصیص خودکار بر اساس عملکرد'),)
 
 
@@ -293,7 +293,7 @@ class CommunicationChannel(models.Model):
 
 class Registrar(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False, verbose_name='نام')
-    register_type = models.CharField(max_length=255, choices=REGISTER_TYPE, default='تخصیص دستی',
+    registrar_type = models.CharField(max_length=255, choices=REGISTRAR_TYPE, default='تخصیص دستی',
                                      null=False,
                                      blank=False,
                                      verbose_name='نوع تخصیص')
@@ -312,7 +312,7 @@ class Registrar(models.Model):
         return f'name: {self.name} | code: {self.code}'
 
     class Meta:
-        ordering = ['created_at', ]
+        ordering = ['-created_at', ]
         verbose_name = 'تخصیص دهنده'
         verbose_name_plural = 'تخصیص دهنده ها'
 

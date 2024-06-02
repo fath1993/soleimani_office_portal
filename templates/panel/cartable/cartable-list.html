@@ -29,7 +29,7 @@
             </h5>
             <div class="card-body">
                 <div class="row">
-                    <form method="get" action="{% url 'panel:requested-product-processing-filter' %}">
+                    <form method="get" action="{% url 'automation:requested-product-processing-filter' %}">
                         <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="search">جستجو <span
                                     class="text-muted">(شماره سفارش،محصول،مشتری)</span></label>
@@ -42,7 +42,7 @@
                     </form>
                 </div>
                 <div class="row">
-                    <form method="get" action="{% url 'panel:requested-product-processing-filter' %}">
+                    <form method="get" action="{% url 'automation:requested-product-processing-filter' %}">
                         <div class="row">
                             <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
                                 <label for="defaultSelect" class="form-label">واحد پردازش کننده</label>
@@ -88,7 +88,7 @@
                         <div class="mt-3">
                             <button type="submit" class="btn btn-outline-secondary"><i class="fa fa-search"> فیلتر</i>
                             </button>
-                            <a href="{% url 'panel:requested-product-processing-filter' %}" target="_self" class="btn btn-outline-gray"><i
+                            <a href="{% url 'automation:requested-product-processing-filter' %}" target="_self" class="btn btn-outline-gray"><i
                                     class="fa fa-refresh"> ریست</i></a>
                         </div>
                     </form>
@@ -319,7 +319,7 @@
             customer_modal_container.innerHTML=loading_html
             product_modal_container.innerHTML=loading_html
             reports_modal_container.innerHTML=loading_html
-            fetch('{% url 'panel:requested-product-processing-overall-data' %}', options)
+            fetch('{% url 'automation:requested-product-processing-overall-data' %}', options)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');

@@ -1,0 +1,71 @@
+{% load panel_custom_tag %}
+{% load account_custom_tag %}
+{% load static %}
+
+<form id="fcc_form_credit_card_data">
+    {% csrf_token %}
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fcc_form_credit_card_data_bank_name">نام بانک</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fcc_form_credit_card_data_bank_name" class="form-control"
+                   name="fcc_form_credit_card_data_bank_name">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fcc_form_credit_card_data_account_number">شماره حساب</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fcc_form_credit_card_data_account_number" class="form-control"
+                   name="fcc_form_credit_card_data_account_number">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fcc_form_credit_card_data_card_number">شماره کارت</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fcc_form_credit_card_data_card_number" class="form-control"
+                   name="fcc_form_credit_card_data_card_number">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fcc_form_credit_card_data_isbn">شماره شبا</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fcc_form_credit_card_data_isbn" class="form-control"
+                   name="fcc_form_credit_card_data_isbn">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="select2Basic" class="form-label">دارنده حساب</label>
+        <select id="select2Basic" name="fcc_form_credit_card_data_owner_id"
+                class="select2 form-select" required>
+            {% for profile in request|profile_list %}
+            <option {% if owner_id == profile.id %} selected {% endif %} value="{{ profile.id }}">
+                {{ profile.user.username }}</option>
+            {% empty %}
+            <option selected value="">کاربر قابل انتخاب وجود ندارد</option>    
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="select2Multiple" class="form-label">کارگزاران حساب</label>
+        <select id="select2Multiple" name="fcc_form_credit_card_data_brokers"
+                class="select2 form-select" multiple>
+            {% for profile in request|profile_list %}
+                <option {% if owner_id == profile.id %} selected {% endif %} value="{{ profile.id }}">{{ profile.user.username }}</option>
+            {% empty %}
+            <option selected value="">کارگزار قابل انتخاب وجود ندارد</option>    
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-3">
+        <div class="form-check form-check-primary mt-3">
+            <input class="form-check-input" type="checkbox" value="true" id="fcc_form_credit_card_data_is_active" name="fcc_form_credit_card_data_is_active"
+                   checked>
+            <label class="form-check-label" for="fcc_form_credit_card_data_is_active">فعال</label>
+        </div>
+    </div>
+    {% if request|has_access_to_section:'modify,credit_card' %}
+    <div class="col-sm-12">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+            aria-label="Close" onclick="set_credit_card_data()">ویرایش</button>
+    </div>
+    {% endif %}
+</form>

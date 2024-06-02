@@ -65,7 +65,7 @@
         sales_status.innerHTML=loading_html
         warehouse_status.innerHTML=loading_html
         delivery_status.innerHTML=loading_html
-        fetch('{% url 'panel:requested-product-processing-reopen-sale' %}', options)
+        fetch('{% url 'automation:requested-product-processing-reopen-sale' %}', options)
             .then(response => {
                 document.getElementById('msa_message').value=''
                 if (!response.ok) {

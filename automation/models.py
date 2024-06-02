@@ -7,7 +7,7 @@ from django.db import models
 from django_jalali.db import models as jmodel
 
 from accounts.models import SellerProfile, WarehouseProfile, DeliveryProfile, Profile
-from portal.models import Product, Receiver
+from resource.models import Product, Receiver
 
 REQUESTED_PRODUCT_PROCESSING_IN_DEPARTMENT_STATUS = (('sale', 'فروش'), ('warehouse', 'انبار'),
                                                      ('delivery', 'ارسال'))

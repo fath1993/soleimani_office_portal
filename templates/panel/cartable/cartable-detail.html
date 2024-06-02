@@ -121,14 +121,14 @@
                             <div class="d-flex justify-content-between pt-3">
                                 <div class="text-right">
                                     {% if request|has_access_to_section:'modify,product' %}
-                                        <a href="{% url 'panel:product-modify-with-id' product_id=product.id %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                        <a href="{% url 'resource:product-modify-with-id' product_id=product.id %}{% if get_params %}?{{ get_params }}{% endif %}"
                                            class="btn btn-primary me-3">ویرایش</a>
                                     {% endif %}
                                     {% if get_params %}
-                                        <a href="{% url 'panel:product-filter' %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                        <a href="{% url 'resource:product-filter' %}{% if get_params %}?{{ get_params }}{% endif %}"
                                                        class="btn btn-outline-gray me-3">بازگشت</a>
                                     {% else %}
-                                        <a href="{% url 'panel:product-list' %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                        <a href="{% url 'resource:product-list' %}{% if get_params %}?{{ get_params }}{% endif %}"
                                                class="btn btn-outline-gray me-3">بازگشت</a>
                                     {% endif %}
 
@@ -150,7 +150,7 @@
                                                                 class="bg-warning">{{ product.name }}</strong> مطمئن
                                                             هستید؟</h6>
                                                         <form class="row g-3 mt-3" method="post" action="
-                                                                {% url 'panel:product-delete-with-id' product_id=product.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                                {% url 'resource:product-delete-with-id' product_id=product.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
                                                             {% csrf_token %}
                                                             <div class="col-12">
                                                                 <button type="submit"

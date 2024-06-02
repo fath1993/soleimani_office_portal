@@ -63,7 +63,7 @@
         sales_status.innerHTML=loading_html
         warehouse_status.innerHTML=loading_html
         delivery_status.innerHTML=loading_html
-        fetch('{% url 'panel:requested-product-processing-change-warehouse-state' %}', options)
+        fetch('{% url 'automation:requested-product-processing-change-warehouse-state' %}', options)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');

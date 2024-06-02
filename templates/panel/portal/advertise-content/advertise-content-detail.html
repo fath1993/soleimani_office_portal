@@ -77,14 +77,14 @@
                             <div class="d-flex justify-content-between pt-3">
                                 <div class="text-right">
                                     {% if request|has_access_to_section:'modify,teaser_maker' %}
-                                        <a href="{% url 'panel:teaser-maker-modify-with-id' teaser_maker_id=teaser_maker.id %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                        <a href="{% url 'resource:teaser-maker-modify-with-id' teaser_maker_id=teaser_maker.id %}{% if get_params %}?{{ get_params }}{% endif %}"
                                            class="btn btn-primary me-3">ویرایش</a>
                                     {% endif %}
                                     {% if get_params %}
-                                        <a href="{% url 'panel:teaser-maker-filter' %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                        <a href="{% url 'resource:teaser-maker-filter' %}{% if get_params %}?{{ get_params }}{% endif %}"
                                                        class="btn btn-outline-gray me-3">بازگشت</a>
                                     {% else %}
-                                        <a href="{% url 'panel:teaser-maker-list' %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                        <a href="{% url 'resource:teaser-maker-list' %}{% if get_params %}?{{ get_params }}{% endif %}"
                                                class="btn btn-outline-gray me-3">بازگشت</a>
                                     {% endif %}
                                     
@@ -106,7 +106,7 @@
                                                                 class="bg-warning">{{ teaser_maker.name }}</strong> مطمئن
                                                             هستید؟</h6>
                                                         <form class="row g-3 mt-3" method="post" action="
-                                                                {% url 'panel:teaser-maker-delete-with-id' teaser_maker_id=teaser_maker.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                                {% url 'resource:teaser-maker-delete-with-id' teaser_maker_id=teaser_maker.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
                                                             {% csrf_token %}
                                                             <div class="col-12">
                                                                 <button type="submit"

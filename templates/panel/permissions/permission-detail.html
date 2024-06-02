@@ -47,10 +47,10 @@
                             <div class="d-flex justify-content-between pt-3">
                                 <div class="text-right">
                                     {% if request.user|permission_section_is_allowed:'modify' %}
-                                        <a href="{% url 'panel:permission-modify-with-id' permission_id=permission.id %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                        <a href="{% url 'accounts:permission-modify-with-id' permission_id=permission.id %}{% if get_params %}?{{ get_params }}{% endif %}"
                                            class="btn btn-primary me-3">ویرایش</a>
                                     {% endif %}
-                                    <a href="{% url 'panel:permission-list' %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                    <a href="{% url 'accounts:permission-list' %}{% if get_params %}?{{ get_params }}{% endif %}"
                                        class="btn btn-outline-gray me-3">بازگشت</a>
                                 </div>
                                 {% if request.user|permission_section_is_allowed:'delete' %}
@@ -67,7 +67,7 @@
                                                         <h3 class="mb-4 secondary-font">تایید حذف</h3>
                                                     </div>
                                                     <h6>آیا از حذف مجوز <strong class="bg-warning">{{ permission.title }}</strong> مطمئن هستید؟</h6>
-                                                    <form class="row g-3 mt-3" method="post" action="{% url 'panel:permission-delete-with-id' permission_id=permission.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                    <form class="row g-3 mt-3" method="post" action="{% url 'accounts:permission-delete-with-id' permission_id=permission.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
                                                         {% csrf_token %}
                                                         <div class="col-12">
                                                             <button type="submit" class="btn btn-primary me-sm-3 me-1">

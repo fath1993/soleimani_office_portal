@@ -32,7 +32,7 @@
             </h5>
             <div class="card-body">
                 <div class="row">
-                    <form method="get" action="{% url 'panel:product-filter' %}">
+                    <form method="get" action="{% url 'resource:product-filter' %}">
                         <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="search">جستجو <span class="text-muted">(نام, کد, شناسه)</span></label>
                             <div class="input-group">
@@ -44,7 +44,7 @@
                     </form>
                 </div>
                 <div class="row">
-                    <form method="get" action="{% url 'panel:product-filter' %}">
+                    <form method="get" action="{% url 'resource:product-filter' %}">
                         <div class="row">
                             <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
                                 <label for="defaultSelect" class="form-label">نوع محصول</label>
@@ -168,7 +168,7 @@
                         </div>
                         <div class="mt-3">
                             <button type="submit" class="btn btn-outline-secondary"><i class="fa fa-search"> فیلتر</i></button>
-                            <a href="{% url 'panel:product-filter' %}" target="_self" class="btn btn-outline-gray"><i class="fa fa-refresh"> ریست</i></a>
+                            <a href="{% url 'resource:product-filter' %}" target="_self" class="btn btn-outline-gray"><i class="fa fa-refresh"> ریست</i></a>
                         </div>
                     </form>
                 </div>
@@ -194,7 +194,7 @@
                         </div>
                         <div class="offcanvas-body flex-grow-1">
                             <form class="add-new-record pt-0 row g-2" method="post"
-                                  action="{% url 'panel:product-create' %}" enctype="multipart/form-data">
+                                  action="{% url 'resource:product-create' %}" enctype="multipart/form-data">
                                 {% csrf_token %}
                                 <div class="col-sm-12 col-md-12 col-lg-12">
                                     <label class="form-label" for="name">نام</label>
@@ -396,7 +396,7 @@
                             <tr>
                                 <td>{{ forloop.counter }}</td>
                                 <td>
-                                    <strong><a href="{% url 'panel:product-detail-with-id' product_id=product.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+                                    <strong><a href="{% url 'resource:product-detail-with-id' product_id=product.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
                                                target="_self">{{ product.name }}</a></strong>
                                 </td>
                                 <td>{{ product.type }}</td>
@@ -417,7 +417,7 @@
                                             </button>
                                             <div class="dropdown-menu">
                                                 {% if request|has_access_to_section:'modify,product' %}
-                                                    <a class="dropdown-item" href="{% url 'panel:product-modify-with-id' product_id=product.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"><i
+                                                    <a class="dropdown-item" href="{% url 'resource:product-modify-with-id' product_id=product.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"><i
                                                             class="bx bx-edit-alt me-1"></i> ویرایش</a>
                                                     <a id="product_is_active_change_btn_{{ forloop.counter }}" class="dropdown-item" href="javascript:void(0)" onclick="product_change_state('{{ product.id }}', '{{ forloop.counter }}')"><span>{% if product.is_active %}<i
                                                             class="bx bx-lock me-1"></i>غیر فعال{% else %}<i class="bx bx-lock-open me-1"></i>فعال{% endif %}</span></a>
@@ -442,7 +442,7 @@
                                                                 <h3 class="mb-4 secondary-font">تایید حذف</h3>
                                                             </div>
                                                             <h6>آیا از حذف محصول <strong class="bg-warning">{{ product.name }}</strong> مطمئن هستید؟</h6>
-                                                            <form class="row g-3 mt-3" method="post" action="{% url 'panel:product-delete-with-id' product_id=product.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                            <form class="row g-3 mt-3" method="post" action="{% url 'resource:product-delete-with-id' product_id=product.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
                                                                 {% csrf_token %}
                                                                 <div class="col-12">
                                                                     <button type="submit"
@@ -558,7 +558,7 @@
                 method: 'POST',
                 body: formData,
             }
-            fetch('{% url 'panel:product-change_state-with-id' product_id=0 %}'.replace('0', product_id).replace('amp;', ''), options)
+            fetch('{% url 'resource:product-change_state-with-id' product_id=0 %}'.replace('0', product_id).replace('amp;', ''), options)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');

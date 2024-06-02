@@ -70,7 +70,7 @@
             <ul class="menu-sub">
                 {% if request|has_access_to_section:'read,create,modify,delete,role' %}
                 <li id="role-list" class="menu-item">
-                    <a href="{% url 'panel:role-list' %}" class="menu-link">
+                    <a href="{% url 'accounts:role-list' %}" class="menu-link">
                         <div><span>نقش ها </span><span class="text-muted">({{ request|object_count:'role' }})</span></div>
                     </a>
                 </li>
@@ -93,7 +93,7 @@
             <ul class="menu-sub">
                 {% if request|has_access_to_section:'read,create,modify,delete,product' %}
                 <li id="product-list" class="menu-item">
-                    <a href="{% url 'panel:product-list' %}" class="menu-link">
+                    <a href="{% url 'resource:product-list' %}" class="menu-link">
                         <div><span>محصولات </span><span class="text-muted">({{ request|object_count:'product' }})</span></div>
                     </a>
                 </li>
@@ -101,7 +101,7 @@
             
                 {% if request|has_access_to_section:'read,create,modify,delete,teaser_maker' %}
                 <li id="teaser-maker-list" class="menu-item">
-                    <a href="{% url 'panel:teaser-maker-list' %}" class="menu-link">
+                    <a href="{% url 'resource:teaser-maker-list' %}" class="menu-link">
                         <div><span>تیزر ساز ها </span><span class="text-muted">({{ request|object_count:'teaser-maker' }})</span></div>
                     </a>
                 </li>
@@ -109,7 +109,7 @@
             
                 {% if request|has_access_to_section:'read,create,modify,delete,reseller_network' %}
                 <li id="reseller-network-list" class="menu-item">
-                    <a href="{% url 'panel:reseller-network-list' %}" class="menu-link">
+                    <a href="{% url 'resource:reseller-network-list' %}" class="menu-link">
                         <div><span>شبکه ها </span><span class="text-muted">({{ request|object_count:'reseller-network' }})</span></div>
                     </a>
                 </li>
@@ -117,7 +117,7 @@
             
                 {% if request|has_access_to_section:'read,create,modify,delete,receiver' %}
                 <li id="receiver-list" class="menu-item">
-                    <a href="{% url 'panel:receiver-list' %}" class="menu-link">
+                    <a href="{% url 'resource:receiver-list' %}" class="menu-link">
                         <div><span>دریافت کنندگان </span><span class="text-muted">({{ request|object_count:'receiver' }})</span></div>
                     </a>
                 </li>
@@ -125,7 +125,7 @@
                     
                 {% if request|has_access_to_section:'read,create,modify,delete,advertise_content' %}
                 <li id="advertise-content-list" class="menu-item">
-                    <a href="{% url 'panel:advertise-content-list' %}" class="menu-link">
+                    <a href="{% url 'resource:advertise-content-list' %}" class="menu-link">
                         <div><span>محتوای تبلیغاتی </span><span class="text-muted">({{ request|object_count:'advertise-content' }})</span></div>
                     </a>
                 </li>
@@ -133,7 +133,7 @@
                 
                 {% if request|has_access_to_section:'read,create,modify,delete,forward_to_portal' %}
                 <li id="forward-to-portal-list" class="menu-item">
-                    <a href="{% url 'panel:forward-to-portal-list' %}" class="menu-link">
+                    <a href="{% url 'resource:forward-to-portal-list' %}" class="menu-link">
                         <div><span>انتقال دهتدگان </span><span class="text-muted">({{ request|object_count:'forward-to-portal' }})</span></div>
                     </a>
                 </li>
@@ -141,7 +141,7 @@
                     
                 {% if request|has_access_to_section:'read,create,modify,delete,communication_channel' %}
                 <li id="communication-channel-list" class="menu-item">
-                    <a href="{% url 'panel:communication-channel-list' %}" class="menu-link">
+                    <a href="{% url 'resource:communication-channel-list' %}" class="menu-link">
                         <div><span>کانال های ارتباطی </span><span class="text-muted">({{ request|object_count:'communication-channel' }})</span></div>
                     </a>
                 </li>
@@ -149,7 +149,7 @@
             
                 {% if request|has_access_to_section:'read,create,modify,delete,registrar' %}
                 <li id="registrar-list" class="menu-item">
-                    <a href="{% url 'panel:registrar-list' %}" class="menu-link">
+                    <a href="{% url 'resource:registrar-list' %}" class="menu-link">
                         <div><span>تخصیص دهنده ها </span><span class="text-muted">({{ request|object_count:'registrar' }})</span></div>
                     </a>
                 </li>
@@ -203,20 +203,20 @@
             </a>
             <ul class="menu-sub">
                 <li id="card-list" class="menu-item">
-                    <a href="{% url 'panel:credit-card-list' %}" class="menu-link">
+                    <a href="{% url 'automation:credit-card-list' %}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-credit-card"></i>
                         <div>کارت بانکی</div>
                     </a>
                 </li>
                 <li id="customer-list" class="menu-item">
-                    <a href="{% url 'panel:customer-list' %}" class="menu-link">
+                    <a href="{% url 'automation:customer-list' %}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-body"></i>
                         <div>مشتری</div>
                     </a>
                 </li>
                 {% if request.user.is_superuser %}
                 <li id="requested-product-processing-admin-list" class="menu-item">
-                    <a href="{% url 'panel:requested-product-processing-admin-list' %}" class="menu-link">
+                    <a href="{% url 'automation:requested-product-processing-admin-list' %}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-card"></i>
                         <div>پردازش سفارش ها</div>
                     </a>
@@ -229,13 +229,13 @@
         {% if not request.user.is_superuser %}
         <li class="menu-header small text-uppercase"><span class="menu-header-text">کارپوشه</span></li>
         <li id="requested-product-processing-list" class="menu-item">
-            <a href="{% url 'panel:requested-product-processing-list' %}" class="menu-link">
+            <a href="{% url 'automation:requested-product-processing-list' %}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-barcode"></i>
                 <div>کارتابل من</div>
             </a>
         </li>
         <li id="requested-product-processing-admin-public-list" class="menu-item">
-            <a href="{% url 'panel:requested-product-processing-public-list' %}" class="menu-link">
+            <a href="{% url 'automation:requested-product-processing-public-list' %}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-paperclip"></i>
                 <div>پوشه عمومی</div>
             </a>
