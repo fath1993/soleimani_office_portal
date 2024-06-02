@@ -1,0 +1,87 @@
+{% load panel_custom_tag %}
+{% load account_custom_tag %}
+{% load static %}
+
+<form id="fmrn_form_modal_reseller_network_data">
+    {% csrf_token %}
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fmrn_form_modal_reseller_network_data_name">نام</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fmrn_form_modal_reseller_network_data_name" class="form-control"
+                   name="fmrn_form_modal_reseller_network_data_name">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="select2Basic" class="form-label">نوع تخصیص دهنده</label>
+        <select id="select2Basic" name="fmrn_form_modal_reseller_network_data_network_type"
+                class="select2 form-select">
+            <option value="ماهواره">ماهواره</option>
+            <option value="تلویزیون">تلویزیون</option>
+            <option value="شبکه اجتماعی">شبکه اجتماعی</option>
+        </select>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fmrn_form_modal_reseller_network_data_code">شناسه یکتا</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fmrn_form_modal_reseller_network_data_code" class="form-control"
+                   name="fmrn_form_modal_reseller_network_data_code">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="select2Basic" class="form-label">جهت پخش</label>
+        <select id="select2Basic" name="fmrn_form_modal_reseller_network_data_broadcast_direction"
+                class="select2 form-select">
+            <option value="یاه ست">یاه ست</option>
+            <option value="هات برد">هات برد</option>
+            <option value="ترکمن عالم">ترکمن عالم</option>
+        </select>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fmrn_form_modal_reseller_network_data_company_name">نام کمپانی</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fmrn_form_modal_reseller_network_data_company_name" class="form-control"
+                   name="fmrn_form_modal_reseller_network_data_company_name">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fmrn_form_modal_reseller_network_data_owner_name">نام صاحب</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fmrn_form_modal_reseller_network_data_owner_name" class="form-control"
+                   name="fmrn_form_modal_reseller_network_data_owner_name">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fmrn_form_modal_reseller_network_data_broker_name">نام واسط</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fmrn_form_modal_reseller_network_data_broker_name" class="form-control"
+                   name="fmrn_form_modal_reseller_network_data_broker_name">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fmrn_form_modal_reseller_network_data_broadcast_price">هزینه پخش - ریال</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fmrn_form_modal_reseller_network_data_broadcast_price" class="form-control"
+                   name="fmrn_form_modal_reseller_network_data_broadcast_price">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fmrn_form_modal_reseller_network_data_subtitle_price">هزینه زیرنویس - ریال</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fmrn_form_modal_reseller_network_data_subtitle_price" class="form-control"
+                   name="fmrn_form_modal_reseller_network_data_subtitle_price">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-3">
+        <div class="form-check form-check-primary mt-3">
+            <input class="form-check-input" type="checkbox" value="true" id="fmrn_form_modal_reseller_network_data_is_active" name="fmrn_form_modal_reseller_network_data_is_active"
+                   checked>
+            <label class="form-check-label" for="fmrn_form_modal_reseller_network_data_is_active">فعال</label>
+        </div>
+    </div>
+    {% if request|has_access_to_section:'modify,reseller_network' %}
+    <div class="col-sm-12 mt-3">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+            aria-label="Close" onclick="set_reseller_network_data()">ویرایش</button>
+    </div>
+    {% endif %}
+</form>

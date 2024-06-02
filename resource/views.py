@@ -7,7 +7,7 @@ from gallery.models import FileGallery, create_file
 from accounts.custom_decorator import CheckLogin, CheckPermissions, RequireMethod
 from resource.models import Product, TeaserMaker, ResellerNetwork, Receiver, AdvertiseContent, ForwardToPortal, \
     CommunicationChannel, Registrar
-from resource.serializer import RegistrarSerializer, ReceiverSerializer
+from resource.serializer import RegistrarSerializer, ReceiverSerializer, ResellerNetworkSerializer
 from utilities.http_metod import fetch_data_from_http_post, fetch_files_from_http_post_data, fetch_data_from_http_get
 
 
@@ -734,14 +734,23 @@ class ResellerNetworkView:
 
     @CheckLogin()
     @CheckPermissions(section='reseller_network', allowed_actions='read')
-    def detail(self, request, reseller_network_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def detail(self, request, *args, **kwargs):
+        context = {}
+        reseller_network_id = fetch_data_from_http_post(request, 'reseller_network_id', context)
         try:
-            reseller_network = ResellerNetwork.objects.get(id=reseller_network_id)
-            context = {'page_title': f'اطلاعات شبکه تبلیغ کننده *{reseller_network.name}*',
-                       'reseller_network': reseller_network, 'get_params': request.GET.urlencode()}
-            return render(request, 'panel/portal/reseller-network/reseller-network-detail.html', context)
-        except:
-            return render(request, 'panel/err/err-not-found.html')
+            reseller_network = ResellerNetwork.objects.filter(id=reseller_network_id)
+            serializer = ResellerNetworkSerializer(reseller_network, many=True)
+            json_response_body = {
+                "method": "post",
+                "request": f"دیتای شبکه تبلیغاتی با شناسه یکتای {reseller_network_id}",
+                "result": "موفق",
+                "data": serializer.data
+            }
+            return JsonResponse(json_response_body)
+        except Exception as e:
+            print(e)
+            return JsonResponse({'message': 'failed'})
 
     @CheckLogin()
     @CheckPermissions(section='reseller_network', allowed_actions='read')
@@ -834,53 +843,53 @@ class ResellerNetworkView:
             )
             context['message'] = f'شبکه تبلیغ کننده با عنوان {name} ایجاد گردید'
 
-        return redirect('panel:reseller-network-list')
+        return redirect('resource:reseller-network-list')
 
     @CheckLogin()
     @CheckPermissions(section='reseller_network', allowed_actions='modify')
-    def modify(self, request, reseller_network_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def modify(self, request, *args, **kwargs):
+        context = {}
+        reseller_network_id = fetch_data_from_http_post(request, 'reseller_network_id', context)
         try:
             reseller_network = ResellerNetwork.objects.get(id=reseller_network_id)
-            context = {'page_title': f'ویرایش اطلاعات شبکه تبلیغ کننده *{reseller_network.name}*',
+            context = {'page_title': f'ویرایش شبکه تبلیغ کننده با شناسه یکتای *{reseller_network.code}*',
                        'reseller_network': reseller_network, 'get_params': request.GET.urlencode()}
-            if request.method == 'GET':
-                return render(request, 'panel/portal/reseller-network/reseller-network-edit.html', context)
-            else:
-                name = fetch_data_from_http_post(request, 'name', context, False)
-                network_type = fetch_data_from_http_post(request, 'network_type', context, False)
-                broadcast_direction = fetch_data_from_http_post(request, 'broadcast_direction', context, False)
-                company_name = fetch_data_from_http_post(request, 'company_name', context, False)
-                owner_name = fetch_data_from_http_post(request, 'owner_name', context, False)
-                broker_name = fetch_data_from_http_post(request, 'broker_name', context, False)
-                broadcast_price = fetch_data_from_http_post(request, 'broadcast_price', context, False)
-                subtitle_price = fetch_data_from_http_post(request, 'subtitle_price', context, False)
-                is_active = fetch_data_from_http_post(request, 'is_active', context, False)
+            name = fetch_data_from_http_post(request, 'fmrn_form_modal_reseller_network_data_name', context, False)
+            network_type = fetch_data_from_http_post(request, 'fmrn_form_modal_reseller_network_data_network_type', context, False)
+            broadcast_direction = fetch_data_from_http_post(request, 'fmrn_form_modal_reseller_network_data_broadcast_direction', context, False)
+            company_name = fetch_data_from_http_post(request, 'fmrn_form_modal_reseller_network_data_company_name', context, False)
+            owner_name = fetch_data_from_http_post(request, 'fmrn_form_modal_reseller_network_data_owner_name', context)
+            broker_name = fetch_data_from_http_post(request, 'fmrn_form_modal_reseller_network_data_broker_name', context, False)
+            broadcast_price = fetch_data_from_http_post(request, 'fmrn_form_modal_reseller_network_data_broadcast_price', context)
+            subtitle_price = fetch_data_from_http_post(request, 'fmrn_form_modal_reseller_network_data_subtitle_price', context, False)
+            is_active = fetch_data_from_http_post(request, 'fmrn_form_modal_reseller_network_data_is_active', context)
 
-                if name:
-                    reseller_network.name = name
-                if network_type:
-                    reseller_network.network_type = network_type
-                if broadcast_direction:
-                    reseller_network.broadcast_direction = broadcast_direction
-                if company_name:
-                    reseller_network.company_name = company_name
-                if owner_name:
-                    reseller_network.owner_name = owner_name
-                if broker_name:
-                    reseller_network.broker_name = broker_name
-                if broadcast_price:
-                    reseller_network.broadcast_price = broadcast_price
-                if subtitle_price:
-                    reseller_network.subtitle_price = subtitle_price
-                if is_active == 'true':
-                    reseller_network.is_active = True
-                reseller_network.save()
-                context['message'] = f'شبکه تبلیغ کننده با کد {reseller_network.code} ویرایش گردید'
-                return redirect(
-                    reverse('panel:reseller-network-modify-with-id',
-                            kwargs={'reseller_network_id': reseller_network_id}) + f'?{request.GET.urlencode()}')
+            if name:
+                reseller_network.name = name
+            if network_type:
+                reseller_network.network_type = network_type
+            if broadcast_direction:
+                reseller_network.broadcast_direction = broadcast_direction
+            if company_name:
+                reseller_network.company_name = company_name
+            if owner_name:
+                reseller_network.owner_name = owner_name
+            if broker_name:
+                reseller_network.broker_name = broker_name
+            if broadcast_price:
+                reseller_network.broadcast_price = broadcast_price
+            if subtitle_price:
+                reseller_network.subtitle_price = subtitle_price
+            if is_active == 'true':
+                reseller_network.is_active = True
+            else:
+                reseller_network.is_active = False
+            reseller_network.save()
+
+            return JsonResponse({'message': f'شبکه تبلیغ کننده با شناسه یکتا {reseller_network.code} ویرایش گردید'})
         except:
-            return render(request, 'panel/err/err-not-found.html')
+            return JsonResponse({'message': f'reseller network not found'})
 
     @CheckLogin()
     @CheckPermissions(section='reseller_network', allowed_actions='delete')
@@ -896,7 +905,10 @@ class ResellerNetworkView:
 
     @CheckLogin()
     @CheckPermissions(section='reseller_network', allowed_actions='modify')
-    def change_state(self, request, reseller_network_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def change_state(self, request, *args, **kwargs):
+        context = {}
+        reseller_network_id = fetch_data_from_http_post(request, 'reseller_network_id', context)
         try:
             reseller_network = ResellerNetwork.objects.get(id=reseller_network_id)
             context = {'page_title': f'تغییر وضعیت شبکه های تبلیغ کننده {reseller_network.code}',
@@ -997,26 +1009,26 @@ class ReceiverView:
         context = {'page_title': 'ساخت شبکه تبلیغ کننده جدید', 'get_params': request.GET.urlencode()}
 
         name = fetch_data_from_http_post(request, 'name', context)
-        receiving_type = fetch_data_from_http_post(request, 'network_type', context)
+        receiving_type = fetch_data_from_http_post(request, 'receiving_type', context)
         code = fetch_data_from_http_post(request, 'code', context)
         receiver_phone_number = fetch_data_from_http_post(request, 'receiver_phone_number', context)
         price = fetch_data_from_http_post(request, 'price', context)
 
         if not name:
             context['err'] = 'نام بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            return render(request, 'panel/portal/receiver/receiver-list.html', context)
         if not receiving_type:
             context['err'] = 'نوع دریافت کننده بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            return render(request, 'panel/portal/receiver/receiver-list.html', context)
         if not code:
             context['err'] = 'کد بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            return render(request, 'panel/portal/receiver/receiver-list.html', context)
         if not receiver_phone_number:
             context['err'] = 'شماره دریافت کننده بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            return render(request, 'panel/portal/receiver/receiver-list.html', context)
         if not price:
             context['err'] = 'قیمت بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            return render(request, 'panel/portal/receiver/receiver-list.html', context)
 
         try:
             Receiver.objects.get(code=code)
@@ -1034,7 +1046,7 @@ class ReceiverView:
             )
             context['message'] = f'دریافت کننده با شناسه یکتا {code} ایجاد گردید'
 
-        return redirect('panel:receiver-list')
+        return redirect('resource:receiver-list')
 
     @CheckLogin()
     @CheckPermissions(section='receiver', allowed_actions='modify')
@@ -1043,14 +1055,14 @@ class ReceiverView:
         context = {}
         receiver_id = fetch_data_from_http_post(request, 'receiver_id', context)
         try:
-            receiver = Registrar.objects.get(id=receiver_id)
-            context = {'page_title': f'ویرایش تخصیص دهنده با ایدی *{receiver_id}*',
+            receiver = Receiver.objects.get(id=receiver_id)
+            context = {'page_title': f'ویرایش دریافت کننده با شناسه یکتای *{receiver.code}*',
                        'receiver': receiver, 'get_params': request.GET.urlencode()}
-            name = fetch_data_from_http_post(request, 'name', context, False)
-            receiving_type = fetch_data_from_http_post(request, 'network_type', context, False)
-            receiver_phone_number = fetch_data_from_http_post(request, 'receiver_phone_number', context, False)
-            price = fetch_data_from_http_post(request, 'price', context, False)
-            is_active = fetch_data_from_http_post(request, 'is_active', context)
+            name = fetch_data_from_http_post(request, 'fr_form_modal_receiver_data_name', context, False)
+            receiving_type = fetch_data_from_http_post(request, 'fr_form_modal_receiver_data_receiving_type', context, False)
+            receiver_phone_number = fetch_data_from_http_post(request, 'fr_form_modal_receiver_data_receiver_phone_number', context, False)
+            price = fetch_data_from_http_post(request, 'fr_form_modal_receiver_data_price', context, False)
+            is_active = fetch_data_from_http_post(request, 'fr_form_modal_receiver_data_is_active', context)
 
             if name:
                 receiver.name = name
@@ -1066,7 +1078,7 @@ class ReceiverView:
                 receiver.is_active = False
             receiver.save()
 
-            return JsonResponse({'message': f'تخصیص دهنده با آیدی {registrar_id} ویرایش گردید'})
+            return JsonResponse({'message': f'دریافت کننده با شناسه یکتا {receiver.code} ویرایش گردید'})
         except:
             return JsonResponse({'message': f'receiver not found'})
 
@@ -1077,7 +1089,7 @@ class ReceiverView:
             receiver = Receiver.objects.get(id=receiver_id)
             context = {'page_title': f'حذف دریافت کننده {receiver.code}', 'get_params': request.GET.urlencode()}
             receiver.delete()
-            return redirect(reverse('panel:receiver-list') + f'?{request.GET.urlencode()}')
+            return redirect(reverse('resource:receiver-delete-with-id') + f'?{request.GET.urlencode()}')
         except:
             return render(request, 'panel/err/err-not-found.html')
 
@@ -1085,19 +1097,19 @@ class ReceiverView:
     @CheckPermissions(section='receiver', allowed_actions='modify')
     def change_state(self, request, *args, **kwargs):
         context = {}
-        registrar_id = fetch_data_from_http_post(request, 'registrar_id', context)
+        receiver_id = fetch_data_from_http_post(request, 'receiver_id', context)
         try:
-            registrar = Registrar.objects.get(id=registrar_id)
-            context = {'page_title': f'تغییر وضعیت تخصیص دهنده {registrar.code}',
+            receiver = Receiver.objects.get(id=receiver_id)
+            context = {'page_title': f'تغییر وضعیت دریافت کننده {receiver.code}',
                        'get_params': request.GET.urlencode()}
-            if registrar.is_active:
-                registrar.is_active = False
-                registrar_is_active = 'false'
+            if receiver.is_active:
+                receiver.is_active = False
+                receiver_is_active = 'false'
             else:
-                registrar.is_active = True
-                registrar_is_active = 'true'
-            registrar.save()
-            return JsonResponse({"registrar_is_active": registrar_is_active})
+                receiver.is_active = True
+                receiver_is_active = 'true'
+            receiver.save()
+            return JsonResponse({"receiver_is_active": receiver_is_active})
         except:
             return render(request, 'panel/err/err-not-found.html')
 

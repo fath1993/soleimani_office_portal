@@ -110,7 +110,7 @@
                 {% if request|has_access_to_section:'read,create,modify,delete,reseller_network' %}
                 <li id="reseller-network-list" class="menu-item">
                     <a href="{% url 'resource:reseller-network-list' %}" class="menu-link">
-                        <div><span>شبکه ها </span><span class="text-muted">({{ request|object_count:'reseller-network' }})</span></div>
+                        <div><span>شبکه های تبلیغاتی </span><span class="text-muted">({{ request|object_count:'reseller-network' }})</span></div>
                     </a>
                 </li>
                 {% endif %}    
@@ -134,7 +134,7 @@
                 {% if request|has_access_to_section:'read,create,modify,delete,forward_to_portal' %}
                 <li id="forward-to-portal-list" class="menu-item">
                     <a href="{% url 'resource:forward-to-portal-list' %}" class="menu-link">
-                        <div><span>انتقال دهتدگان </span><span class="text-muted">({{ request|object_count:'forward-to-portal' }})</span></div>
+                        <div><span>انتقال دهندگان </span><span class="text-muted">({{ request|object_count:'forward-to-portal' }})</span></div>
                     </a>
                 </li>
                 {% endif %}    

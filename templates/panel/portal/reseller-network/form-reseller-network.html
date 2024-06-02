@@ -1,0 +1,129 @@
+{% load panel_custom_tag %}
+{% load account_custom_tag %}
+{% load static %}
+
+<form id="fmrn_form_reseller_network_data" action="{% url 'resource:reseller-network-create' %}" method="post" class="add-new-record pt-0 row g-2">
+    {% csrf_token %}
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="name">نام</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="name" class="form-control"
+                   name="name" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="نام"
+                                               aria-describedby="نام"
+                                               value="{{ name|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="select2Basic" class="form-label">نوع تخصیص دهنده</label>
+        <select id="select2Basic" name="network_type"
+                class="select2 form-select" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="نوع تخصیص دهنده"
+                                               aria-describedby="نوع تخصیص دهنده">
+            <option {% if reseller_network_type == "ماهواره" %} selected {% endif %} value="ماهواره">ماهواره</option>
+            <option {% if reseller_network_type == "تلویزیون" %} selected {% endif %} value="تلویزیون">تلویزیون</option>
+            <option {% if reseller_network_type == "شبکه اجتماعی" %} selected {% endif %} value="شبکه اجتماعی">شبکه اجتماعی</option>
+        </select>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="code">شناسه یکتا</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="code" class="form-control"
+                   name="code" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="شناسه یکتا"
+                                               aria-describedby="شناسه یکتا"
+                                               value="{{ code|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="select2Basic" class="form-label">جهت پخش</label>
+        <select id="select2Basic" name="broadcast_direction"
+                class="select2 form-select" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="نوع تخصیص دهنده"
+                                               aria-describedby="نوع تخصیص دهنده">
+            <option {% if broadcast_direction == "یاه ست" %} selected {% endif %} value="یاه ست">یاه ست</option>
+            <option {% if broadcast_direction == "هات برد" %} selected {% endif %} value="هات برد">هات برد</option>
+            <option {% if broadcast_direction == "ترکمن عالم" %} selected {% endif %} value="ترکمن عالم">ترکمن عالم</option>
+        </select>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="company_name">نام کمپانی</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="company_name" class="form-control"
+                   name="company_name" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="نام کمپانی"
+                                               aria-describedby="نام کمپانی"
+                                               value="{{ company_name|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="owner_name">نام صاحب</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="owner_name" class="form-control"
+                   name="owner_name" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="نام صاحب"
+                                               aria-describedby="نام صاحب"
+                                               value="{{ owner_name|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="broker_name">نام واسط</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="broker_name" class="form-control"
+                   name="broker_name" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="نام واسط"
+                                               aria-describedby="نام واسط"
+                                               value="{{ broker_name|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="broadcast_price">هزینه پخش - ریال</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="broadcast_price" class="form-control"
+                   name="broadcast_price" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="هزینه پخش - ریال"
+                                               aria-describedby="هزینه پخش - ریال"
+                                               value="{{ broadcast_price|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="subtitle_price">هزینه زیرنویس - ریال</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="subtitle_price" class="form-control"
+                   name="subtitle_price" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="هزینه زیرنویس - ریال"
+                                               aria-describedby="هزینه زیرنویس - ریال"
+                                               value="{{ subtitle_price|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-3">
+        <div class="form-check form-check-primary mt-3">
+            <input class="form-check-input" type="checkbox" value="true" id="is_active" name="is_active"
+                   {% if is_active %} checked {% endif %}>
+            <label class="form-check-label" for="is_active">فعال</label>
+        </div>
+    </div>
+    {% if request|has_access_to_section:'create,reseller_network' %}
+    <div class="col-sm-12 mt-3">
+        <button type="submit" class="btn btn-primary">ایجاد</button>
+    </div>
+    {% endif %}
+</form>

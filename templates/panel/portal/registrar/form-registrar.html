@@ -48,7 +48,7 @@
             <label class="form-check-label" for="is_active">فعال</label>
         </div>
     </div>
-    {% if request|has_access_to_section:'modify,customer' %}
+    {% if request|has_access_to_section:'create,registrar' %}
     <div class="col-sm-12 mt-3">
         <button type="submit" class="btn btn-primary">ایجاد</button>
     </div>

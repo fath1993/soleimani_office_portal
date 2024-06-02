@@ -24,15 +24,15 @@
 {% block content %}
     <div class="container-xxl flex-grow-1 container-p-y">
         <h4 class="py-3 breadcrumb-wrapper mb-4">
-            <span class="text-muted fw-light">منابع / <span class="text-black">تخصیص دهندگان</span></span>
+            <span class="text-muted fw-light">منابع / <span class="text-black">دریافت کنندگان</span></span>
         </h4>
         <div class="card mb-3">
             <h5 class="card-header heading-color">
-                فیلتر تخصیص دهنده
+                فیلتر دریافت کننده
             </h5>
             <div class="card-body">
                 <div class="row">
-                    <form method="get" action="{% url 'resource:registrar-filter' %}">
+                    <form method="get" action="{% url 'resource:receiver-list' %}">
                         <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="search">جستجو <span class="text-muted">(نام, کد, شناسه)</span></label>
                             <div class="input-group">
@@ -46,10 +46,10 @@
             </div>
         </div>
         <div class="card">
-            {% if request|has_access_to_section:'create,registrar' %}
+            {% if request|has_access_to_section:'create,receiver' %}
                 <h5 class="card-header heading-color">
                     <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
-                        <i class="ti-plus m-r-5"></i> ایجاد تخصیص دهنده جدید
+                        <i class="ti-plus m-r-5"></i> ایجاد دریافت کننده جدید
                     </button>
                     {% if err %}
                         <strong class="text-danger">{{ err }}</strong>
@@ -59,12 +59,12 @@
                     {% endif %}
                     <div class="offcanvas offcanvas-end" id="add-new-record">
                         <div class="offcanvas-header border-bottom">
-                            <h5 class="offcanvas-title" id="exampleModalLabel">تخصیص دهنده جدید</h5>
+                            <h5 class="offcanvas-title" id="exampleModalLabel">دریافت کننده جدید</h5>
                             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
                                     aria-label="Close"></button>
                         </div>
                         <div class="offcanvas-body flex-grow-1">
-                            {% include 'panel/portal/registrar/form-registrar.html' %}
+                            {% include 'panel/portal/receiver/form-receiver.html' %}
                         </div>
                     </div>
                 </h5>
@@ -75,43 +75,47 @@
                         <thead>
                         <tr>
                             <th style="width: 5%">#</th>
-                            <th style="width: 30%">نام</th>
-                            <th style="width: 20%">نوع</th>
-                            <th style="width: 20%">شناسه یکتا</th>
-                            <th style="width: 20%">وضعیت</th>
+                            <th style="width: 15%">نام</th>
+                            <th style="width: 15%">نوع</th>
+                            <th style="width: 15%">شناسه یکتا</th>
+                            <th style="width: 15%">قیمت</th>
+                            <th style="width: 15%">شماره</th>
+                            <th style="width: 15%">وضعیت</th>
                             <th style="width: 5%">عملیات</th>
                         </tr>
                         </thead>
                         <tbody class="table-border-bottom-0">
-                        {% for registrar in page %}
+                        {% for receiver in page %}
                             <tr>
                                 <td>{{ forloop.counter }}</td>
-                                <td id="table_registrar_id_{{ registrar.id }}" data-id="{{ registrar.id }}" data-title="{{ registrar.code }}" data-bs-toggle="modal" data-bs-target="#registrarModal" onclick="set_important_and_get_data(this)">
-                                    <span id="table_registrar_name_{{ registrar.id }}" class="btn text-primary">{{ registrar.name }}</span>
+                                <td id="table_receiver_id_{{ receiver.id }}" data-id="{{ receiver.id }}" data-title="{{ receiver.code }}" data-bs-toggle="modal" data-bs-target="#receiverModal" onclick="set_important_and_get_data(this)">
+                                    <span id="table_receiver_name_{{ receiver.id }}" class="btn text-primary">{{ receiver.name }}</span>
                                 </td>
-                                <td id="table_registrar_register_type_{{ registrar.id }}">{{ registrar.registrar_type }}</td>
-                                <td id="table_registrar_code_{{ registrar.id }}">{{ registrar.code }}</td>
-                                <td id="table_registrar_is_active_{{ registrar.id }}">
-                                    {% if registrar.is_active %}
+                                <td id="table_receiver_receiving_type_{{ receiver.id }}">{{ receiver.receiving_type }}</td>
+                                <td id="table_receiver_code_{{ receiver.id }}">{{ receiver.code }}</td>
+                                <td id="table_receiver_price_{{ receiver.id }}">{{ receiver.price }}</td>
+                                <td id="table_receiver_receiver_phone_number_{{ receiver.id }}">{{ receiver.receiver_phone_number }}</td>
+                                <td id="table_receiver_is_active_{{ receiver.id }}">
+                                    {% if receiver.is_active %}
                                         <span class="badge bg-success">فعال</span>
                                     {% else %}
                                         <span class="badge bg-dark">غیر فعال</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if request|has_access_to_section:'modify,delete,registrar' %}
+                                    {% if request|has_access_to_section:'modify,delete,receiver' %}
                                         <div class="dropdown">
                                             <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
                                                     data-bs-toggle="dropdown">
                                                 <i class="bx bx-dots-vertical-rounded"></i>
                                             </button>
                                             <div class="dropdown-menu">
-                                                {% if request|has_access_to_section:'modify,registrar' %}
-                                                    <a id="table_registrar_is_active_change_btn_{{ registrar.id }}" class="dropdown-item" href="javascript:void(0)" onclick="registrar_change_state('{{ registrar.id }}')"><span>{% if registrar.is_active %}<i
+                                                {% if request|has_access_to_section:'modify,receiver' %}
+                                                    <a id="table_receiver_is_active_change_btn_{{ receiver.id }}" class="dropdown-item" href="javascript:void(0)" onclick="receiver_change_state('{{ receiver.id }}')"><span>{% if receiver.is_active %}<i
                                                             class="bx bx-lock me-1"></i> غیر فعال{% else %}<i class="bx bx-lock-open me-1"></i> فعال{% endif %}</span></a>
                                                     
                                                 {% endif %}
-                                                {% if request|has_access_to_section:'delete,registrar' %}
+                                                {% if request|has_access_to_section:'delete,receiver' %}
                                                     <a class="dropdown-item" href="javascript:void(0);"
                                                        data-bs-toggle="modal"
                                                        data-bs-target="#deleteModal_{{ forloop.counter }}"><i
@@ -129,8 +133,8 @@
                                                             <div class="text-center mb-4 mt-0 mt-md-n2">
                                                                 <h3 class="mb-4 secondary-font">تایید حذف</h3>
                                                             </div>
-                                                            <h6>آیا از حذف تخصیص دهنده <strong class="bg-warning">{{ registrar.name }}</strong> مطمئن هستید؟</h6>
-                                                            <form class="row g-3 mt-3" method="post" action="{% url 'resource:registrar-delete-with-id' registrar_id=registrar.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                            <h6>آیا از حذف دریافت کننده <strong class="bg-warning">{{ receiver.name }}</strong> مطمئن هستید؟</h6>
+                                                            <form class="row g-3 mt-3" method="post" action="{% url 'resource:receiver-delete-with-id' receiver_id=receiver.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
                                                                 {% csrf_token %}
                                                                 <div class="col-12">
                                                                     <button type="submit"
@@ -155,6 +159,8 @@
                             </tr>
                         {% empty %}
                             <tr>
+                                <td></td>
+                                <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -210,10 +216,10 @@
         </div>
     </div>
     <form id="ccl_data_form" hidden>
-        <input type="hidden" id="rl_registrar_id" value="none">
-        <input type="hidden" id="rl_registrar_title" value="none">
+        <input type="hidden" id="rl_receiver_id" value="none">
+        <input type="hidden" id="rl_receiver_title" value="none">
     </form>
-    {% include 'panel/portal/registrar/modal-registrar-create-modify.html' %}
+    {% include 'panel/portal/receiver/modal-receiver-create-modify.html' %}
 {% endblock %}
 
 {% block extra_body %}
@@ -247,25 +253,27 @@
         function set_important_and_get_data(element){
             const data_id = element.dataset.id
             const data_title = element.dataset.title
-            const rl_registrar_id = document.getElementById('rl_registrar_id')
-            const rl_registrar_title = document.getElementById('rl_registrar_title')
-            rl_registrar_id.value = data_id
-            rl_registrar_title.value = data_title
-            get_registrar_data(data_id, data_title)
+            const rl_receiver_id = document.getElementById('rl_receiver_id')
+            const rl_receiver_title = document.getElementById('rl_receiver_title')
+            rl_receiver_id.value = data_id
+            rl_receiver_title.value = data_title
+            get_receiver_data(data_id, data_title)
         }
         
-        function get_registrar_data(data_id, data_title) {
-            const mrcm_registrar_title = document.getElementById('mrcm_registrar_title')
-            const mrcm_registrar_container = document.getElementById('mrcm_registrar_container')
-            const mrcm_registrar_title_innerHTML = mrcm_registrar_title.innerHTML
-            const mrcm_registrar_container_innerHTML = mrcm_registrar_container.innerHTML
+        function get_receiver_data(data_id, data_title) {
+            const mrcm_receiver_title = document.getElementById('mrcm_receiver_title')
+            const mrcm_receiver_container = document.getElementById('mrcm_receiver_container')
+            const mrcm_receiver_title_innerHTML = mrcm_receiver_title.innerHTML
+            const mrcm_receiver_container_innerHTML = mrcm_receiver_container.innerHTML
             
-            const table_registrar_id_ = document.getElementById(`table_registrar_id_${data_id}`)
-            const table_registrar_name_ = document.getElementById(`table_registrar_name_${data_id}`)
-            const table_registrar_register_type_ = document.getElementById(`table_registrar_register_type_${data_id}`)
-            const table_registrar_code_ = document.getElementById(`table_registrar_code_${data_id}`)
-            const table_registrar_is_active_ = document.getElementById(`table_registrar_is_active_${data_id}`)
-            const table_registrar_is_active_change_btn_ = document.getElementById(`table_registrar_is_active_change_btn_${data_id}`)
+            const table_receiver_id_ = document.getElementById(`table_receiver_id_${data_id}`)
+            const table_receiver_name_ = document.getElementById(`table_receiver_name_${data_id}`)
+            const table_receiver_receiving_type_ = document.getElementById(`table_receiver_receiving_type_${data_id}`)
+            const table_receiver_code_ = document.getElementById(`table_receiver_code_${data_id}`)
+            const table_receiver_receiver_phone_number_ = document.getElementById(`table_receiver_receiver_phone_number_${data_id}`)
+            const table_receiver_price_ = document.getElementById(`table_receiver_price_${data_id}`)
+            const table_receiver_is_active_ = document.getElementById(`table_receiver_is_active_${data_id}`)
+            const table_receiver_is_active_change_btn_ = document.getElementById(`table_receiver_is_active_change_btn_${data_id}`)
             
                 
             const loading_text = 'در حال بارگذاری ...'
@@ -273,15 +281,15 @@
                                       <span class="visually-hidden">${loading_text}</span>
                                     </div>`
             const formData = new FormData();
-            formData.append('registrar_id', `${data_id}`)
+            formData.append('receiver_id', `${data_id}`)
             formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
             const options = {
                 method: 'POST',
                 body: formData,
             }
-            mrcm_registrar_title.innerText = `اطلاعات تخصیص دهنده ${data_title}`
-            mrcm_registrar_container.innerHTML=loading_html
-            fetch('{% url 'resource:registrar-detail' %}', options)
+            mrcm_receiver_title.innerText = `اطلاعات تخصیص دهنده ${data_title}`
+            mrcm_receiver_container.innerHTML=loading_html
+            fetch('{% url 'resource:receiver-detail' %}', options)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -290,54 +298,58 @@
                 })
                 .then(data => {
                     console.log(data)
-                    mrcm_registrar_title.innerText = `اطلاعات تخصیص دهنده ${data['data'][0]['code']}`
-                    table_registrar_name_.innerText = `${data['data'][0]['name']}`
-                    table_registrar_register_type_.innerText = data['data'][0]['registrar_type']
+                    mrcm_receiver_title.innerText = `اطلاعات دریافت کننده ${data['data'][0]['code']}`
+                    table_receiver_name_.innerText = `${data['data'][0]['name']}`
+                    table_receiver_receiver_phone_number_.innerText = data['data'][0]['receiver_phone_number']
+                    table_receiver_price_.innerText = `${data['data'][0]['price']}`
+                    table_receiver_receiving_type_.innerText = data['data'][0]['receiving_type']
                     if (data['data'][0]['is_active'] === true) {
-                        table_registrar_is_active_.innerHTML = '<span class="badge bg-success">فعال</span>'
-                        table_registrar_is_active_change_btn_.innerHTML = '<span><i class="bx bx-lock me-1"></i> غیر فعال</span>'
+                        table_receiver_is_active_.innerHTML = '<span class="badge bg-success">فعال</span>'
+                        table_receiver_is_active_change_btn_.innerHTML = '<span><i class="bx bx-lock me-1"></i> غیر فعال</span>'
                     } else {
-                        table_registrar_is_active_.innerHTML = '<span class="badge bg-dark">غیر فعال</span>'
-                        table_registrar_is_active_change_btn_.innerHTML = '<span><i class="bx bx-lock-open me-1"></i> فعال</span>'
+                        table_receiver_is_active_.innerHTML = '<span class="badge bg-dark">غیر فعال</span>'
+                        table_receiver_is_active_change_btn_.innerHTML = '<span><i class="bx bx-lock-open me-1"></i> فعال</span>'
                     }
                     
-                    mrcm_registrar_container.innerHTML=`{% include 'panel/portal/registrar/form-modal-registrar.html' %}`
-                    document.getElementById('fr_form_registrar_data_name').value=`${data['data'][0]['name']}`
-                    document.getElementById('fr_form_registrar_data_code').value=`${data['data'][0]['code']}`
-                    const fr_form_registrar_data_registrar_type = document.querySelector('[name="fr_form_registrar_data_registrar_type"]')
-                    const options = fr_form_registrar_data_registrar_type.querySelectorAll('option');
+                    mrcm_receiver_container.innerHTML=`{% include 'panel/portal/receiver/form-modal-receiver.html' %}`
+                    document.getElementById('fr_form_modal_receiver_data_name').value=`${data['data'][0]['name']}`
+                    document.getElementById('fr_form_modal_receiver_data_code').value=`${data['data'][0]['code']}`
+                    document.getElementById('fr_form_modal_receiver_data_price').value=`${data['data'][0]['price']}`
+                    document.getElementById('fr_form_modal_receiver_data_receiver_phone_number').value=`${data['data'][0]['receiver_phone_number']}`
+                    const fr_form_modal_receiver_data_receiving_type = document.querySelector('[name="fr_form_modal_receiver_data_receiving_type"]')
+                    const options = fr_form_modal_receiver_data_receiving_type.querySelectorAll('option');
                     for (let x = 0; x < options.length; x++) {
-                        if (options[x].value === data['data'][0]['registrar_type']) {
+                        if (options[x].value === data['data'][0]['receiving_type']) {
                             options[x].selected = true;
                             break;
                         }
                     }
                     if (data['data'][0]['is_active'] === true) {
-                        document.getElementById('fr_form_registrar_data_is_active').checked = true
+                        document.getElementById('fr_form_modal_receiver_data_is_active').checked = true
                     } else {
-                        document.getElementById('fr_form_registrar_data_is_active').checked = false
+                        document.getElementById('fr_form_modal_receiver_data_is_active').checked = false
                     }
 
-                    const form_element = document.getElementById('fr_form_registrar_data')
+                    const form_element = document.getElementById('fr_form_modal_receiver_data')
                     initializeSelect2(form_element);
                 })
                 .catch(error => {
-                    mrcm_registrar_container.innerHTML = mrcm_registrar_container_innerHTML
+                    mrcm_receiver_container.innerHTML = mrcm_receiver_container_innerHTML
                     console.log(error)
                 });
         }
-        function set_registrar_data() {
-            const rl_registrar_id = document.getElementById('rl_registrar_id').value
-            const rl_registrar_title = document.getElementById('rl_registrar_title').value
-            const fr_form_modal_registrar_data = document.getElementById('fr_form_modal_registrar_data')
+        function set_receiver_data() {
+            const rl_receiver_id = document.getElementById('rl_receiver_id').value
+            const rl_receiver_title = document.getElementById('rl_receiver_title').value
+            const fr_form_modal_receiver_data = document.getElementById('fr_form_modal_receiver_data')
             
-            const formData = new FormData(fr_form_modal_registrar_data);
-            formData.append('registrar_id', `${rl_registrar_id}`)
+            const formData = new FormData(fr_form_modal_receiver_data);
+            formData.append('receiver_id', `${rl_receiver_id}`)
             const options = {
                 method: 'POST',
                 body: formData,
             }
-            fetch('{% url 'resource:registrar-modify' %}', options)
+            fetch('{% url 'resource:receiver-modify' %}', options)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -345,11 +357,11 @@
                     return response.json();
                 })
                 .then(data => {
-                    if (data['message'] === 'customer not found') {
-                        toast_maker('error', `تخصیص دهنده با ایدی ${rl_registrar_id} یافت نشد`)
+                    if (data['message'] === 'receiver not found') {
+                        toast_maker('error', `دریافت کننده با ایدی ${rl_receiver_id} یافت نشد`)
                     }  else {
                         toast_maker('success', `${data['message']}`)
-                        get_registrar_data(`${rl_registrar_id}`, `${rl_registrar_title}`)
+                        get_receiver_data(`${rl_receiver_id}`, `${rl_receiver_title}`)
                     }
                     console.log(data)
                 })
@@ -358,25 +370,25 @@
                 });
         }
         
-        function registrar_change_state(registrar_id) {
-            const table_registrar_is_active = document.getElementById(`table_registrar_is_active_${registrar_id}`)
-            const table_registrar_is_active_change_btn = document.getElementById(`table_registrar_is_active_change_btn_${registrar_id}`)
-            const table_registrar_is_active_innerHTML = table_registrar_is_active.innerHTML
-            const table_is_active_change_btn_innerHTML = table_registrar_is_active_change_btn.innerHTML
+        function receiver_change_state(receiver_id) {
+            const table_receiver_is_active = document.getElementById(`table_receiver_is_active_${receiver_id}`)
+            const table_receiver_is_active_change_btn = document.getElementById(`table_receiver_is_active_change_btn_${receiver_id}`)
+            const table_receiver_is_active_innerHTML = table_receiver_is_active.innerHTML
+            const table_receiver_is_active_change_btn_innerHTML = table_receiver_is_active_change_btn.innerHTML
             const loading_text = 'در حال بارگذاری ...'
             const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
                                   <span class="visually-hidden">${loading_text}</span>
                                 </div>`
             const formData = new FormData();
-            formData.append('registrar_id', `${registrar_id}`)
+            formData.append('receiver_id', `${receiver_id}`)
             formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
             const options = {
                 method: 'POST',
                 body: formData,
             }
-            table_registrar_is_active.innerHTML = loading_html
-            table_registrar_is_active_change_btn.innerHTML = loading_html
-            fetch('{% url 'resource:registrar-change-state' %}', options)
+            table_receiver_is_active.innerHTML = loading_html
+            table_receiver_is_active_change_btn.innerHTML = loading_html
+            fetch('{% url 'resource:receiver-change-state' %}', options)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -384,21 +396,21 @@
                     return response.json();
                 })
                 .then(data => {
-                    if (data['registrar_is_active'] === 'false') {
-                        table_registrar_is_active.innerHTML = '<span class="badge bg-dark">غیر فعال</span>'
-                        table_registrar_is_active_change_btn.innerHTML = '<span><i class="bx bx-lock-open me-1"></i> فعال</span>'
+                    if (data['receiver_is_active'] === 'false') {
+                        table_receiver_is_active.innerHTML = '<span class="badge bg-dark">غیر فعال</span>'
+                        table_receiver_is_active_change_btn.innerHTML = '<span><i class="bx bx-lock-open me-1"></i> فعال</span>'
                         toast_maker('success', 'با موفقیت غیر فعال شد')
                     } else {
-                        table_registrar_is_active.innerHTML = '<span class="badge bg-success">فعال</span>'
-                        table_registrar_is_active_change_btn.innerHTML = '<span><i class="bx bx-lock me-1"></i> غیر فعال</span>'
+                        table_receiver_is_active.innerHTML = '<span class="badge bg-success">فعال</span>'
+                        table_receiver_is_active_change_btn.innerHTML = '<span><i class="bx bx-lock me-1"></i> غیر فعال</span>'
                         toast_maker('success', 'با موفقیت فعال شد')
                     }
                 })
                 .catch(error => {
-                    table_registrar_is_active.innerHTML = table_registrar_is_active_innerHTML
-                    table_registrar_is_active_change_btn.innerHTML = table_is_active_change_btn_innerHTML
+                    table_receiver_is_active.innerHTML = table_receiver_is_active_innerHTML
+                    table_receiver_is_active_change_btn.innerHTML = table_receiver_is_active_change_btn_innerHTML
                     toast_maker('error', 'عملیات ناموفق')
-                    console.error('Error change registrar state:', error);
+                    console.error('Error change receiver state:', error);
                 });
             }
         

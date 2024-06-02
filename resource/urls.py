@@ -28,19 +28,19 @@ urlpatterns = [
     path('reseller-network/list/', ResellerNetworkView().list, name='reseller-network-list'),
     path('reseller-network/filter/', ResellerNetworkView().filter, name='reseller-network-filter'),
     path('reseller-network/create/', ResellerNetworkView().create, name='reseller-network-create'),
-    path('reseller-network/detail&id=<int:reseller_network_id>/', ResellerNetworkView().detail, name='reseller-network-detail-with-id'),
-    path('reseller-network/modify&id=<int:reseller_network_id>/', ResellerNetworkView().modify, name='reseller-network-modify-with-id'),
+    path('reseller-network/detail/', ResellerNetworkView().detail, name='reseller-network-detail'),
+    path('reseller-network/modify/', ResellerNetworkView().modify, name='reseller-network-modify'),
     path('reseller-network/delete&id=<int:reseller_network_id>/', ResellerNetworkView().delete, name='reseller-network-delete-with-id'),
-    path('reseller-network/change-state&id=<int:reseller_network_id>/', ResellerNetworkView().change_state, name='reseller-network-change_state-with-id'),
+    path('reseller-network/change-state/', ResellerNetworkView().change_state, name='reseller-network-change-state'),
 
     # Receiver
     path('receiver/list/', ReceiverView().list, name='receiver-list'),
     path('receiver/filter/', ReceiverView().filter, name='receiver-filter'),
     path('receiver/create/', ReceiverView().create, name='receiver-create'),
-    path('receiver/detail&id=<int:receiver_id>/', ReceiverView().detail, name='receiver-detail-with-id'),
-    path('receiver/modify&id=<int:receiver_id>/', ReceiverView().modify, name='receiver-modify-with-id'),
+    path('receiver/detail/', ReceiverView().detail, name='receiver-detail'),
+    path('receiver/modify/', ReceiverView().modify, name='receiver-modify'),
     path('receiver/delete&id=<int:receiver_id>/', ReceiverView().delete, name='receiver-delete-with-id'),
-    path('receiver/change-state&id=<int:receiver_id>/', ReceiverView().change_state, name='receiver-change_state-with-id'),
+    path('receiver/change-state/', ReceiverView().change_state, name='receiver-change-state'),
 
     # Advertise Content
     path('advertise-content/list/', AdvertiseContentView().list, name='advertise-content-list'),
