@@ -1,0 +1,105 @@
+{% load panel_custom_tag %}
+{% load account_custom_tag %}
+{% load static %}
+
+<form id="fmtm_form_teaser_maker_data" action="{% url 'resource:teaser-maker-create' %}" method="post" class="add-new-record pt-0 row g-2">
+    {% csrf_token %}
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="name">نام</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="name" class="form-control"
+                   name="name" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="نام"
+                                               aria-describedby="نام"
+                                               value="{{ name|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="select2Basic" class="form-label">نوع محتوا</label>
+        <select id="select2Basic" name="content_type"
+                class="select2 form-select" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')">
+            <option {% if content_type == "صوتی" %} selected {% endif %} value="صوتی">صوتی</option>
+            <option {% if content_type == "تصویری" %} selected {% endif %} value="تصویری">تصویری</option>
+            <option {% if content_type == "ویدیویی" %} selected {% endif %} value="ویدیویی">ویدیویی</option>
+            <option {% if content_type == "متنی" %} selected {% endif %} value="متنی">متنی</option>
+            <option {% if content_type == "تلفیقی" %} selected {% endif %} value="تلفیقی">تلفیقی</option>
+            <option {% if content_type == "اینستاگرامی" %} selected {% endif %} value="اینستاگرامی">اینستاگرامی</option>
+        </select>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="code">شناسه یکتا</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="code" class="form-control"
+                   name="code" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="شناسه یکتا"
+                                               aria-describedby="شناسه یکتا"
+                                               value="{{ code|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="address">آدرس</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="address" class="form-control"
+                   name="address" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="آدرس"
+                                               aria-describedby="آدرس"
+                                               value="{{ address|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="phone_number">شماره تماس</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="phone_number" class="form-control"
+                   name="phone_number" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="شماره تماس"
+                                               aria-describedby="شماره تماس"
+                                               value="{{ phone_number|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="creation_price">هزینه ساخت - ریال</label>
+        <div class="input-group input-group-merge">
+            <input type="number" min="0" id="creation_price" class="form-control"
+                   name="creation_price" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="هزینه ساخت - ریال"
+                                               aria-describedby="هزینه ساخت - ریال"
+                                               value="{{ creation_price|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="editing_price">هزینه ویرایش - ریال</label>
+        <div class="input-group input-group-merge">
+            <input type="number" min="0" id="editing_price" class="form-control"
+                   name="editing_price" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="هزینه ویرایش - ریال"
+                                               aria-describedby="هزینه ویرایش - ریال"
+                                               value="{{ editing_price|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-3">
+        <div class="form-check form-check-primary mt-3">
+            <input class="form-check-input" type="checkbox" value="true" id="is_active" name="is_active"
+                   {% if is_active %} checked {% endif %}>
+            <label class="form-check-label" for="is_active">فعال</label>
+        </div>
+    </div>
+    {% if request|has_access_to_section:'create,teaser_maker' %}
+    <div class="col-sm-12 mt-3">
+        <button type="submit" class="btn btn-primary">ایجاد</button>
+    </div>
+    {% endif %}
+</form>

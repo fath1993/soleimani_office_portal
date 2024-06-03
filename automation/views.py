@@ -17,6 +17,278 @@ from utilities.http_metod import fetch_data_from_http_post, fetch_files_from_htt
     fetch_data_list_from_http_post
 
 
+class ProductRelationView:
+    def __init__(self):
+        super().__init__()
+
+    @CheckLogin()
+    @CheckPermissions(section='teaser_maker', allowed_actions='read')
+    def list(self, request, *args, **kwargs):
+        context = {'page_title': 'لیست تیزر ساز ها', 'get_params': request.GET.urlencode(), 'err': request.GET.get('err', None), 'message': request.GET.get('message', None)}
+
+        teaser_makers = TeaserMaker.objects.filter().order_by('-created_at')
+        context['teaser_makers'] = teaser_makers
+
+        items_per_page = 50
+        paginator = Paginator(teaser_makers, items_per_page)
+        page_number = request.GET.get('page')
+        page = paginator.get_page(page_number)
+        context['page'] = page
+
+        return render(request, 'panel/portal/teaser-maker/teaser-maker-list.html', context)
+
+    @CheckLogin()
+    @CheckPermissions(section='teaser_maker', allowed_actions='read')
+    @RequireMethod(allowed_method='POST')
+    def detail(self, request, *args, **kwargs):
+        context = {}
+        teaser_maker_id = fetch_data_from_http_post(request, 'teaser_maker_id', context)
+        try:
+            teaser_maker = TeaserMaker.objects.filter(id=teaser_maker_id)
+            serializer = TeaserMakerSerializer(teaser_maker, many=True)
+            json_response_body = {
+                "method": "post",
+                "request": f"دیتای تیزرساز با شناسه یکتای {teaser_maker_id}",
+                "result": "موفق",
+                "data": serializer.data
+            }
+            return JsonResponse(json_response_body)
+        except Exception as e:
+            print(e)
+            return JsonResponse({'message': 'failed'})
+
+    @CheckLogin()
+    @CheckPermissions(section='teaser_maker', allowed_actions='read')
+    def filter(self, request, *args, **kwargs):
+        context = {}
+        search = fetch_data_from_http_get(request, 'search', context)
+        content_type = fetch_data_from_http_get(request, 'content_type', context)
+        is_active = fetch_data_from_http_get(request, 'is_active', context)
+        address = fetch_data_from_http_get(request, 'address', context)
+        phone_number = fetch_data_from_http_get(request, 'phone_number', context)
+        creation_price_from = fetch_data_from_http_get(request, 'creation_price_from', context)
+        creation_price_to = fetch_data_from_http_get(request, 'creation_price_to', context)
+        editing_price_from = fetch_data_from_http_get(request, 'editing_price_from', context)
+        editing_price_to = fetch_data_from_http_get(request, 'editing_price_to', context)
+
+        page_title = f''''''
+        q = Q()
+        if search:
+            page_title += f'search: {search}, '
+            if search.isdigit():
+                q &= (
+                    Q(**{'id': search})
+                )
+            else:
+                q &= (
+                        Q(**{'name__icontains': search}) |
+                        Q(**{'code': search})
+                )
+
+        if content_type:
+            page_title += f'content_type: {content_type}, '
+            q &= (
+                Q(**{'content_type': content_type})
+            )
+
+        if is_active:
+            page_title += f'is_active: {is_active}, '
+            if is_active == 'فعال':
+                is_active = True
+            else:
+                is_active = False
+            q &= (
+                Q(**{'is_active': is_active})
+            )
+
+        if address:
+            page_title += f'address: {address}, '
+            q &= (
+                Q(**{'address__icontains': address})
+            )
+
+        if phone_number:
+            page_title += f'phone_number: {phone_number}, '
+            q &= (
+                Q(**{'phone_number__icontains': phone_number})
+            )
+
+        if creation_price_from:
+            page_title += f'creation_price_from: {creation_price_from}, '
+            q &= (
+                Q(**{'creation_price__gte': int(creation_price_from)})
+            )
+
+        if creation_price_to:
+            page_title += f'creation_price_to: {creation_price_to}, '
+            q &= (
+                Q(**{'creation_price__lte': int(creation_price_to)})
+            )
+
+        if editing_price_from:
+            page_title += f'editing_price_from: {editing_price_from}, '
+            q &= (
+                Q(**{'editing_price__gte': int(editing_price_from)})
+            )
+
+        if editing_price_to:
+            page_title += f'editing_price_to: {editing_price_to}, '
+            q &= (
+                Q(**{'editing_price__lte': int(editing_price_to)})
+            )
+
+        context['page_title'] = f'لیست تیزر ساز ها شامل *{page_title}*'
+        context['get_params'] = request.GET.urlencode()
+
+        teaser_makers = TeaserMaker.objects.filter(q).order_by('-created_at')
+        context['teaser_makers'] = teaser_makers
+
+        items_per_page = 50
+        paginator = Paginator(teaser_makers, items_per_page)
+        page_number = request.GET.get('page')
+        page = paginator.get_page(page_number)
+        context['page'] = page
+
+        return render(request, 'panel/portal/teaser-maker/teaser-maker-list.html', context)
+
+    @CheckLogin()
+    @CheckPermissions(section='teaser_maker', allowed_actions='create')
+    @RequireMethod(allowed_method='POST')
+    def create(self, request, *args, **kwargs):
+        context = {'page_title': 'ساخت تیزر ساز جدید', 'get_params': request.GET.urlencode()}
+
+        name = fetch_data_from_http_post(request, 'name', context)
+        content_type = fetch_data_from_http_post(request, 'content_type', context)
+        code = fetch_data_from_http_post(request, 'code', context)
+        address = fetch_data_from_http_post(request, 'address', context)
+        phone_number = fetch_data_from_http_post(request, 'phone_number', context)
+        creation_price = fetch_data_from_http_post(request, 'creation_price', context)
+        editing_price = fetch_data_from_http_post(request, 'editing_price', context)
+        is_active = fetch_data_from_http_post(request, 'is_active', context)
+
+        if not name:
+            err = 'نام تیزر ساز بدرستی وارد نشده است'
+            return redirect(reverse('resource:teaser-maker-list') + f'?err={err}')
+        if not content_type:
+            err = 'نوع محتوا تیزر ساز بدرستی وارد نشده است'
+            return redirect(reverse('resource:teaser-maker-list') + f'?err={err}')
+        if not code:
+            err = 'کد تیزر ساز بدرستی وارد نشده است'
+            return redirect(reverse('resource:teaser-maker-list') + f'?err={err}')
+        if not address:
+            err = 'آدرس تیزر ساز بدرستی وارد نشده است'
+            return redirect(reverse('resource:teaser-maker-list') + f'?err={err}')
+        if not phone_number:
+            err = 'شماره تماس تیزر ساز بدرستی وارد نشده است'
+            return redirect(reverse('resource:teaser-maker-list') + f'?err={err}')
+        if not creation_price:
+            err = 'هزینه ساخت تیزر ساز بدرستی وارد نشده است'
+            return redirect(reverse('resource:teaser-maker-list') + f'?err={err}')
+        if not editing_price:
+            err = 'هزینه ویرایش تیزر ساز محصول بدرستی وارد نشده است'
+            return redirect(reverse('resource:teaser-maker-list') + f'?err={err}')
+        if is_active == 'true':
+            is_active = True
+        else:
+            is_active = False
+
+        try:
+            TeaserMaker.objects.get(code=code)
+            err = f'تیزر ساز با کد {code} از قبل موجود است'
+            return redirect(reverse('resource:teaser-maker-list') + f'?err={err}')
+        except:
+            new_teaser_maker = TeaserMaker.objects.create(
+                name=name,
+                content_type=content_type,
+                code=code,
+                address=address,
+                phone_number=phone_number,
+                creation_price=creation_price,
+                editing_price=editing_price,
+                created_by=request.user,
+                updated_by=request.user,
+                is_active=is_active,
+            )
+
+            message = f'تیزر ساز با کد {code} ایجاد گردید'
+            return redirect(reverse('resource:teaser-maker-list') + f'?message={message}')
+
+    @CheckLogin()
+    @CheckPermissions(section='teaser_maker', allowed_actions='modify')
+    @RequireMethod(allowed_method='POST')
+    def modify(self, request, *args, **kwargs):
+        context = {}
+        teaser_maker_id = fetch_data_from_http_post(request, 'teaser_maker_id', context)
+        try:
+            teaser_maker = TeaserMaker.objects.get(id=teaser_maker_id)
+            context = {'page_title': f'ویرایش تیزرساز با شناسه یکتای *{teaser_maker_id}*',
+                       'teaser_maker': teaser_maker, 'get_params': request.GET.urlencode()}
+            name = fetch_data_from_http_post(request, 'fmtm_form_modal_teaser_maker_data_name', context, False)
+            content_type = fetch_data_from_http_post(request, 'fmtm_form_modal_teaser_maker_data_content_type', context, False)
+            code = fetch_data_from_http_post(request, 'fmtm_form_modal_teaser_maker_data_code', context, False)
+            address = fetch_data_from_http_post(request, 'fmtm_form_modal_teaser_maker_data_address', context, False)
+            phone_number = fetch_data_from_http_post(request, 'fmtm_form_modal_teaser_maker_data_phone_number', context)
+            creation_price = fetch_data_from_http_post(request, 'fmtm_form_modal_teaser_maker_data_creation_price', context, False)
+            editing_price = fetch_data_from_http_post(request, 'fmtm_form_modal_teaser_maker_data_editing_price', context)
+            is_active = fetch_data_from_http_post(request, 'fmtm_form_modal_teaser_maker_data_is_active', context)
+
+            if name:
+                teaser_maker.name = name
+            if content_type:
+                teaser_maker.content_type = content_type
+            if code:
+                teaser_maker.code = code
+            if address:
+                teaser_maker.address = address
+            if phone_number:
+                teaser_maker.phone_number = phone_number
+            if creation_price:
+                teaser_maker.creation_price = creation_price
+            if editing_price:
+                teaser_maker.editing_price = editing_price
+            if is_active == 'true':
+                teaser_maker.is_active = True
+            else:
+                teaser_maker.is_active = False
+            teaser_maker.save()
+
+            return JsonResponse({'message': f'تیزرساز با شناسه یکتا {teaser_maker_id} ویرایش گردید'})
+        except:
+            return JsonResponse({'message': f'teaser maker not found'})
+
+    @CheckLogin()
+    @CheckPermissions(section='teaser_maker', allowed_actions='delete')
+    def delete(self, request, teaser_maker_id, *args, **kwargs):
+        try:
+            teaser_maker = TeaserMaker.objects.get(id=teaser_maker_id)
+            context = {'page_title': f'حذف تیزر ساز {teaser_maker.name}', 'get_params': request.GET.urlencode()}
+            teaser_maker.delete()
+            return redirect(reverse('panel:teaser-maker-list') + f'?{request.GET.urlencode()}')
+        except Exception as e:
+            print(e)
+            return render(request, 'panel/err/err-not-found.html')
+
+    @CheckLogin()
+    @CheckPermissions(section='teaser_maker', allowed_actions='modify')
+    @RequireMethod(allowed_method='POST')
+    def change_state(self, request, *args, **kwargs):
+        context = {}
+        teaser_maker_id = fetch_data_from_http_post(request, 'teaser_maker_id', context)
+        try:
+            teaser_maker = TeaserMaker.objects.get(id=teaser_maker_id)
+            context = {'page_title': f'تغییر وضعیت تیزر ساز {teaser_maker.name}', 'get_params': request.GET.urlencode()}
+            if teaser_maker.is_active:
+                teaser_maker.is_active = False
+                teaser_maker_is_active = 'false'
+            else:
+                teaser_maker.is_active = True
+                teaser_maker_is_active = 'true'
+            teaser_maker.save()
+            return JsonResponse({"teaser_maker_is_active": teaser_maker_is_active})
+        except:
+            return render(request, 'panel/err/err-not-found.html')
+
+
 class CreditCardView:
     def __init__(self):
         super().__init__()
@@ -947,8 +1219,7 @@ class RequestedProductProcessingView:
                 "data": {
                     'customer_phone_number': f'{requested_product_processing.requested_product.customer.phone_number}',
                     'product_name': f'{requested_product_processing.requested_product.product.name}',
-                    'product_link': f'{BASE_URL}{reverse('resource:product-detail-with-id', kwargs={'product_id': requested_product_processing.requested_product.product.id})}'.replace(
-                        '//', '/'),
+                    'product_link': '',
                 }
             }
             return JsonResponse(json_response_body)

@@ -63,7 +63,7 @@
                             </ul>
                             <div class="d-flex justify-content-between pt-3">
                                 <div class="text-right">
-                                    {% if request.user|user_section_is_allowed:'modify' %}
+                                    {% if request|has_access_to_section:'modify,user' %}
                                         <a href="{% url 'accounts:user-edit-with-id' user_id=user.id %}{% if get_params %}?{{ get_params }}{% endif %}"
                                            class="btn btn-primary me-3">ویرایش</a>
                                     {% endif %}

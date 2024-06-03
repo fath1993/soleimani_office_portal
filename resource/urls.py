@@ -9,20 +9,19 @@ urlpatterns = [
     path('product/list/', ProductView().list, name='product-list'),
     path('product/filter/', ProductView().filter, name='product-filter'),
     path('product/create/', ProductView().create, name='product-create'),
-    path('product/detail&id=<int:product_id>/', ProductView().detail, name='product-detail-with-id'),
-    path('product/modify&id=<int:product_id>/', ProductView().modify, name='product-modify-with-id'),
+    path('product/detail/', ProductView().detail, name='product-detail'),
+    path('product/modify/', ProductView().modify, name='product-modify'),
     path('product/delete&id=<int:product_id>/', ProductView().delete, name='product-delete-with-id'),
-    path('product/change-state&id=<int:product_id>/', ProductView().change_state, name='product-change_state-with-id'),
+    path('product/change-state/', ProductView().change_state, name='product-change-state'),
 
     # Teaser Maker
     path('teaser-maker/list/', TeaserMakerView().list, name='teaser-maker-list'),
     path('teaser-maker/filter/', TeaserMakerView().filter, name='teaser-maker-filter'),
     path('teaser-maker/create/', TeaserMakerView().create, name='teaser-maker-create'),
-    path('teaser-maker/detail&id=<int:teaser_maker_id>/', TeaserMakerView().detail, name='teaser-maker-detail-with-id'),
-    path('teaser-maker/modify&id=<int:teaser_maker_id>/', TeaserMakerView().modify, name='teaser-maker-modify-with-id'),
+    path('teaser-maker/detail/', TeaserMakerView().detail, name='teaser-maker-detail'),
+    path('teaser-maker/modify/', TeaserMakerView().modify, name='teaser-maker-modify'),
     path('teaser-maker/delete&id=<int:teaser_maker_id>/', TeaserMakerView().delete, name='teaser-maker-delete-with-id'),
-    path('teaser-maker/change-state&id=<int:teaser_maker_id>/', TeaserMakerView().change_state, name='teaser-maker-change_state-with-id'),
-    path('teaser-maker/change-state&id=<int:teaser_maker_id>/', TeaserMakerView().change_state, name='teaser-maker-change_state-with-id'),
+    path('teaser-maker/change-state/', TeaserMakerView().change_state, name='teaser-maker-change-state'),
 
     # Reseller Network
     path('reseller-network/list/', ResellerNetworkView().list, name='reseller-network-list'),

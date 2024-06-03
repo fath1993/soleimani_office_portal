@@ -153,19 +153,19 @@
                                 <td>{% if permission.modify %}<span class="badge bg-success">دارد</span>{% else %}<span class="badge bg-dark">ندارد</span>{% endif %}</td>
                                 <td>{% if permission.delete %}<span class="badge bg-success">دارد</span>{% else %}<span class="badge bg-dark">ندارد</span>{% endif %}</td>
                                 <td>
-                                    {% if request.user|permission_section_is_allowed:'modify,delete' %}
+                                    {% if request|permission_section_is_allowed:'modify,delete' %}
                                         <div class="dropdown">
                                             <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
                                                     data-bs-toggle="dropdown">
                                                 <i class="bx bx-dots-vertical-rounded"></i>
                                             </button>
                                             <div class="dropdown-menu">
-                                                {% if request.user|permission_section_is_allowed:'modify' %}
+                                                {% if request|permission_section_is_allowed:'modify' %}
                                                     <a class="dropdown-item" href="
                                                             {% url 'accounts:permission-modify-with-id' permission_id=permission.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"><i
                                                             class="bx bx-edit-alt me-1"></i> ویرایش</a>
                                                 {% endif %}
-                                                {% if request.user|permission_section_is_allowed:'delete' %}
+                                                {% if request|permission_section_is_allowed:'delete' %}
                                                     <a class="dropdown-item" href="javascript:void(0);"
                                                        data-bs-toggle="modal"
                                                        data-bs-target="#deleteUserModal_{{ forloop.counter }}"><i

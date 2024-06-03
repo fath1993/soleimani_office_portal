@@ -4,6 +4,7 @@ from accounts.custom_decorator import CheckLogin, CheckPermissions, RequireMetho
 from gallery.models import delete_file
 from utilities.http_metod import fetch_data_from_http_post
 
+
 class FileGalleryView:
     def __init__(self):
         super().__init__()
@@ -15,7 +16,7 @@ class FileGalleryView:
         context = {}
         file_id = fetch_data_from_http_post(request, 'file_id', context)
         if delete_file(file_id):
-            return JsonResponse({"message": 'deleted'})
+            return JsonResponse({"message": f'فایل با شناسه یکتای {file_id} حذف شد', 'result': 'deleted'})
         else:
-            return JsonResponse({"message": f'file with id: {file_id} not found.'})
+            return JsonResponse({"message": f'فایل با شناسه یکتای {file_id} یافت نشد'})
 

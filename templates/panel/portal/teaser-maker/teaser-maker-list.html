@@ -13,7 +13,7 @@
           href="{% static 'assets/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css' %}">
     <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css' %}">
     <link rel="stylesheet" href="{% static 'assets/vendor/libs/flatpickr/flatpickr.css' %}">
-    <link rel="stylesheet" href="{% static 'assets/vendor/libs/sweetalert2/sweetalert2.css' %}">
+    
     <!-- Row Group CSS -->
     <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css' %}">
     <!-- Form Validation -->
@@ -24,15 +24,15 @@
 {% block content %}
     <div class="container-xxl flex-grow-1 container-p-y">
         <h4 class="py-3 breadcrumb-wrapper mb-4">
-            <span class="text-muted fw-light">مدیریت منابع / <span class="text-black">تیزر سازها</span></span>
+            <span class="text-muted fw-light">منابع / <span class="text-black">تیزرساز</span></span>
         </h4>
         <div class="card mb-3">
             <h5 class="card-header heading-color">
-                فیلتر تیزر ساز
+                فیلتر تیزرساز
             </h5>
             <div class="card-body">
                 <div class="row">
-                    <form method="get" action="{% url 'panel:teaser-maker-filter' %}">
+                    <form method="get" action="{% url 'resource:teaser-maker-filter' %}">
                         <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="search">جستجو <span class="text-muted">(نام, کد, شناسه)</span></label>
                             <div class="input-group">
@@ -43,93 +43,13 @@
                         </div>
                     </form>
                 </div>
-                <div class="row">
-                    <form method="get" action="{% url 'panel:teaser-maker-filter' %}">
-                        <div class="row">
-                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label for="defaultSelect" class="form-label">نوع محتوا</label>
-                                <select id="defaultSelect" name="content_type" class="form-select dt-user-role">
-                                    <option {% if not content_type %} selected {% endif %} value="">انتخاب</option>
-                                    <option {% if content_type == 'صوتی' %} selected {% endif %} value="صوتی">صوتی</option>
-                                    <option {% if content_type == 'تصویری' %} selected {% endif %}value="تصویری">تصویری</option>
-                                    <option {% if content_type == 'ویدیویی' %} selected {% endif %} value="ویدیویی">ویدیویی</option>
-                                    <option {% if content_type == 'متنی' %} selected {% endif %}value="متنی">متنی</option>
-                                    <option {% if content_type == 'تلفیقی' %} selected {% endif %} value="تلفیقی">تلفیقی</option>
-                                    <option {% if content_type == 'اینستاگرامی' %} selected {% endif %}value="اینستاگرامی">اینستاگرامی</option>
-                                </select>
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label for="defaultSelect" class="form-label">وضعیت</label>
-                                <select id="defaultSelect" name="is_active" class="form-select dt-is_active">
-                                    <option {% if is_active != 'فعال' and type != 'غیر فعال' %} selected {% endif %} value="">انتخاب</option>
-                                    <option {% if is_active == 'فعال' %} selected {% endif %} value="فعال">فعال</option>
-                                    <option {% if is_active == 'غیر فعال' %} selected {% endif %} value="غیر فعال">غیر فعال</option>
-                                </select>
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label class="form-label" for="address">
-                                    آدرس</label>
-                                <div class="input-group input-group-merge">
-                                    <input type="text" id="address"
-                                           class="form-control dt-address"
-                                           name="address"
-                                           placeholder="" aria-label="address"
-                                           aria-describedby="address"
-                                           value="{{ address|default:'' }}">
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label class="form-label" for="phone_number">
-                                    شماره تماس</label>
-                                <div class="input-group input-group-merge">
-                                    <input type="text" id="phone_number"
-                                           class="form-control dt-phone_number"
-                                           name="phone_number"
-                                           placeholder="" aria-label="phone_number"
-                                           aria-describedby="phone_number"
-                                           value="{{ phone_number|default:'' }}">
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label class="form-label" for="creation_price_from">
-                                    هزینه ساخت از...تا</label>
-                                <div class="input-group input-group-merge">
-                                    <input class="form-control d-inline-block" type="number"
-                                           id="creation_price_from"
-                                           name="creation_price_from"
-                                           value="{{ creation_price_from|default:'' }}">
-                                    <input class="form-control d-inline-block" type="number"
-                                           id="creation_price_to" name="creation_price_to"
-                                           value="{{ creation_price_to|default:'' }}">
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label class="form-label" for="editing_price_from">
-                                    هزینه ویرایش از...تا</label>
-                                <div class="input-group input-group-merge">
-                                    <input class="form-control d-inline-block" type="number"
-                                           id="editing_price_from"
-                                           name="editing_price_from"
-                                           value="{{ editing_price_from|default:'' }}">
-                                    <input class="form-control d-inline-block" type="number"
-                                           id="editing_price_to" name="editing_price_to"
-                                           value="{{ editing_price_to|default:'' }}">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <button type="submit" class="btn btn-outline-secondary"><i class="fa fa-search"> فیلتر</i></button>
-                            <a href="{% url 'panel:teaser-maker-filter' %}" target="_self" class="btn btn-outline-gray"><i class="fa fa-refresh"> ریست</i></a>
-                        </div>
-                    </form>
-                </div>
             </div>
         </div>
         <div class="card">
             {% if request|has_access_to_section:'create,teaser_maker' %}
                 <h5 class="card-header heading-color">
                     <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
-                        <i class="ti-plus m-r-5"></i> ایجاد تیزر ساز جدید
+                        <i class="ti-plus m-r-5"></i> ایجاد تیزرساز جدید
                     </button>
                     {% if err %}
                         <strong class="text-danger">{{ err }}</strong>
@@ -139,118 +59,12 @@
                     {% endif %}
                     <div class="offcanvas offcanvas-end" id="add-new-record">
                         <div class="offcanvas-header border-bottom">
-                            <h5 class="offcanvas-title" id="exampleModalLabel">تیزر ساز جدید</h5>
+                            <h5 class="offcanvas-title" id="exampleModalLabel">تیزرساز جدید</h5>
                             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
                                     aria-label="Close"></button>
                         </div>
                         <div class="offcanvas-body flex-grow-1">
-                            <form class="add-new-record pt-0 row g-2" method="post"
-                                  action="{% url 'panel:teaser-maker-create' %}" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="name">نام</label>
-                                    <div class="input-group input-group-merge">
-                                    <span id="name" class="input-group-text"></span>
-                                        <input type="text" id="name" class="form-control"
-                                               name="name" required
-                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                               oninput="setCustomValidity('')"
-                                               placeholder="" aria-label="نام"
-                                               aria-describedby="نام"
-                                               value="{{ name|default:'' }}">
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label for="defaultSelect" class="form-label">نوع محصول</label>
-                                    <select id="defaultSelect" name="content_type"
-                                            class="form-select dt-content_type" required>
-                                        <option {% if content_type == 'صوتی' %} selected {% endif %} value="صوتی">صوتی</option>
-                                        <option {% if content_type == 'تصویری' %} selected {% endif %} value="تصویری">تصویری</option>
-                                        <option {% if content_type == 'ویدیویی' %} selected {% endif %} value="ویدیویی">ویدیویی</option>
-                                        <option {% if content_type == 'متنی' %} selected {% endif %} value="متنی">متنی</option>
-                                        <option {% if content_type == 'تلفیقی' %} selected {% endif %} value="تلفیقی">تلفیقی</option>
-                                        <option {% if content_type == 'اینستاگرامی' %} selected {% endif %} value="اینستاگرامی">اینستاگرامی</option>
-                                    </select>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="code">کد</label>
-                                    <div class="input-group input-group-merge">
-                                    <span id="code" class="input-group-text"></span>
-                                        <input type="text" id="code" class="form-control"
-                                               name="code" required
-                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                               oninput="setCustomValidity('')"
-                                               placeholder="123456" aria-label="کد"
-                                               aria-describedby="کد"
-                                               value="{{ code|default:'' }}">
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="address">آدرس</label>
-                                    <div class="input-group input-group-merge">
-                                    <span id="address" class="input-group-text"></span>
-                                        <input type="text" id="address" class="form-control"
-                                               name="address" required
-                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                               oninput="setCustomValidity('')"
-                                               placeholder="آدرس" aria-label="آدرس"
-                                               aria-describedby="آدرس"
-                                               value="{{ address|default:'' }}">
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="phone_number">شماره تماس</label>
-                                    <div class="input-group input-group-merge">
-                                    <span id="phone_number" class="input-group-text"></span>
-                                        <input type="text" id="phone_number" class="form-control"
-                                               name="phone_number" required
-                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                               oninput="setCustomValidity('')"
-                                               placeholder="شماره تماس" aria-label="شماره تماس"
-                                               aria-describedby="شماره تماس"
-                                               value="{{ phone_number|default:'' }}">
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="creation_price">هزینه ساخت</label>
-                                    <div class="input-group input-group-merge">
-                                    <span id="creation_price" class="input-group-text"></span>
-                                        <input type="number" min="0" id="creation_price" class="form-control"
-                                               name="creation_price" required
-                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                               oninput="setCustomValidity('')"
-                                               placeholder="ریال" aria-label="هزینه ساخت"
-                                               aria-describedby="هزینه ساخت"
-                                               value="{{ creation_price|default:'' }}">
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="editing_price">هزینه ویرایش</label>
-                                    <div class="input-group input-group-merge">
-                                    <span id="editing_price" class="input-group-text"></span>
-                                        <input type="number" min="0" id="editing_price" class="form-control"
-                                               name="editing_price" required
-                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                               oninput="setCustomValidity('')"
-                                               placeholder="ریال" aria-label="هزینه ویرایش"
-                                               aria-describedby="هزینه ویرایش"
-                                               value="{{ editing_price|default:'' }}">
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <div class="form-check form-check-primary mt-3">
-                                        <input class="form-check-input" type="checkbox" value="true" id="is_active" name="is_active"
-                                               checked>
-                                        <label class="form-check-label" for="is_active">فعال</label>
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12 mt-3">
-                                    <button type="submit" class="btn btn-primary data-submit me-sm-3 me-1">ایجاد</button>
-                                    <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">
-                                        انصراف
-                                    </button>
-                                </div>
-                            </form>
+                            {% include 'panel/portal/teaser-maker/form-teaser-maker.html' %}
                         </div>
                     </div>
                 </h5>
@@ -261,10 +75,14 @@
                         <thead>
                         <tr>
                             <th style="width: 5%">#</th>
-                            <th style="width: 50%">نام</th>
-                            <th style="width: 10%">نوع محتوا</th>
-                            <th style="width: 10%">کد</th>
-                            <th style="width: 20%">وضعیت</th>
+                            <th style="width: 15%">نام</th>
+                            <th style="width: 15%">نوع محتوا</th>
+                            <th style="width: 10%">شناسه یکتا</th>
+                            <th style="width: 10%">آدرس</th>
+                            <th style="width: 10%">شماره تماس</th>
+                            <th style="width: 10%">هزینه ساخت - ریال</th>
+                            <th style="width: 10%">هزینه ویرایش - ریال</th>
+                            <th style="width: 10%">وضعیت</th>
                             <th style="width: 5%">عملیات</th>
                         </tr>
                         </thead>
@@ -272,13 +90,16 @@
                         {% for teaser_maker in page %}
                             <tr>
                                 <td>{{ forloop.counter }}</td>
-                                <td>
-                                    <strong><a href="{% url 'panel:teaser-maker-detail-with-id' teaser_maker_id=teaser_maker.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
-                                               target="_self">{{ teaser_maker.name }}</a></strong>
+                                <td id="table_teaser_maker_id_{{ teaser_maker.id }}" data-id="{{ teaser_maker.id }}" data-title="{{ teaser_maker.code }}" data-bs-toggle="modal" data-bs-target="#teaser_makerModal" onclick="set_important_and_get_data(this)">
+                                    <span id="table_teaser_maker_name_{{ teaser_maker.id }}" class="btn text-primary">{{ teaser_maker.name }}</span>
                                 </td>
-                                <td>{{ teaser_maker.content_type }}</td>
-                                <td>{{ teaser_maker.code }}</td>
-                                <td id="td_teaser_maker_is_active_{{ forloop.counter }}">
+                                <td id="table_teaser_maker_content_type_{{ teaser_maker.id }}">{{ teaser_maker.content_type }}</td>
+                                <td id="table_teaser_maker_code_{{ teaser_maker.id }}">{{ teaser_maker.code }}</td>
+                                <td id="table_teaser_maker_address_{{ teaser_maker.id }}">{{ teaser_maker.address }}</td>
+                                <td id="table_teaser_maker_phone_number_{{ teaser_maker.id }}">{{ teaser_maker.phone_number }}</td>
+                                <td id="table_teaser_maker_creation_price_{{ teaser_maker.id }}">{{ teaser_maker.creation_price }}</td>
+                                <td id="table_teaser_maker_editing_price_{{ teaser_maker.id }}">{{ teaser_maker.editing_price }}</td>
+                                <td id="table_teaser_maker_is_active_{{ teaser_maker.id }}">
                                     {% if teaser_maker.is_active %}
                                         <span class="badge bg-success">فعال</span>
                                     {% else %}
@@ -294,9 +115,7 @@
                                             </button>
                                             <div class="dropdown-menu">
                                                 {% if request|has_access_to_section:'modify,teaser_maker' %}
-                                                    <a class="dropdown-item" href="{% url 'panel:teaser-maker-modify-with-id' teaser_maker_id=teaser_maker.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"><i
-                                                            class="bx bx-edit-alt me-1"></i> ویرایش</a>
-                                                    <a id="teaser_maker_is_active_change_btn_{{ forloop.counter }}" class="dropdown-item" href="javascript:void(0)" onclick="teaser_maker_change_state('{{ teaser_maker.id }}', '{{ forloop.counter }}')"><span>{% if teaser_maker.is_active %}<i
+                                                    <a id="table_teaser_maker_is_active_change_btn_{{ teaser_maker.id }}" class="dropdown-item" href="javascript:void(0)" onclick="teaser_maker_change_state('{{ teaser_maker.id }}')"><span>{% if teaser_maker.is_active %}<i
                                                             class="bx bx-lock me-1"></i> غیر فعال{% else %}<i class="bx bx-lock-open me-1"></i> فعال{% endif %}</span></a>
                                                     
                                                 {% endif %}
@@ -318,8 +137,8 @@
                                                             <div class="text-center mb-4 mt-0 mt-md-n2">
                                                                 <h3 class="mb-4 secondary-font">تایید حذف</h3>
                                                             </div>
-                                                            <h6>آیا از حذف تیزر ساز <strong class="bg-warning">{{ teaser_maker.name }}</strong> مطمئن هستید؟</h6>
-                                                            <form class="row g-3 mt-3" method="post" action="{% url 'panel:teaser-maker-delete-with-id' teaser_maker_id=teaser_maker.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                            <h6>آیا از حذف تیزرساز <strong class="bg-warning">{{ teaser_maker.name }}</strong> مطمئن هستید؟</h6>
+                                                            <form class="row g-3 mt-3" method="post" action="{% url 'resource:teaser-maker-delete-with-id' teaser_maker_id=teaser_maker.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
                                                                 {% csrf_token %}
                                                                 <div class="col-12">
                                                                     <button type="submit"
@@ -344,6 +163,10 @@
                             </tr>
                         {% empty %}
                             <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -398,14 +221,19 @@
             </div>
         </div>
     </div>
+    <form id="tml_data_form" hidden>
+        <input type="hidden" id="tml_teaser_maker_id" value="none">
+        <input type="hidden" id="tml_teaser_maker_title" value="none">
+    </form>
+    {% include 'panel/portal/teaser-maker/modal-teaser-maker-create-modify.html' %}
 {% endblock %}
 
 {% block extra_body %}
+    
+    
     <!-- Main JS -->
     <script src="{% static 'assets/js/main.js' %}"></script>
-
-    <!-- Page JS -->
-
+    
     <script>
         'use strict';
         let fv, offCanvasEl;
@@ -428,14 +256,154 @@
             })();
         });
         
-        function teaser_maker_change_state(teaser_maker_id, forloop_counter) {
+        function set_important_and_get_data(element){
+            const data_id = element.dataset.id
+            const data_title = element.dataset.title
+            const tml_teaser_maker_id = document.getElementById('tml_teaser_maker_id')
+            const tml_teaser_maker_title = document.getElementById('tml_teaser_maker_title')
+            tml_teaser_maker_id.value = data_id
+            tml_teaser_maker_title.value = data_title
+            get_teaser_maker_data(data_id, data_title)
+        }
+        
+        function get_teaser_maker_data(data_id, data_title) {
+            const mtmcm_teaser_maker_title = document.getElementById('mtmcm_teaser_maker_title')
+            const mtmcm_teaser_maker_container = document.getElementById('mtmcm_teaser_maker_container')
+            const mtmcm_teaser_maker_title_innerHTML = mtmcm_teaser_maker_title.innerHTML
+            const mtmcm_teaser_maker_container_innerHTML = mtmcm_teaser_maker_container.innerHTML
+            
+            const table_teaser_maker_id_ = document.getElementById(`table_teaser_maker_id_${data_id}`)
+            const table_teaser_maker_name_ = document.getElementById(`table_teaser_maker_name_${data_id}`)
+            const table_teaser_maker_content_type_ = document.getElementById(`table_teaser_maker_content_type_${data_id}`)
+            const table_teaser_maker_code_ = document.getElementById(`table_teaser_maker_code_${data_id}`)
+            const table_teaser_maker_address_ = document.getElementById(`table_teaser_maker_address_${data_id}`)
+            const table_teaser_maker_phone_number_ = document.getElementById(`table_teaser_maker_phone_number_${data_id}`)
+            const table_teaser_maker_creation_price_ = document.getElementById(`table_teaser_maker_creation_price_${data_id}`)
+            const table_teaser_maker_editing_price_ = document.getElementById(`table_teaser_maker_editing_price_${data_id}`)
+            const table_teaser_maker_is_active_ = document.getElementById(`table_teaser_maker_is_active_${data_id}`)
+            const table_teaser_maker_is_active_change_btn_ = document.getElementById(`table_teaser_maker_is_active_change_btn_${data_id}`)
+            
+                
+            const loading_text = 'در حال بارگذاری ...'
+            const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                      <span class="visually-hidden">${loading_text}</span>
+                                    </div>`
             const formData = new FormData();
+            formData.append('teaser_maker_id', `${data_id}`)
             formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
             const options = {
                 method: 'POST',
                 body: formData,
             }
-            fetch('{% url 'panel:teaser-maker-change_state-with-id' teaser_maker_id=0 %}'.replace('0', teaser_maker_id).replace('amp;', ''), options)
+            mtmcm_teaser_maker_title.innerText = `اطلاعات تیزرساز ${data_title}`
+            mtmcm_teaser_maker_container.innerHTML=loading_html
+            fetch('{% url 'resource:teaser-maker-detail' %}', options)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log(data)
+                    mtmcm_teaser_maker_title.innerText = `اطلاعات تیزرساز ${data['data'][0]['name']}`
+                    table_teaser_maker_name_.innerText = `${data['data'][0]['name']}`
+                    table_teaser_maker_content_type_.innerText = `${data['data'][0]['content_type']}`
+                    table_teaser_maker_code_.innerText = `${data['data'][0]['code']}`
+                    table_teaser_maker_address_.innerText = `${data['data'][0]['address']}`
+                    table_teaser_maker_phone_number_.innerText = `${data['data'][0]['phone_number']}`
+                    table_teaser_maker_creation_price_.innerText = `${data['data'][0]['creation_price']}`
+                    table_teaser_maker_editing_price_.innerText = `${data['data'][0]['editing_price']}`
+                    if (data['data'][0]['is_active'] === true) {
+                        table_teaser_maker_is_active_.innerHTML = '<span class="badge bg-success">فعال</span>'
+                        table_teaser_maker_is_active_change_btn_.innerHTML = '<span><i class="bx bx-lock me-1"></i> غیر فعال</span>'
+                    } else {
+                        table_teaser_maker_is_active_.innerHTML = '<span class="badge bg-dark">غیر فعال</span>'
+                        table_teaser_maker_is_active_change_btn_.innerHTML = '<span><i class="bx bx-lock-open me-1"></i> فعال</span>'
+                    }
+                    
+                    mtmcm_teaser_maker_container.innerHTML=`{% include 'panel/portal/teaser-maker/form-modal-teaser-maker.html' %}`
+                    document.getElementById('fmtm_form_modal_teaser_maker_data_name').value=`${data['data'][0]['name']}`
+                    document.getElementById('fmtm_form_modal_teaser_maker_data_code').value=`${data['data'][0]['code']}`
+                    document.getElementById('fmtm_form_modal_teaser_maker_data_address').value=`${data['data'][0]['address']}`
+                    document.getElementById('fmtm_form_modal_teaser_maker_data_phone_number').value=`${data['data'][0]['phone_number']}`
+                    document.getElementById('fmtm_form_modal_teaser_maker_data_creation_price').value=`${data['data'][0]['creation_price']}`
+                    document.getElementById('fmtm_form_modal_teaser_maker_data_editing_price').value=`${data['data'][0]['editing_price']}`
+
+                    const fmtm_form_modal_teaser_maker_data_content_type = document.querySelector('[name="fmtm_form_modal_teaser_maker_data_content_type"]')
+                    const options_1 = fmtm_form_modal_teaser_maker_data_content_type.querySelectorAll('option');
+                    for (let x = 0; x < options_1.length; x++) {
+                        if (options_1[x].value === data['data'][0]['content_type']) {
+                            options_1[x].selected = true;
+                            break;
+                        }
+                    }
+
+                    if (data['data'][0]['is_active'] === true) {
+                        document.getElementById('fmtm_form_modal_teaser_maker_data_is_active').checked = true
+                    } else {
+                        document.getElementById('fmtm_form_modal_teaser_maker_data_is_active').checked = false
+                    }
+
+                    const form_element = document.getElementById('fmtm_form_modal_teaser_maker_data')
+                    initializeSelect2(form_element);
+                })
+                .catch(error => {
+                    mtmcm_teaser_maker_container.innerHTML = mtmcm_teaser_maker_container_innerHTML
+                    console.log(error)
+                });
+        }
+        function set_teaser_maker_data() {
+            const tml_teaser_maker_id = document.getElementById('tml_teaser_maker_id').value
+            const tml_teaser_maker_title = document.getElementById('tml_teaser_maker_title').value
+            const fmtm_form_modal_teaser_maker_data = document.getElementById('fmtm_form_modal_teaser_maker_data')
+            
+            const formData = new FormData(fmtm_form_modal_teaser_maker_data);
+            formData.append('teaser_maker_id', `${tml_teaser_maker_id}`)
+            const options = {
+                method: 'POST',
+                body: formData,
+            }
+            fetch('{% url 'resource:teaser-maker-modify' %}', options)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data['message'] === 'teaser maker not found') {
+                        toast_maker('error', `تیزرساز با شناسه یکتای ${tml_teaser_maker_id} یافت نشد`)
+                    }  else {
+                        toast_maker('success', `${data['message']}`)
+                        get_teaser_maker_data(`${tml_teaser_maker_id}`, `${tml_teaser_maker_title}`)
+                    }
+                    console.log(data)
+                })
+                .catch(error => {
+                    console.log(error)
+                });
+        }
+        
+        function teaser_maker_change_state(teaser_maker_id) {
+            const table_teaser_maker_is_active = document.getElementById(`table_teaser_maker_is_active_${teaser_maker_id}`)
+            const table_teaser_maker_is_active_change_btn = document.getElementById(`table_teaser_maker_is_active_change_btn_${teaser_maker_id}`)
+            const table_teaser_maker_is_active_innerHTML = table_teaser_maker_is_active.innerHTML
+            const table_is_active_change_btn_innerHTML = table_teaser_maker_is_active_change_btn.innerHTML
+            const loading_text = 'در حال بارگذاری ...'
+            const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                  <span class="visually-hidden">${loading_text}</span>
+                                </div>`
+            const formData = new FormData();
+            formData.append('teaser_maker_id', `${teaser_maker_id}`)
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+            const options = {
+                method: 'POST',
+                body: formData,
+            }
+            table_teaser_maker_is_active.innerHTML = loading_html
+            table_teaser_maker_is_active_change_btn.innerHTML = loading_html
+            fetch('{% url 'resource:teaser-maker-change-state' %}', options)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -444,16 +412,23 @@
                 })
                 .then(data => {
                     if (data['teaser_maker_is_active'] === 'false') {
-                        document.getElementById('td_teaser_maker_is_active_' + forloop_counter).innerHTML = '<span class="badge bg-dark">غیر فعال</span>'
-                        document.getElementById('teaser_maker_is_active_change_btn_' + forloop_counter).innerHTML = '<span><i class="bx bx-lock-open me-1"></i> فعال</span>'
+                        table_teaser_maker_is_active.innerHTML = '<span class="badge bg-dark">غیر فعال</span>'
+                        table_teaser_maker_is_active_change_btn.innerHTML = '<span><i class="bx bx-lock-open me-1"></i> فعال</span>'
+                        toast_maker('success', 'با موفقیت غیر فعال شد')
                     } else {
-                        document.getElementById('td_teaser_maker_is_active_' + forloop_counter).innerHTML = '<span class="badge bg-success">فعال</span>'
-                        document.getElementById('teaser_maker_is_active_change_btn_' + forloop_counter).innerHTML = '<span><i class="bx bx-lock me-1"></i> غیر فعال</span>'
+                        table_teaser_maker_is_active.innerHTML = '<span class="badge bg-success">فعال</span>'
+                        table_teaser_maker_is_active_change_btn.innerHTML = '<span><i class="bx bx-lock me-1"></i> غیر فعال</span>'
+                        toast_maker('success', 'با موفقیت فعال شد')
                     }
                 })
                 .catch(error => {
-                    console.error('Error change teaser_maker state:', error);
+                    table_teaser_maker_is_active.innerHTML = table_teaser_maker_is_active_innerHTML
+                    table_teaser_maker_is_active_change_btn.innerHTML = table_is_active_change_btn_innerHTML
+                    toast_maker('error', 'عملیات ناموفق')
+                    console.error('Error change teaser maker state:', error);
                 });
             }
+        
+        
     </script>
 {% endblock %}

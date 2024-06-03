@@ -238,17 +238,17 @@
                     return response.json();
                 })
                 .then(data => {
-                    if (data['message'] === 'deleted') {
+                    if (data['result'] === 'deleted') {
                         toast_maker('success', `${data['message']}`)
                         file_element.remove()
                     }  else {
                         toast_maker('error', `${data['message']}`)
-                        file_element.innerHTML = element_parent_element_innerHTML
+                        file_element.innerHTML = file_element_innerHTML
                     }
                     console.log(data)
                 })
                 .catch(error => {
-                    file_element.innerHTML = element_parent_element_innerHTML
+                    file_element.innerHTML = file_element_innerHTML
                     console.log(error)
                 });
         }

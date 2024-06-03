@@ -62,7 +62,7 @@
                                            class="btn btn-primary me-3">دیدم</a>
                                     {% endif %}
                                     {% if get_params %}
-                                        <a href="{% url 'ticket:notification-filter' %}{% if get_params %}?{{ get_params }}{% endif %}"
+                                        <a href="{% url 'ticket:notification-list' %}{% if get_params %}?{{ get_params }}{% endif %}"
                                                        class="btn btn-outline-gray me-3">بازگشت</a>
                                     {% else %}
                                         <a href="{% url 'ticket:notification-list' %}{% if get_params %}?{{ get_params }}{% endif %}"

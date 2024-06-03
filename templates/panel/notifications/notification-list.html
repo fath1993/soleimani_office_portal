@@ -34,7 +34,7 @@
             </h5>
             <div class="card-body">
                 <div class="row">
-                    <form method="get" action="{% url 'ticket:notification-filter' %}">
+                    <form method="get" action="{% url 'ticket:notification-list' %}">
                         <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="search">جستجو</label>
                             <div class="input-group">
@@ -49,7 +49,7 @@
         </div>
         <div class="card">
             <h5 class="card-header heading-color">
-                {% if request.user|notification_is_allowed:'create' %}
+                {% if request|has_access_to_section:'create,notification' %}
                 <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
                     <i class="ti-plus m-r-5"></i> ایجاد اطلاعیه جدید
                 </button>
@@ -107,7 +107,7 @@
                         <tr>
                             <th style="width: 10%">#</th>
                             <th style="width: 10%">شماره</th>
-                            {% if request.user|notification_is_allowed:'create' %}
+                            {% if request|has_access_to_section:'create,notification' %}
                             <th style="width: 15%">پیام</th>    
                             <th style="width: 25%">کاربر دریافت کننده</th>
                             {% else %}
@@ -128,7 +128,7 @@
                                                target="_self" data-bs-toggle="tooltip" data-bs-offset="0,4" data-bs-placement="top" data-bs-html="true"
                                                 title="<span>{{ user_notification.notification.content }}</span>">{{ user_notification.notification.content|truncatechars:20 }}</a></strong>
                                 </td>
-                                {% if request.user|notification_is_allowed:'create' %}
+                                {% if request|has_access_to_section:'create,notification' %}
                                 <td>{{ user_notification.user.username }}</td>
                                 {% endif %}
                                 <td id="td_notification_has_seen_by_user_{{ forloop.counter }}">
@@ -158,7 +158,7 @@
                             </tr>
                         {% empty %}
                             <tr>
-                                {% if request.user|notification_is_allowed:'create' %}
+                                {% if request|has_access_to_section:'create,notification' %}
                                 <td></td>
                                 {% endif %}
                                 <td></td>

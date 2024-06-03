@@ -27,28 +27,9 @@
         <h4 class="py-3 breadcrumb-wrapper mb-4">
             <span class="text-muted fw-light">پیام رسانی / <span class="text-black">{{ page_title }}</span></span>
         </h4>
-        <div class="card mb-3">
-            <h5 class="card-header heading-color">
-                فیلتر پیام ها
-            </h5>
-            <div class="card-body">
-                <div class="row">
-                    <form method="get" action="{% url 'ticket:ticket-filter' %}">
-                        <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
-                            <label class="form-label" for="search">جستجو</label>
-                            <div class="input-group">
-                                <input type="text" id="search" name="search" class="form-control text-start"
-                                       placeholder="جستجو" dir="rtl">
-                                <button type="submit" class="input-group-text"><i class="fa fa-search"></i></button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
         <div class="card">
             <h5 class="card-header heading-color">
-                {% if request.user|has_access_to_section:'create,ticket' %}
+                {% if request|has_access_to_section:'create,ticket' %}
                     {% if request.path != '/tickets/list&box-status=received/' and request.path != '/tickets/list&box-status=all/' %}
                     <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
                         <i class="ti-plus m-r-5"></i> ایجاد پیام جدید
@@ -193,21 +174,21 @@
                                 </td>
                                 <td>{{ ticket.updated_at|date:'Y-m-d | H:i' }}</td>
                                 <td>
-                                    {% if request.user|ticket_is_allowed:'modify,delete' %}
+                                    {% if request|has_access_to_section:'modify,delete,ticket' %}
                                         <div class="dropdown">
                                             <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
                                                     data-bs-toggle="dropdown">
                                                 <i class="bx bx-dots-vertical-rounded"></i>
                                             </button>
                                             <div class="dropdown-menu">
-                                                {% if request.user|ticket_is_allowed:'modify' %}
+                                                {% if request|has_access_to_section:'modify,ticket' %}
                                                     <a class="dropdown-item" href="{% url 'ticket:ticket-modify-with-id' ticket_id=ticket.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"><i
                                                             class="bx bx-edit-alt me-1"></i> ویرایش</a>
                                                     <a id="ticket_status_change_btn_{{ forloop.counter }}" class="dropdown-item" href="javascript:void(0)" onclick="ticket_change_state('{{ ticket.id }}', '{{ forloop.counter }}')"><span>{% if ticket.status == 'closed' %}<i
                                                             class="bx bx-lock me-1"></i> بستن{% else %}<i class="bx bx-lock-open me-1"></i> بازکردن{% endif %}</span></a>
                                                     
                                                 {% endif %}
-                                                {% if request.user|ticket_is_allowed:'delete' %}
+                                                {% if request|has_access_to_section:'delete,ticket' %}
                                                     <a class="dropdown-item" href="javascript:void(0);"
                                                        data-bs-toggle="modal"
                                                        data-bs-target="#deleteModal_{{ forloop.counter }}"><i

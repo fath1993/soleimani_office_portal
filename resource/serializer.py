@@ -7,9 +7,13 @@ from gallery.serializer import FileGallerySerializer
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    images = FileGallerySerializer(many=True)
+    videos = FileGallerySerializer(many=True)
+
     class Meta:
         model = Product
         fields = "__all__"
+        depth = 1
 
     def to_representation(self, instance):
 
@@ -17,7 +21,7 @@ class ProductSerializer(serializers.ModelSerializer):
         for field in ret:
             if ret[field] is None:
                 ret[field] = ""
-        ret['link'] = f'{BASE_URL}{reverse("resource:product-detail-with-id", kwargs={"product_id": f"{instance.id}"})}'.replace('//', '/')
+        # ret['link'] = f'{BASE_URL}{reverse("resource:product-detail-with-id", kwargs={"product_id": f"{instance.id}"})}'.replace('//', '/')
         ret['created_by'] = instance.created_by.username
         ret['updated_by'] = instance.updated_by.username
         ret['created_at'] = instance.created_at.strftime('%Y-%m-%d ساعت %H:%M')

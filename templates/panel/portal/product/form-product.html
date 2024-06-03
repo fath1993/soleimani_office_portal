@@ -1,0 +1,169 @@
+{% load panel_custom_tag %}
+{% load account_custom_tag %}
+{% load static %}
+
+<form id="fp_form_product_data" action="{% url 'resource:product-create' %}" method="post" class="add-new-record pt-0 row g-2"
+enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <label class="form-label" for="name">نام</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="name" class="form-control"
+                   name="name" required
+                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                   oninput="setCustomValidity('')"
+                   placeholder="کفش طبی" aria-label="نام"
+                   aria-describedby="نام"
+                   value="{{ name|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="select2Basic" class="form-label">نوع محتوا</label>
+        <select id="select2Basic" name="type"
+                class="select2 form-select" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')">
+            <option {% if type == 'کالا' %} selected {% endif %} value="کالا">کالا</option>
+            <option {% if type == 'خدمات' %} selected {% endif %} value="خدمات">خدمات</option>
+        </select>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <label class="form-label" for="code">کد</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="code" class="form-control"
+                   name="code" required
+                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                   oninput="setCustomValidity('')"
+                   placeholder="123456" aria-label="کد"
+                   aria-describedby="کد"
+                   value="{{ code|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <label class="form-label" for="weight">وزن</label>
+        <div class="input-group input-group-merge">
+            <input type="number" min="0" id="weight" class="form-control"
+                   name="weight" required
+                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                   oninput="setCustomValidity('')"
+                   placeholder="گرم" aria-label="وزن"
+                   aria-describedby="وزن"
+                   value="{{ weight|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <label class="form-label" for="size">سایز</label>
+        <div class="input-group input-group-merge">
+            <input type="number" min="0" id="size" class="form-control"
+                   name="size" required
+                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                   oninput="setCustomValidity('')"
+                   placeholder="اینچ" aria-label="سایز"
+                   aria-describedby="سایز"
+                   value="{{ size|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <label class="form-label" for="color">رنگ</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="color" class="form-control"
+                   name="color" required
+                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                   oninput="setCustomValidity('')"
+                   placeholder="بنفش" aria-label="رنگ"
+                   aria-describedby="رنگ"
+                   value="{{ color|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <label class="form-label" for="images">تصاویر</label>
+        <div class="input-group input-group-merge">
+            <input type="file" id="images" class="form-control dt-files"
+                   name="images" multiple
+                   placeholder="تصاویر" aria-label="تصاویر"
+                   aria-describedby="images">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <label class="form-label" for="videos">ویدیو ها</label>
+        <div class="input-group input-group-merge">
+            <input type="file" id="videos" class="form-control dt-files"
+                   name="videos" multiple
+                   placeholder="ویدیو ها" aria-label="ویدیو ها"
+                   aria-describedby="videos">
+        </div>
+    </div>
+
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <label class="form-label" for="product_price">هزینه خام محصول</label>
+        <div class="input-group input-group-merge">
+            <input type="number" min="0" id="product_price" class="form-control"
+                   name="product_price" required
+                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                   oninput="setCustomValidity('')"
+                   placeholder="ریال" aria-label="هزینه خام محصول"
+                   aria-describedby="هزینه خام محصول"
+                   value="{{ product_price|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <label class="form-label" for="shipping_price">هزینه حمل</label>
+        <div class="input-group input-group-merge">
+            <input type="number" min="0" id="shipping_price" class="form-control"
+                   name="shipping_price" required
+                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                   oninput="setCustomValidity('')"
+                   placeholder="ریال" aria-label="هزینه حمل"
+                   aria-describedby="هزینه حمل"
+                   value="{{ shipping_price|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <label class="form-label" for="send_link_price">هزینه ارسال لینک</label>
+        <div class="input-group input-group-merge">
+            <input type="number" min="0" id="send_link_price" class="form-control"
+                   name="send_link_price" required
+                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                   oninput="setCustomValidity('')"
+                   placeholder="ریال" aria-label="هزینه ارسال لینک"
+                   aria-describedby="هزینه ارسال لینک"
+                   value="{{ send_link_price|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <label class="form-label" for="packing_price">هزینه بسته بندی</label>
+        <div class="input-group input-group-merge">
+            <input type="number" min="0" id="packing_price" class="form-control"
+                   name="packing_price" required
+                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                   oninput="setCustomValidity('')"
+                   placeholder="ریال" aria-label="هزینه بسته بندی"
+                   aria-describedby="هزینه بسته بندی"
+                   value="{{ packing_price|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <label class="form-label" for="seller_commission">کمیسیون فروشنده</label>
+        <div class="input-group input-group-merge">
+            <input type="number" min="0" id="seller_commission" class="form-control"
+                   name="seller_commission" required
+                   oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                   oninput="setCustomValidity('')"
+                   placeholder="درصد" aria-label="کمیسیون فروشنده"
+                   aria-describedby="کمیسیون فروشنده"
+                   value="{{ seller_commission|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-3">
+        <div class="form-check form-check-primary mt-3">
+            <input class="form-check-input" type="checkbox" value="true" id="is_active" name="is_active"
+                   {% if is_active %} checked {% endif %}>
+            <label class="form-check-label" for="is_active">فعال</label>
+        </div>
+    </div>
+    {% if request|has_access_to_section:'create,product' %}
+    <div class="col-sm-12 mt-3">
+        <button type="submit" class="btn btn-primary">ایجاد</button>
+    </div>
+    {% endif %}
+</form>

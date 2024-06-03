@@ -8,7 +8,8 @@ from accounts.custom_decorator import CheckLogin, CheckPermissions, RequireMetho
 from resource.models import Product, TeaserMaker, ResellerNetwork, Receiver, AdvertiseContent, ForwardToPortal, \
     CommunicationChannel, Registrar
 from resource.serializer import RegistrarSerializer, ReceiverSerializer, ResellerNetworkSerializer, \
-    ForwardToPortalSerializer, CommunicationChannelSerializer, AdvertiseContentSerializer
+    ForwardToPortalSerializer, CommunicationChannelSerializer, AdvertiseContentSerializer, TeaserMakerSerializer, \
+    ProductSerializer
 from utilities.http_metod import fetch_data_from_http_post, fetch_files_from_http_post_data, fetch_data_from_http_get
 
 
@@ -19,9 +20,9 @@ class ProductView:
     @CheckLogin()
     @CheckPermissions(section='product', allowed_actions='read')
     def list(self, request, *args, **kwargs):
-        context = {'page_title': 'لیست محصولات', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'لیست محصولات', 'get_params': request.GET.urlencode(), 'err': request.GET.get('err', None), 'message': request.GET.get('message', None)}
 
-        products = Product.objects.filter().order_by('id')
+        products = Product.objects.filter().order_by('-created_at')
         context['products'] = products
 
         items_per_page = 50
@@ -30,18 +31,27 @@ class ProductView:
         page = paginator.get_page(page_number)
         context['page'] = page
 
-        return render(request, 'panel/portal/products/product-list.html', context)
+        return render(request, 'panel/portal/product/product-list.html', context)
 
     @CheckLogin()
     @CheckPermissions(section='product', allowed_actions='read')
-    def detail(self, request, product_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def detail(self, request, *args, **kwargs):
+        context = {}
+        product_id = fetch_data_from_http_post(request, 'product_id', context)
         try:
-            product = Product.objects.get(id=product_id)
-            context = {'page_title': f'اطلاعات محصول *{product.name}*',
-                       'product': product, 'get_params': request.GET.urlencode()}
-            return render(request, 'panel/portal/products/product-detail.html', context)
-        except:
-            return render(request, 'panel/err/err-not-found.html')
+            product = Product.objects.filter(id=product_id)
+            serializer = ProductSerializer(product, many=True)
+            json_response_body = {
+                "method": "post",
+                "request": f"دیتای محصول با شناسه یکتای {product_id}",
+                "result": "موفق",
+                "data": serializer.data
+            }
+            return JsonResponse(json_response_body)
+        except Exception as e:
+            print(e)
+            return JsonResponse({'message': 'failed'})
 
     @CheckLogin()
     @CheckPermissions(section='product', allowed_actions='read')
@@ -188,7 +198,7 @@ class ProductView:
         context['page_title'] = f'لیست محصولات شامل *{page_title}*'
         context['get_params'] = request.GET.urlencode()
 
-        products = Product.objects.filter(q).order_by('id')
+        products = Product.objects.filter(q).order_by('-created_at')
         context['products'] = products
 
         items_per_page = 50
@@ -197,7 +207,7 @@ class ProductView:
         page = paginator.get_page(page_number)
         context['page'] = page
 
-        return render(request, 'panel/portal/products/product-list.html', context)
+        return render(request, 'panel/portal/product/product-list.html', context)
 
     @CheckLogin()
     @CheckPermissions(section='product', allowed_actions='create')
@@ -221,38 +231,38 @@ class ProductView:
         is_active = fetch_data_from_http_post(request, 'is_active', context)
 
         if not name:
-            context['err'] = 'نام محصول بدرستی وارد نشده است'
-            return render(request, 'panel/portal/products/product-list.html', context)
+            err = 'نام محصول بدرستی وارد نشده است'
+            return redirect(reverse('resource:product-list') + f'?err={err}')
         if not product_type:
-            context['err'] = 'نوع محصول بدرستی وارد نشده است'
-            return render(request, 'panel/portal/products/product-list.html', context)
+            err = 'نوع محصول بدرستی وارد نشده است'
+            return redirect(reverse('resource:product-list') + f'?err={err}')
         if not code:
-            context['err'] = 'کد محصول بدرستی وارد نشده است'
-            return render(request, 'panel/portal/products/product-list.html', context)
+            err = 'کد محصول بدرستی وارد نشده است'
+            return redirect(reverse('resource:product-list') + f'?err={err}')
         if not weight:
-            context['err'] = 'وزن محصول بدرستی وارد نشده است'
-            return render(request, 'panel/portal/products/product-list.html', context)
+            err = 'وزن محصول بدرستی وارد نشده است'
+            return redirect(reverse('resource:product-list') + f'?err={err}')
         if not size:
-            context['err'] = 'سایز محصول بدرستی وارد نشده است'
-            return render(request, 'panel/portal/products/product-list.html', context)
+            err = 'سایز محصول بدرستی وارد نشده است'
+            return redirect(reverse('resource:product-list') + f'?err={err}')
         if not color:
-            context['err'] = 'رنگ محصول بدرستی وارد نشده است'
-            return render(request, 'panel/portal/products/product-list.html', context)
+            err = 'رنگ محصول بدرستی وارد نشده است'
+            return redirect(reverse('resource:product-list') + f'?err={err}')
         if not product_price:
-            context['err'] = 'هزینه خام محصول بدرستی وارد نشده است'
-            return render(request, 'panel/portal/products/product-list.html', context)
+            err = 'هزینه خام محصول بدرستی وارد نشده است'
+            return redirect(reverse('resource:product-list') + f'?err={err}')
         if not shipping_price:
-            context['err'] = 'هزینه حمل محصول بدرستی وارد نشده است'
-            return render(request, 'panel/portal/products/product-list.html', context)
+            err = 'هزینه حمل محصول بدرستی وارد نشده است'
+            return redirect(reverse('resource:product-list') + f'?err={err}')
         if not send_link_price:
-            context['err'] = 'هزینه ارسال لینک محصول بدرستی وارد نشده است'
-            return render(request, 'panel/portal/products/product-list.html', context)
+            err = 'هزینه ارسال لینک محصول بدرستی وارد نشده است'
+            return redirect(reverse('resource:product-list') + f'?err={err}')
         if not packing_price:
-            context['err'] = 'هزینه بسته بندی محصول بدرستی وارد نشده است'
-            return render(request, 'panel/portal/products/product-list.html', context)
+            err = 'هزینه بسته بندی محصول بدرستی وارد نشده است'
+            return redirect(reverse('resource:product-list') + f'?err={err}')
         if not seller_commission:
-            context['err'] = 'نام محصول بدرستی وارد نشده است'
-            return render(request, 'panel/portal/products/product-list.html', context)
+            err = 'نام محصول بدرستی وارد نشده است'
+            return redirect(reverse('resource:product-list') + f'?err={err}')
         if is_active == 'true':
             is_active = True
         else:
@@ -260,8 +270,8 @@ class ProductView:
 
         try:
             Product.objects.get(code=code)
-            context['err'] = f'محصول با کد {code} از قبل موجود است'
-            return render(request, 'panel/portal/products/product-list.html', context)
+            err = f'محصول با کد {code} از قبل موجود است'
+            return redirect(reverse('resource:product-list') + f'?err={err}')
         except:
             new_product = Product.objects.create(
                 name=name,
@@ -279,118 +289,96 @@ class ProductView:
                 created_by=request.user,
                 updated_by=request.user,
             )
+            if images:
+                for image in images:
+                    try:
+                        new_file = FileGallery.objects.create(
+                            alt=image.name,
+                            file=image,
+                            created_by=request.user,
+                        )
+                        new_product.images.add(new_file)
+                    except:
+                        pass
+            if videos:
+                for video in videos:
+                    try:
+                        new_file = FileGallery.objects.create(
+                            alt=video.name,
+                            file=video,
+                            created_by=request.user,
+                        )
+                        new_product.videos.add(new_file)
+                    except:
+                        pass
 
-            for image in images:
-                try:
-                    new_file = FileGallery.objects.create(
-                        alt=image.name,
-                        file=image,
-                        created_by=request.user,
-                    )
-                    new_product.images.add(new_file)
-                except:
-                    pass
-
-            for video in videos:
-                try:
-                    new_file = FileGallery.objects.create(
-                        alt=video.name,
-                        file=video,
-                        created_by=request.user,
-                    )
-                    new_product.videos.add(new_file)
-                except:
-                    pass
-
-            context['message'] = f'محصول با کد {code} ایجاد گردید'
-            return redirect('resource:product-list')
+            message = f'محصول با کد {code} ایجاد گردید'
+            return redirect(reverse('resource:product-list') + f'?message={message}')
 
     @CheckLogin()
     @CheckPermissions(section='product', allowed_actions='modify')
-    def modify(self, request, product_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def modify(self, request, *args, **kwargs):
+        context = {}
+        product_id = fetch_data_from_http_post(request, 'product_id', context)
         try:
             product = Product.objects.get(id=product_id)
-            context = {'page_title': f'ویرایش اطلاعات محصول *{product.name}*',
+            context = {'page_title': f'ویرایش محصول با شناسه یکتای *{product_id}*',
                        'product': product, 'get_params': request.GET.urlencode()}
+            name = fetch_data_from_http_post(request, 'fp_form_modal_product_data_name', context)
+            product_type = fetch_data_from_http_post(request, 'fp_form_modal_product_data_type', context)
+            code = fetch_data_from_http_post(request, 'fp_form_modal_product_data_code', context)
+            weight = fetch_data_from_http_post(request, 'fp_form_modal_product_data_weight', context)
+            size = fetch_data_from_http_post(request, 'fp_form_modal_product_data_size', context)
+            color = fetch_data_from_http_post(request, 'fp_form_modal_product_data_color', context)
+            images = fetch_files_from_http_post_data(request, 'fp_form_modal_product_data_images', context)
+            videos = fetch_files_from_http_post_data(request, 'fp_form_modal_product_data_videos', context)
+            product_price = fetch_data_from_http_post(request, 'fp_form_modal_product_data_product_price', context)
+            shipping_price = fetch_data_from_http_post(request, 'fp_form_modal_product_data_shipping_price', context)
+            send_link_price = fetch_data_from_http_post(request, 'fp_form_modal_product_data_send_link_price', context)
+            packing_price = fetch_data_from_http_post(request, 'fp_form_modal_product_data_packing_price', context)
+            seller_commission = fetch_data_from_http_post(request, 'fp_form_modal_product_data_seller_commission', context)
+            is_active = fetch_data_from_http_post(request, 'fp_form_modal_product_data_is_active', context)
 
-            if request.method == 'GET':
-                return render(request, 'panel/portal/products/product-edit.html', context)
+            if name:
+                product.name = name
+            if product_type:
+                product.type = product_type
+            if code:
+                product.code = code
+            if weight:
+                product.weight = weight
+            if size:
+                product.size = size
+            if color:
+                product.color = color
+            if images:
+                for image in images:
+                    new_file = create_file(request, image)
+                    product.images.add(new_file)
+            if videos:
+                for video in videos:
+                    new_file = create_file(request, video)
+                    product.videos.add(new_file)
+            if product_price:
+                product.product_price = product_price
+            if shipping_price:
+                product.shipping_price = shipping_price
+            if send_link_price:
+                product.send_link_price = send_link_price
+            if packing_price:
+                product.packing_price = packing_price
+            if seller_commission:
+                product.seller_commission = seller_commission
+            if is_active == 'true':
+                product.is_active = True
             else:
-                name = fetch_data_from_http_post(request, 'name', context)
-                product_type = fetch_data_from_http_post(request, 'type', context)
-                code = fetch_data_from_http_post(request, 'code', context)
-                weight = fetch_data_from_http_post(request, 'weight', context)
-                size = fetch_data_from_http_post(request, 'size', context)
-                color = fetch_data_from_http_post(request, 'color', context)
-                images = fetch_files_from_http_post_data(request, 'images', context)
-                videos = fetch_files_from_http_post_data(request, 'videos', context)
-                product_price = fetch_data_from_http_post(request, 'product_price', context)
-                shipping_price = fetch_data_from_http_post(request, 'shipping_price', context)
-                send_link_price = fetch_data_from_http_post(request, 'send_link_price', context)
-                packing_price = fetch_data_from_http_post(request, 'packing_price', context)
-                seller_commission = fetch_data_from_http_post(request, 'seller_commission', context)
-                is_active = fetch_data_from_http_post(request, 'is_active', context)
+                product.is_active = False
+            product.save()
 
-                try:
-                    if name:
-                        product.name = name
-                    if product_type:
-                        product.product_type = product_type
-                    if code:
-                        product.code = code
-                    if weight:
-                        product.weight = weight
-                    if size:
-                        product.size = size
-                    if color:
-                        product.color = color
-                    if product_price:
-                        product.product_price = product_price
-                    if shipping_price:
-                        product.shipping_price = shipping_price
-                    if send_link_price:
-                        product.send_link_price = send_link_price
-                    if packing_price:
-                        product.packing_price = packing_price
-                    if seller_commission:
-                        product.seller_commission = seller_commission
-                    if is_active == 'true':
-                        is_active = True
-                    else:
-                        is_active = False
-                    product.is_active = is_active
-                    product.save()
-                    if images:
-                        for image in images:
-                            try:
-                                new_file = FileGallery.objects.create(
-                                    alt=image.name,
-                                    file=image,
-                                    created_by=request.user,
-                                )
-                                product.images.add(new_file)
-                            except:
-                                pass
-                    if videos:
-                        for video in videos:
-                            try:
-                                new_file = FileGallery.objects.create(
-                                    alt=video.name,
-                                    file=video,
-                                    created_by=request.user,
-                                )
-                                product.videos.add(new_file)
-                            except:
-                                pass
-                    context['message'] = f'محصول با شناسه یکتا {product.id} ویرایش گردید'
-                    return redirect(
-                        reverse('resource:product-detail-with-id',
-                                kwargs={'product_id': product_id}) + f'?{request.GET.urlencode()}')
-                except:
-                    return render(request, 'panel/err/err-not-found.html')
-        except Exception as e:
-            print(e)
-            return render(request, 'panel/err/err-not-found.html')
+            return JsonResponse({'message': f'محصول با شناسه یکتا {product_id} ویرایش گردید'})
+        except:
+            return JsonResponse({'message': f'product not found'})
 
     @CheckLogin()
     @CheckPermissions(section='product', allowed_actions='delete')
@@ -414,7 +402,10 @@ class ProductView:
 
     @CheckLogin()
     @CheckPermissions(section='product', allowed_actions='modify')
-    def change_state(self, request, product_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def change_state(self, request, *args, **kwargs):
+        context = {}
+        product_id = fetch_data_from_http_post(request, 'product_id', context)
         try:
             product = Product.objects.get(id=product_id)
             context = {'page_title': f'تغییر وضعیت محصول {product.name}', 'get_params': request.GET.urlencode()}
@@ -437,9 +428,9 @@ class TeaserMakerView:
     @CheckLogin()
     @CheckPermissions(section='teaser_maker', allowed_actions='read')
     def list(self, request, *args, **kwargs):
-        context = {'page_title': 'لیست تیزر ساز ها', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'لیست تیزر ساز ها', 'get_params': request.GET.urlencode(), 'err': request.GET.get('err', None), 'message': request.GET.get('message', None)}
 
-        teaser_makers = TeaserMaker.objects.filter().order_by('id')
+        teaser_makers = TeaserMaker.objects.filter().order_by('-created_at')
         context['teaser_makers'] = teaser_makers
 
         items_per_page = 50
@@ -452,14 +443,23 @@ class TeaserMakerView:
 
     @CheckLogin()
     @CheckPermissions(section='teaser_maker', allowed_actions='read')
-    def detail(self, request, teaser_maker_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def detail(self, request, *args, **kwargs):
+        context = {}
+        teaser_maker_id = fetch_data_from_http_post(request, 'teaser_maker_id', context)
         try:
-            teaser_maker = TeaserMaker.objects.get(id=teaser_maker_id)
-            context = {'page_title': f'اطلاعات تیزر ساز *{teaser_maker.name}*',
-                       'teaser_maker': teaser_maker, 'get_params': request.GET.urlencode()}
-            return render(request, 'panel/portal/teaser-maker/teaser-maker-detail.html', context)
+            teaser_maker = TeaserMaker.objects.filter(id=teaser_maker_id)
+            serializer = TeaserMakerSerializer(teaser_maker, many=True)
+            json_response_body = {
+                "method": "post",
+                "request": f"دیتای تیزرساز با شناسه یکتای {teaser_maker_id}",
+                "result": "موفق",
+                "data": serializer.data
+            }
+            return JsonResponse(json_response_body)
         except Exception as e:
-            return render(request, 'panel/err/err-not-found.html')
+            print(e)
+            return JsonResponse({'message': 'failed'})
 
     @CheckLogin()
     @CheckPermissions(section='teaser_maker', allowed_actions='read')
@@ -544,7 +544,7 @@ class TeaserMakerView:
         context['page_title'] = f'لیست تیزر ساز ها شامل *{page_title}*'
         context['get_params'] = request.GET.urlencode()
 
-        teaser_makers = TeaserMaker.objects.filter(q).order_by('id')
+        teaser_makers = TeaserMaker.objects.filter(q).order_by('-created_at')
         context['teaser_makers'] = teaser_makers
 
         items_per_page = 50
@@ -571,26 +571,26 @@ class TeaserMakerView:
         is_active = fetch_data_from_http_post(request, 'is_active', context)
 
         if not name:
-            context['err'] = 'نام تیزر ساز بدرستی وارد نشده است'
-            return render(request, 'panel/portal/teaser-maker/teaser-maker-list.html', context)
+            err = 'نام تیزر ساز بدرستی وارد نشده است'
+            return redirect(reverse('resource:teaser-maker-list') + f'?err={err}')
         if not content_type:
-            context['err'] = 'نوع محتوا تیزر ساز بدرستی وارد نشده است'
-            return render(request, 'panel/portal/teaser-maker/teaser-maker-list.html', context)
+            err = 'نوع محتوا تیزر ساز بدرستی وارد نشده است'
+            return redirect(reverse('resource:teaser-maker-list') + f'?err={err}')
         if not code:
-            context['err'] = 'کد تیزر ساز بدرستی وارد نشده است'
-            return render(request, 'panel/portal/teaser-maker/teaser-maker-list.html', context)
+            err = 'کد تیزر ساز بدرستی وارد نشده است'
+            return redirect(reverse('resource:teaser-maker-list') + f'?err={err}')
         if not address:
-            context['err'] = 'آدرس تیزر ساز بدرستی وارد نشده است'
-            return render(request, 'panel/portal/teaser-maker/teaser-maker-list.html', context)
+            err = 'آدرس تیزر ساز بدرستی وارد نشده است'
+            return redirect(reverse('resource:teaser-maker-list') + f'?err={err}')
         if not phone_number:
-            context['err'] = 'شماره تماس تیزر ساز بدرستی وارد نشده است'
-            return render(request, 'panel/portal/teaser-maker/teaser-maker-list.html', context)
+            err = 'شماره تماس تیزر ساز بدرستی وارد نشده است'
+            return redirect(reverse('resource:teaser-maker-list') + f'?err={err}')
         if not creation_price:
-            context['err'] = 'هزینه ساخت تیزر ساز بدرستی وارد نشده است'
-            return render(request, 'panel/portal/teaser-maker/teaser-maker-list.html', context)
+            err = 'هزینه ساخت تیزر ساز بدرستی وارد نشده است'
+            return redirect(reverse('resource:teaser-maker-list') + f'?err={err}')
         if not editing_price:
-            context['err'] = 'هزینه ویرایش تیزر ساز محصول بدرستی وارد نشده است'
-            return render(request, 'panel/portal/teaser-maker/teaser-maker-list.html', context)
+            err = 'هزینه ویرایش تیزر ساز محصول بدرستی وارد نشده است'
+            return redirect(reverse('resource:teaser-maker-list') + f'?err={err}')
         if is_active == 'true':
             is_active = True
         else:
@@ -598,8 +598,8 @@ class TeaserMakerView:
 
         try:
             TeaserMaker.objects.get(code=code)
-            context['err'] = f'تیزر ساز با کد {code} از قبل موجود است'
-            return render(request, 'panel/portal/teaser-maker/teaser-maker-list.html', context)
+            err = f'تیزر ساز با کد {code} از قبل موجود است'
+            return redirect(reverse('resource:teaser-maker-list') + f'?err={err}')
         except:
             new_teaser_maker = TeaserMaker.objects.create(
                 name=name,
@@ -614,58 +614,51 @@ class TeaserMakerView:
                 is_active=is_active,
             )
 
-            context['message'] = f'تیزر ساز با کد {code} ایجاد گردید'
-            return redirect('resource:teaser-maker-list')
+            message = f'تیزر ساز با کد {code} ایجاد گردید'
+            return redirect(reverse('resource:teaser-maker-list') + f'?message={message}')
 
     @CheckLogin()
     @CheckPermissions(section='teaser_maker', allowed_actions='modify')
-    def modify(self, request, teaser_maker_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def modify(self, request, *args, **kwargs):
+        context = {}
+        teaser_maker_id = fetch_data_from_http_post(request, 'teaser_maker_id', context)
         try:
             teaser_maker = TeaserMaker.objects.get(id=teaser_maker_id)
-            context = {'page_title': f'ویرایش اطلاعات تیزر ساز *{teaser_maker.name}*',
+            context = {'page_title': f'ویرایش تیزرساز با شناسه یکتای *{teaser_maker_id}*',
                        'teaser_maker': teaser_maker, 'get_params': request.GET.urlencode()}
+            name = fetch_data_from_http_post(request, 'fmtm_form_modal_teaser_maker_data_name', context, False)
+            content_type = fetch_data_from_http_post(request, 'fmtm_form_modal_teaser_maker_data_content_type', context, False)
+            code = fetch_data_from_http_post(request, 'fmtm_form_modal_teaser_maker_data_code', context, False)
+            address = fetch_data_from_http_post(request, 'fmtm_form_modal_teaser_maker_data_address', context, False)
+            phone_number = fetch_data_from_http_post(request, 'fmtm_form_modal_teaser_maker_data_phone_number', context)
+            creation_price = fetch_data_from_http_post(request, 'fmtm_form_modal_teaser_maker_data_creation_price', context, False)
+            editing_price = fetch_data_from_http_post(request, 'fmtm_form_modal_teaser_maker_data_editing_price', context)
+            is_active = fetch_data_from_http_post(request, 'fmtm_form_modal_teaser_maker_data_is_active', context)
 
-            if request.method == 'GET':
-                return render(request, 'panel/portal/teaser-maker/teaser-maker-edit.html', context)
+            if name:
+                teaser_maker.name = name
+            if content_type:
+                teaser_maker.content_type = content_type
+            if code:
+                teaser_maker.code = code
+            if address:
+                teaser_maker.address = address
+            if phone_number:
+                teaser_maker.phone_number = phone_number
+            if creation_price:
+                teaser_maker.creation_price = creation_price
+            if editing_price:
+                teaser_maker.editing_price = editing_price
+            if is_active == 'true':
+                teaser_maker.is_active = True
             else:
-                name = fetch_data_from_http_post(request, 'name', context)
-                content_type = fetch_data_from_http_post(request, 'content_type', context)
-                code = fetch_data_from_http_post(request, 'code', context)
-                address = fetch_data_from_http_post(request, 'address', context)
-                phone_number = fetch_data_from_http_post(request, 'phone_number', context)
-                creation_price = fetch_data_from_http_post(request, 'creation_price', context)
-                editing_price = fetch_data_from_http_post(request, 'editing_price', context)
-                is_active = fetch_data_from_http_post(request, 'is_active', context)
+                teaser_maker.is_active = False
+            teaser_maker.save()
 
-                try:
-                    if name:
-                        teaser_maker.name = name
-                    if content_type:
-                        teaser_maker.content_type = content_type
-                    if code:
-                        teaser_maker.code = code
-                    if address:
-                        teaser_maker.address = address
-                    if phone_number:
-                        teaser_maker.phone_number = phone_number
-                    if creation_price:
-                        teaser_maker.creation_price = creation_price
-                    if editing_price:
-                        teaser_maker.editing_price = editing_price
-                    if is_active == 'true':
-                        is_active = True
-                    else:
-                        is_active = False
-                    teaser_maker.is_active = is_active
-                    teaser_maker.save()
-                    context['message'] = f'تیزر ساز با شناسه یکتا {teaser_maker.id} ویرایش گردید'
-                    return redirect(
-                        reverse('panel:teaser-maker-detail-with-id',
-                                kwargs={'teaser_maker_id': teaser_maker_id}) + f'?{request.GET.urlencode()}')
-                except:
-                    return render(request, 'panel/err/err-not-found.html')
-        except Exception as e:
-            return render(request, 'panel/err/err-not-found.html')
+            return JsonResponse({'message': f'تیزرساز با شناسه یکتا {teaser_maker_id} ویرایش گردید'})
+        except:
+            return JsonResponse({'message': f'teaser maker not found'})
 
     @CheckLogin()
     @CheckPermissions(section='teaser_maker', allowed_actions='delete')
@@ -681,7 +674,10 @@ class TeaserMakerView:
 
     @CheckLogin()
     @CheckPermissions(section='teaser_maker', allowed_actions='modify')
-    def change_state(self, request, teaser_maker_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def change_state(self, request, *args, **kwargs):
+        context = {}
+        teaser_maker_id = fetch_data_from_http_post(request, 'teaser_maker_id', context)
         try:
             teaser_maker = TeaserMaker.objects.get(id=teaser_maker_id)
             context = {'page_title': f'تغییر وضعیت تیزر ساز {teaser_maker.name}', 'get_params': request.GET.urlencode()}
@@ -704,7 +700,7 @@ class ResellerNetworkView:
     @CheckLogin()
     @CheckPermissions(section='reseller_network', allowed_actions='read')
     def list(self, request, *args, **kwargs):
-        context = {'page_title': 'لیست شبکه های تبلیغ کننده', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'لیست شبکه های تبلیغ کننده', 'get_params': request.GET.urlencode(), 'err': request.GET.get('err', None), 'message': request.GET.get('message', None)}
         search = request.GET.get('search')
         if search:
             context = {'page_title': f'لیست شبکه های تبلیغ کننده شامل *{search}*',
@@ -722,7 +718,7 @@ class ResellerNetworkView:
                     Q(**{'broker_name__icontains': search})
             )
 
-        reseller_networks = ResellerNetwork.objects.filter(q).order_by('id')
+        reseller_networks = ResellerNetwork.objects.filter(q).order_by('-created_at')
         context['reseller_networks'] = reseller_networks
 
         items_per_page = 50
@@ -770,7 +766,7 @@ class ResellerNetworkView:
                     Q(**{'owner_name__icontains': search}) |
                     Q(**{'broker_name__icontains': search})
             )
-        reseller_networks = ResellerNetwork.objects.filter(q).order_by('id')
+        reseller_networks = ResellerNetwork.objects.filter(q).order_by('-created_at')
         context['reseller_networks'] = reseller_networks
 
         items_per_page = 50
@@ -797,36 +793,37 @@ class ResellerNetworkView:
         subtitle_price = fetch_data_from_http_post(request, 'subtitle_price', context)
 
         if not name:
-            context['err'] = 'نام بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            err = 'نام بدرستی وارد نشده است'
+            return redirect(reverse('resource:reseller-network-list') + f'?err={err}')
         if not network_type:
-            context['err'] = 'نوع شبکه بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            err = 'نوع شبکه بدرستی وارد نشده است'
+            return redirect(reverse('resource:reseller-network-list') + f'?err={err}')
         if not code:
-            context['err'] = 'کد بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            err = 'کد بدرستی وارد نشده است'
+            return redirect(reverse('resource:reseller-network-list') + f'?err={err}')
         if not broadcast_direction:
-            context['err'] = 'جهت شبکه بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            err = 'جهت شبکه بدرستی وارد نشده است'
+            return redirect(reverse('resource:reseller-network-list') + f'?err={err}')
         if not company_name:
-            context['err'] = 'نام کمپانی بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            err = 'نام کمپانی بدرستی وارد نشده است'
+            return redirect(reverse('resource:reseller-network-list') + f'?err={err}')
         if not owner_name:
-            context['err'] = 'نام مالک بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            err = 'نام مالک بدرستی وارد نشده است'
+            return redirect(reverse('resource:reseller-network-list') + f'?err={err}')
         if not broker_name:
-            context['err'] = 'نام کارگزار بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            err = 'نام کارگزار بدرستی وارد نشده است'
+            return redirect(reverse('resource:reseller-network-list') + f'?err={err}')
         if not broadcast_price:
-            context['err'] = 'قیمت برادکست بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            err = 'قیمت برادکست بدرستی وارد نشده است'
+            return redirect(reverse('resource:reseller-network-list') + f'?err={err}')
         if not subtitle_price:
-            context['err'] = 'قیمت زیرنویس بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            err = 'قیمت زیرنویس بدرستی وارد نشده است'
+            return redirect(reverse('resource:reseller-network-list') + f'?err={err}')
 
         try:
             ResellerNetwork.objects.get(code=code)
-            context['err'] = 'شبکه تبلیغ کننده از قبل موجود است'
+            err = 'شبکه تبلیغ کننده از قبل موجود است'
+            return redirect(reverse('resource:reseller-network-list') + f'?err={err}')
         except:
             ResellerNetwork.objects.create(
                 name=name,
@@ -842,9 +839,8 @@ class ResellerNetworkView:
                 updated_by=request.user,
                 is_active=True,
             )
-            context['message'] = f'شبکه تبلیغ کننده با عنوان {name} ایجاد گردید'
-
-        return redirect('resource:reseller-network-list')
+            message = f'شبکه تبلیغ کننده با عنوان {name} ایجاد گردید'
+            return redirect(reverse('resource:reseller-network-list') + f'?message={message}')
 
     @CheckLogin()
     @CheckPermissions(section='reseller_network', allowed_actions='modify')
@@ -933,7 +929,7 @@ class ReceiverView:
     @CheckLogin()
     @CheckPermissions(section='receiver', allowed_actions='read')
     def list(self, request, *args, **kwargs):
-        context = {'page_title': 'لیست دریافت کننده ها', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'لیست دریافت کننده ها', 'get_params': request.GET.urlencode(), 'err': request.GET.get('err', None), 'message': request.GET.get('message', None)}
 
         search = request.GET.get('search')
         if search:
@@ -948,7 +944,7 @@ class ReceiverView:
                     Q(**{'receiver_phone_number__icontains': search})
             )
 
-        receiver = Receiver.objects.filter(q).order_by('id')
+        receiver = Receiver.objects.filter(q).order_by('-created_at')
         context['receiver'] = receiver
 
         items_per_page = 50
@@ -993,7 +989,7 @@ class ReceiverView:
                     Q(**{'code__icontains': search}) |
                     Q(**{'receiver_phone_number__icontains': search})
             )
-        receiver = Receiver.objects.filter(q).order_by('id')
+        receiver = Receiver.objects.filter(q).order_by('-created_at')
         context['receiver'] = receiver
 
         items_per_page = 50
@@ -1016,24 +1012,25 @@ class ReceiverView:
         price = fetch_data_from_http_post(request, 'price', context)
 
         if not name:
-            context['err'] = 'نام بدرستی وارد نشده است'
-            return render(request, 'panel/portal/receiver/receiver-list.html', context)
+            err = 'نام بدرستی وارد نشده است'
+            return redirect(reverse('resource:receiver-list') + f'?err={err}')
         if not receiving_type:
-            context['err'] = 'نوع دریافت کننده بدرستی وارد نشده است'
-            return render(request, 'panel/portal/receiver/receiver-list.html', context)
+            err = 'نوع دریافت کننده بدرستی وارد نشده است'
+            return redirect(reverse('resource:receiver-list') + f'?err={err}')
         if not code:
-            context['err'] = 'کد بدرستی وارد نشده است'
-            return render(request, 'panel/portal/receiver/receiver-list.html', context)
+            err = 'کد بدرستی وارد نشده است'
+            return redirect(reverse('resource:receiver-list') + f'?err={err}')
         if not receiver_phone_number:
-            context['err'] = 'شماره دریافت کننده بدرستی وارد نشده است'
-            return render(request, 'panel/portal/receiver/receiver-list.html', context)
+            err = 'شماره دریافت کننده بدرستی وارد نشده است'
+            return redirect(reverse('resource:receiver-list') + f'?err={err}')
         if not price:
-            context['err'] = 'قیمت بدرستی وارد نشده است'
-            return render(request, 'panel/portal/receiver/receiver-list.html', context)
+            err = 'قیمت بدرستی وارد نشده است'
+            return redirect(reverse('resource:receiver-list') + f'?err={err}')
 
         try:
             Receiver.objects.get(code=code)
-            context['err'] = f'دریافت کننده با کد {code} از قبل موجود است'
+            err = f'دریافت کننده با کد {code} از قبل موجود است'
+            return redirect(reverse('resource:receiver-list') + f'?err={err}')
         except:
             Receiver.objects.create(
                 name=name,
@@ -1045,9 +1042,8 @@ class ReceiverView:
                 updated_by=request.user,
                 is_active=True,
             )
-            context['message'] = f'دریافت کننده با شناسه یکتا {code} ایجاد گردید'
-
-        return redirect('resource:receiver-list')
+            message = f'دریافت کننده با شناسه یکتا {code} ایجاد گردید'
+            return redirect(reverse('resource:receiver-list') + f'?message={message}')
 
     @CheckLogin()
     @CheckPermissions(section='receiver', allowed_actions='modify')
@@ -1122,7 +1118,7 @@ class AdvertiseContentView:
     @CheckLogin()
     @CheckPermissions(section='advertise_content', allowed_actions='read')
     def list(self, request, *args, **kwargs):
-        context = {'page_title': 'لیست محتوای تبلیغاتی', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'لیست محتوای تبلیغاتی', 'get_params': request.GET.urlencode(), 'err': request.GET.get('err', None), 'message': request.GET.get('message', None)}
 
         search = request.GET.get('search')
         if search:
@@ -1206,53 +1202,55 @@ class AdvertiseContentView:
         reseller_network_id = fetch_data_from_http_post(request, 'reseller_network_id', context)
 
         if not name:
-            context['err'] = 'نام بدرستی وارد نشده است'
-            return render(request, 'panel/portal/advertise-content/advertise-content-list.html', context)
+            err = 'نام بدرستی وارد نشده است'
+            return redirect(reverse('resource:advertise-content-list') + f'?err={err}')
         if not advertise_content_type:
-            context['err'] = 'نوع محتوای تبلیغاتی بدرستی وارد نشده است'
-            return render(request, 'panel/portal/advertise-content/advertise-content-list.html', context)
+            err = 'نوع محتوای تبلیغاتی بدرستی وارد نشده است'
+            return redirect(reverse('resource:advertise-content-list') + f'?err={err}')
         if not code:
-            context['err'] = 'کد بدرستی وارد نشده است'
-            return render(request, 'panel/portal/advertise-content/advertise-content-list.html', context)
+            err = 'کد بدرستی وارد نشده است'
+            return redirect(reverse('resource:advertise-content-list') + f'?err={err}')
         if not product_id:
-            context['err'] = 'محصول بدرستی وارد نشده است'
-            return render(request, 'panel/portal/advertise-content/advertise-content-list.html', context)
+            err = 'محصول بدرستی وارد نشده است'
+            return redirect(reverse('resource:advertise-content-list') + f'?err={err}')
         else:
             try:
                 product = Product.objects.get(id=product_id)
             except:
-                context['err'] = 'محصول بدرستی وارد نشده است'
-                return render(request, 'panel/portal/advertise-content/advertise-content-list.html', context)
+                err = 'محصول بدرستی وارد نشده است'
+                return redirect(reverse('resource:advertise-content-list') + f'?err={err}')
         if not receiver_id:
-            context['err'] = 'دریافت کننده بدرستی وارد نشده است'
-            return render(request, 'panel/portal/advertise-content/advertise-content-list.html', context)
+            err = 'دریافت کننده بدرستی وارد نشده است'
+            return redirect(reverse('resource:advertise-content-list') + f'?err={err}')
         else:
             try:
                 receiver = Receiver.objects.get(id=receiver_id)
             except:
-                context['err'] = 'دریافت کننده بدرستی وارد نشده است'
-                return render(request, 'panel/portal/advertise-content/advertise-content-list.html', context)
+                err = 'دریافت کننده بدرستی وارد نشده است'
+                return redirect(reverse('resource:advertise-content-list') + f'?err={err}')
         if not teaser_maker_id:
-            context['err'] = 'تیزرساز بدرستی وارد نشده است'
-            return render(request, 'panel/portal/advertise-content/advertise-content-list.html', context)
+            err = 'تیزرساز بدرستی وارد نشده است'
+            return redirect(reverse('resource:advertise-content-list') + f'?err={err}')
         else:
             try:
                 teaser_maker = TeaserMaker.objects.get(id=teaser_maker_id)
             except:
-                context['err'] = 'تیزرساز بدرستی وارد نشده است'
-                return render(request, 'panel/portal/advertise-content/advertise-content-list.html', context)
+                err = 'تیزرساز بدرستی وارد نشده است'
+                return redirect(reverse('resource:advertise-content-list') + f'?err={err}')
         if not reseller_network_id:
-            context['err'] = 'شبکه تبلیغ کننده بدرستی وارد نشده است'
-            return render(request, 'panel/portal/advertise-content/advertise-content-list.html', context)
+            err = 'شبکه تبلیغ کننده بدرستی وارد نشده است'
+            return redirect(reverse('resource:advertise-content-list') + f'?err={err}')
         else:
             try:
                 reseller_network = ResellerNetwork.objects.get(id=reseller_network_id)
             except:
-                context['err'] = 'شبکه تبلیغ کننده بدرستی وارد نشده است'
-                return render(request, 'panel/portal/advertise-content/advertise-content-list.html', context)
+                err = 'شبکه تبلیغ کننده بدرستی وارد نشده است'
+                return redirect(reverse('resource:advertise-content-list') + f'?err={err}')
+
         try:
             AdvertiseContent.objects.get(code=code)
-            context['err'] = f'محتوای تبلیغاتی با کد {code} از قبل موجود است'
+            err = f'محتوای تبلیغاتی با کد {code} از قبل موجود است'
+            return redirect(reverse('resource:advertise-content-list') + f'?err={err}')
         except:
             new_advertise_content = AdvertiseContent.objects.create(
                 name=name,
@@ -1270,9 +1268,8 @@ class AdvertiseContentView:
             for content in contents:
                 new_file = create_file(request, content)
                 new_advertise_content.content.add(new_file)
-            context['message'] = f'محتوای تبلیغاتی با شناسه یکتا {code} ایجاد گردید'
-
-        return redirect('resource:advertise-content-list')
+            message = f'محتوای تبلیغاتی با شناسه یکتا {code} ایجاد گردید'
+            return redirect(reverse('resource:advertise-content-list') + f'?message={message}')
 
     @CheckLogin()
     @CheckPermissions(section='advertise_content', allowed_actions='modify')
@@ -1375,7 +1372,7 @@ class ForwardToPortalView:
     @CheckLogin()
     @CheckPermissions(section='forward_to_portal', allowed_actions='read')
     def list(self, request, *args, **kwargs):
-        context = {'page_title': 'لیست انتقال دهنده ها', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'لیست انتقال دهنده ها', 'get_params': request.GET.urlencode(), 'err': request.GET.get('err', None), 'message': request.GET.get('message', None)}
 
         search = request.GET.get('search')
         if search:
@@ -1390,7 +1387,7 @@ class ForwardToPortalView:
                     Q(**{'address__icontains': search})
             )
 
-        forward_to_portals = ForwardToPortal.objects.filter(q).order_by('id')
+        forward_to_portals = ForwardToPortal.objects.filter(q).order_by('-created_at')
         context['forward_to_portals'] = forward_to_portals
 
         items_per_page = 50
@@ -1435,7 +1432,7 @@ class ForwardToPortalView:
                     Q(**{'code__icontains': search}) |
                     Q(**{'address__icontains': search})
             )
-        forward_to_portals = ForwardToPortal.objects.filter(q).order_by('id')
+        forward_to_portals = ForwardToPortal.objects.filter(q).order_by('-created_at')
         context['forward_to_portals'] = forward_to_portals
 
         items_per_page = 50
@@ -1458,24 +1455,25 @@ class ForwardToPortalView:
         price = fetch_data_from_http_post(request, 'price', context)
 
         if not name:
-            context['err'] = 'نام بدرستی وارد نشده است'
-            return render(request, 'panel/portal/forward-to-portal/forward-to-portal-list.html', context)
+            err = 'نام بدرستی وارد نشده است'
+            return redirect(reverse('resource:forward-to-portal-list') + f'?err={err}')
         if not communication_type:
-            context['err'] = 'نوع ارتباط بدرستی وارد نشده است'
-            return render(request, 'panel/portal/forward-to-portal/forward-to-portal-list.html', context)
+            err = 'نوع ارتباط بدرستی وارد نشده است'
+            return redirect(reverse('resource:forward-to-portal-list') + f'?err={err}')
         if not code:
-            context['err'] = 'کد بدرستی وارد نشده است'
-            return render(request, 'panel/portal/forward-to-portal/forward-to-portal-list.html', context)
+            err = 'کد بدرستی وارد نشده است'
+            return redirect(reverse('resource:forward-to-portal-list') + f'?err={err}')
         if not address:
-            context['err'] = 'آدرس بدرستی وارد نشده است'
-            return render(request, 'panel/portal/forward-to-portal/forward-to-portal-list.html', context)
+            err = 'آدرس بدرستی وارد نشده است'
+            return redirect(reverse('resource:forward-to-portal-list') + f'?err={err}')
         if not price:
-            context['err'] = 'قیمت بدرستی وارد نشده است'
-            return render(request, 'panel/portal/forward-to-portal/forward-to-portal-list.html', context)
+            err = 'قیمت بدرستی وارد نشده است'
+            return redirect(reverse('resource:forward-to-portal-list') + f'?err={err}')
 
         try:
             ForwardToPortal.objects.get(code=code)
-            context['err'] = f'انتقال دهنده با کد {code} از قبل موجود است'
+            err = f'انتقال دهنده با کد {code} از قبل موجود است'
+            return redirect(reverse('resource:forward-to-portal-list') + f'?err={err}')
         except:
             ForwardToPortal.objects.create(
                 name=name,
@@ -1487,8 +1485,8 @@ class ForwardToPortalView:
                 updated_by=request.user,
                 is_active=True,
             )
-            context['message'] = f'انتقال دهنده با شناسه یکتا {code} ایجاد گردید'
-        return redirect('resource:forward-to-portal-list')
+            message = f'انتقال دهنده با شناسه یکتا {code} ایجاد گردید'
+            return redirect(reverse('resource:forward-to-portal-list') + f'?message={message}')
 
     @CheckLogin()
     @CheckPermissions(section='forward_to_portal', allowed_actions='modify')
@@ -1565,7 +1563,7 @@ class CommunicationChannelView:
     @CheckLogin()
     @CheckPermissions(section='communication_channel', allowed_actions='read')
     def list(self, request, *args, **kwargs):
-        context = {'page_title': 'لیست کانال های ارتباطی', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'لیست کانال های ارتباطی', 'get_params': request.GET.urlencode(), 'err': request.GET.get('err', None), 'message': request.GET.get('message', None)}
 
         search = request.GET.get('search')
         if search:
@@ -1580,7 +1578,7 @@ class CommunicationChannelView:
                     Q(**{'phone_number__icontains': search})
             )
 
-        communication_channels = CommunicationChannel.objects.filter(q).order_by('id')
+        communication_channels = CommunicationChannel.objects.filter(q).order_by('-created_at')
         context['communication_channels'] = communication_channels
 
         items_per_page = 50
@@ -1625,7 +1623,7 @@ class CommunicationChannelView:
                     Q(**{'code__icontains': search}) |
                     Q(**{'phone_number__icontains': search})
             )
-        communication_channels = CommunicationChannel.objects.filter(q).order_by('id')
+        communication_channels = CommunicationChannel.objects.filter(q).order_by('-created_at')
         context['communication_channels'] = communication_channels
 
         items_per_page = 50
@@ -1648,24 +1646,25 @@ class CommunicationChannelView:
         price = fetch_data_from_http_post(request, 'price', context)
 
         if not name:
-            context['err'] = 'نام بدرستی وارد نشده است'
-            return render(request, 'panel/portal/communication-channel/communication-channel-list.html', context)
+            err = 'نام بدرستی وارد نشده است'
+            return redirect(reverse('resource:communication-channel-list') + f'?err={err}')
         if not communication_type:
-            context['err'] = 'نوع ارتباط بدرستی وارد نشده است'
-            return render(request, 'panel/portal/communication-channel/communication-channel-list.html', context)
+            err = 'نوع ارتباط بدرستی وارد نشده است'
+            return redirect(reverse('resource:communication-channel-list') + f'?err={err}')
         if not code:
-            context['err'] = 'کد بدرستی وارد نشده است'
-            return render(request, 'panel/portal/communication-channel/communication-channel-list.html', context)
+            err = 'کد بدرستی وارد نشده است'
+            return redirect(reverse('resource:communication-channel-list') + f'?err={err}')
         if not phone_number:
-            context['err'] = 'شماره بدرستی وارد نشده است'
-            return render(request, 'panel/portal/communication-channel/communication-channel-list.html', context)
+            err = 'شماره بدرستی وارد نشده است'
+            return redirect(reverse('resource:communication-channel-list') + f'?err={err}')
         if not price:
-            context['err'] = 'قیمت بدرستی وارد نشده است'
-            return render(request, 'panel/portal/communication-channel/communication-channel-list.html', context)
+            err = 'قیمت بدرستی وارد نشده است'
+            return redirect(reverse('resource:communication-channel-list') + f'?err={err}')
 
         try:
             CommunicationChannel.objects.get(code=code)
-            context['err'] = f'کانال ارتباطی با کد {code} از قبل موجود است'
+            err = f'کانال ارتباطی با کد {code} از قبل موجود است'
+            return redirect(reverse('resource:communication-channel-list') + f'?err={err}')
         except:
             CommunicationChannel.objects.create(
                 name=name,
@@ -1677,9 +1676,8 @@ class CommunicationChannelView:
                 created_by=request.user,
                 updated_by=request.user,
             )
-            context['message'] = f'کانال ارتباطی با شناسه یکتا {code} ایجاد گردید'
-
-        return redirect('resource:communication-channel-list')
+            message = f'کانال ارتباطی با شناسه یکتا {code} ایجاد گردید'
+            return redirect(reverse('resource:communication-channel-list') + f'?message={message}')
 
     @CheckLogin()
     @CheckPermissions(section='communication_channel', allowed_actions='modify')
@@ -1758,7 +1756,7 @@ class RegistrarView:
     @CheckLogin()
     @CheckPermissions(section='registrar', allowed_actions='read')
     def list(self, request, *args, **kwargs):
-        context = {'page_title': 'لیست تخصیص دهنده ها', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'لیست تخصیص دهنده ها', 'get_params': request.GET.urlencode(), 'err': request.GET.get('err', None), 'message': request.GET.get('message', None)}
 
         search = request.GET.get('search')
         if search:
@@ -1838,18 +1836,19 @@ class RegistrarView:
         code = fetch_data_from_http_post(request, 'code', context)
 
         if not name:
-            context['err'] = 'نام بدرستی وارد نشده است'
-            return render(request, 'panel/portal/registrar/registrar-list.html', context)
+            err = 'نام بدرستی وارد نشده است'
+            return redirect(reverse('resource:registrar-list') + f'?err={err}')
         if not registrar_type:
-            context['err'] = 'نوع تخصیص دهنده بدرستی وارد نشده است'
-            return render(request, 'panel/portal/registrar/registrar-list.html', context)
+            err = 'نوع تخصیص دهنده بدرستی وارد نشده است'
+            return redirect(reverse('resource:registrar-list') + f'?err={err}')
         if not code:
-            context['err'] = 'کد بدرستی وارد نشده است'
-            return render(request, 'panel/portal/registrar/registrar-list.html', context)
+            err = 'کد بدرستی وارد نشده است'
+            return redirect(reverse('resource:registrar-list') + f'?err={err}')
 
         try:
             Registrar.objects.get(code=code)
-            context['err'] = f'تخصیص دهنده با کد {code} از قبل موجود است'
+            err = f'تخصیص دهنده با کد {code} از قبل موجود است'
+            return redirect(reverse('resource:registrar-list') + f'?err={err}')
         except:
             Registrar.objects.create(
                 name=name,
@@ -1859,9 +1858,8 @@ class RegistrarView:
                 updated_by=request.user,
                 is_active=True,
             )
-            context['message'] = f'تخصیصی دهنده با شناسه یکتا {code} ایجاد گردید'
-
-        return redirect('resource:registrar-list')
+            message = f'تخصیصی دهنده با شناسه یکتا {code} ایجاد گردید'
+            return redirect(reverse('resource:registrar-list') + f'?message={message}')
 
     @CheckLogin()
     @CheckPermissions(section='registrar', allowed_actions='modify')

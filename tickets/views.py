@@ -37,7 +37,7 @@ class TicketView:
             )
             context = {'page_title': 'صندوق پیام های دریافتی', 'get_params': request.GET.urlencode()}
         elif box_status == 'all':
-            if not has_access_to_section(request.user, 'read,ticket_admin'):
+            if not has_access_to_section(request, 'read,ticket_admin'):
                 return render(request, 'panel/err/err-not-authorized.html')
             context = {'page_title': 'مدیریت پیام های کاربران سامانه', 'get_params': request.GET.urlencode()}
         else:
