@@ -20,6 +20,31 @@ def profile_list(request):
 
 
 @register.filter
+def advertise_content_list(request):
+    return AdvertiseContent.objects.filter()
+
+
+@register.filter
+def receiver_list(request):
+    return Receiver.objects.filter()
+
+
+@register.filter
+def product_list(request):
+    return Product.objects.filter()
+
+
+@register.filter
+def teaser_maker_list(request):
+    return TeaserMaker.objects.filter()
+
+
+@register.filter
+def reseller_network_list(request):
+    return ResellerNetwork.objects.filter()
+
+
+@register.filter
 def object_count(request, count_type):
     if count_type == 'user':
         return User.objects.all().count()

@@ -2,55 +2,105 @@
 {% load account_custom_tag %}
 {% load static %}
 
-<form id="fmcc_form_modal_communication_channel_data">
+<form id="fmac_form_modal_advertise_content_data">
     {% csrf_token %}
-    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
-        <label class="form-label" for="fmcc_form_modal_communication_channel_data_name">نام</label>
+       <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fmac_form_modal_advertise_content_data_name">نام</label>
         <div class="input-group input-group-merge">
-            <input type="text" id="fmcc_form_modal_communication_channel_data_name" class="form-control"
-                   name="fmcc_form_modal_communication_channel_data_name">
+            <input type="text" id="fmac_form_modal_advertise_content_data_name" class="form-control"
+                   name="fmac_form_modal_advertise_content_data_name">
         </div>
     </div>
     <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
-        <label for="select2Basic" class="form-label">نوع کانال ارتباطی</label>
-        <select id="select2Basic" name="fmcc_form_modal_communication_channel_data_communication_type"
+        <label for="select2Basic" class="form-label">نوع محتوای تبلیغاتی</label>
+        <select id="select2Basic" name="fmac_form_modal_advertise_content_data_advertise_content_type"
                 class="select2 form-select">
-            <option value="سامانه پیامکی">سامانه پیامکی</option>
-            <option value="ربات تلگرام">ربات تلگرام</option>
+            <option value="محتوای ویدیویی تلویزیون">محتوای ویدیویی تلویزیون</option>
+            <option value="محتوای ویدیویی ماهواره">محتوای ویدیویی ماهواره</option>
+            <option value="محتوای ویدیویی شبکه اجتماعی">محتوای ویدیویی شبکه اجتماعی</option>
+            <option value="محتوای تصویری">محتوای تصویری</option>
+            <option value="محتوای متنی (زیرنویس)">محتوای متنی (زیرنویس)</option>
+            <option value="محتوای صوتی (نریشن)">محتوای صوتی (نریشن)</option>
         </select>
     </div>
     <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
-        <label class="form-label" for="fmcc_form_modal_communication_channel_data_code">شناسه یکتا</label>
+        <label class="form-label" for="fmac_form_modal_advertise_content_data_code">شناسه یکتا</label>
         <div class="input-group input-group-merge">
-            <input type="text" id="fmcc_form_modal_communication_channel_data_code" class="form-control"
-                   name="fmcc_form_modal_communication_channel_data_code">
+            <input type="text" id="fmac_form_modal_advertise_content_data_code" class="form-control"
+                   name="fmac_form_modal_advertise_content_data_code">
         </div>
     </div>
     <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
-        <label class="form-label" for="fmcc_form_modal_communication_channel_data_phone_number">شماره</label>
+        <label class="form-label" for="content">محتوا</label>
         <div class="input-group input-group-merge">
-            <input type="text" id="fmcc_form_modal_communication_channel_data_phone_number" class="form-control"
-                   name="fmcc_form_modal_communication_channel_data_phone_number">
+            <div class="d-flex align-items-center flex-wrap my-2" id="fmac_form_modal_advertise_content_data_current_content">
+                <!-- files content -->
+                -
+            </div>
         </div>
     </div>
     <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
-        <label class="form-label" for="fmcc_form_modal_communication_channel_data_price">قیمت - ریال</label>
+        <label class="form-label" for="content">افزودن محتوا</label>
         <div class="input-group input-group-merge">
-            <input type="text" id="fmcc_form_modal_communication_channel_data_price" class="form-control"
-                   name="fmcc_form_modal_communication_channel_data_price">
+            <input type="file" id="fmac_form_modal_advertise_content_data_content" class="form-control"
+                   name="fmac_form_modal_advertise_content_data_content" multiple>
         </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="select2Basic" class="form-label">محصول</label>
+        <select id="select2Basic" name="fmac_form_modal_advertise_content_data_product_id"
+                class="select2 form-select">
+            {% for product in request|product_list %}
+            <option value="{{ product.id }}">{{ product.name }}</option>
+            {% empty %}
+            <option value="">بدون انتخاب</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="select2Basic" class="form-label">دریافت کننده</label>
+        <select id="select2Basic" name="fmac_form_modal_advertise_content_data_receiver_id"
+                class="select2 form-select">
+            {% for receiver in request|receiver_list %}
+            <option value="{{ receiver.id }}">{{ receiver.name }}</option>
+            {% empty %}
+            <option value="">بدون انتخاب</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="select2Basic" class="form-label">تیزرساز</label>
+        <select id="select2Basic" name="fmac_form_modal_advertise_content_data_teaser_maker_id"
+                class="select2 form-select">
+            {% for teaser_maker in request|teaser_maker_list %}
+            <option value="{{ teaser_maker.id }}">{{ teaser_maker.name }}</option>
+            {% empty %}
+            <option value="">بدون انتخاب</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="select2Basic" class="form-label">شبکه تبلیغ کننده</label>
+        <select id="select2Basic" name="fmac_form_modal_advertise_content_data_reseller_network_id"
+                class="select2 form-select">
+            {% for reseller_network in request|reseller_network_list %}
+            <option value="{{ reseller_network.id }}">{{ reseller_network.name }}</option>
+            {% empty %}
+            <option value="">بدون انتخاب</option>
+            {% endfor %}
+        </select>
     </div>
     <div class="col-sm-12 col-md-12 col-lg-12 mb-3">
         <div class="form-check form-check-primary mt-3">
-            <input class="form-check-input" type="checkbox" value="true" id="fmcc_form_modal_communication_channel_data_is_active" name="fmcc_form_modal_communication_channel_data_is_active"
+            <input class="form-check-input" type="checkbox" value="true" id="fmac_form_modal_advertise_content_data_is_active" name="fmac_form_modal_advertise_content_data_is_active"
                    checked>
-            <label class="form-check-label" for="fmcc_form_modal_communication_channel_data_is_active">فعال</label>
+            <label class="form-check-label" for="fmac_form_modal_advertise_content_data_is_active">فعال</label>
         </div>
     </div>
-    {% if request|has_access_to_section:'modify,communication_channel' %}
+    {% if request|has_access_to_section:'modify,advertise_content' %}
     <div class="col-sm-12 mt-3">
         <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
-            aria-label="Close" onclick="set_communication_channel_data()">ویرایش</button>
+            aria-label="Close" onclick="set_advertise_content_data()">ویرایش</button>
     </div>
     {% endif %}
 </form>

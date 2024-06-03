@@ -46,10 +46,10 @@ urlpatterns = [
     path('advertise-content/list/', AdvertiseContentView().list, name='advertise-content-list'),
     path('advertise-content/filter/', AdvertiseContentView().filter, name='advertise-content-filter'),
     path('advertise-content/create/', AdvertiseContentView().create, name='advertise-content-create'),
-    path('advertise-content/detail&id=<int:advertise_content_id>/', AdvertiseContentView().detail, name='advertise-content-detail-with-id'),
-    path('advertise-content/modify&id=<int:advertise_content_id>/', AdvertiseContentView().modify, name='advertise-content-modify-with-id'),
+    path('advertise-content/detail/', AdvertiseContentView().detail, name='advertise-content-detail'),
+    path('advertise-content/modify/', AdvertiseContentView().modify, name='advertise-content-modify'),
     path('advertise-content/delete&id=<int:advertise_content_id>/', AdvertiseContentView().delete, name='advertise-content-delete-with-id'),
-    path('advertise-content/change-state&id=<int:advertise_content_id>/', AdvertiseContentView().change_state, name='advertise-content-change_state-with-id'),
+    path('advertise-content/change-state/', AdvertiseContentView().change_state, name='advertise-content-change-state'),
 
     # Forward To Portal
     path('forward-to-portal/list/', ForwardToPortalView().list, name='forward-to-portal-list'),

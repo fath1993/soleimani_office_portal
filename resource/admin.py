@@ -177,7 +177,55 @@ class RegistrarAdmin(admin.ModelAdmin):
         return instance
 
 
-admin.site.register(TeaserMaker)
+@admin.register(TeaserMaker)
+class TeaserMakerAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'content_type',
+        'code',
+        'address',
+        'phone_number',
+        'creation_price',
+        'editing_price',
+
+        'is_active',
+    )
+
+    readonly_fields = (
+        'created_at',
+        'updated_at',
+        'created_by',
+        'updated_by',
+    )
+
+    fields = (
+        'name',
+        'content_type',
+        'code',
+        'address',
+        'phone_number',
+        'creation_price',
+        'editing_price',
+        'created_at',
+        'updated_at',
+        'created_by',
+        'updated_by',
+
+        'is_active',
+    )
+
+    def save_model(self, request, instance, form, change):
+        user = request.user
+        instance = form.save(commit=False)
+        if not change:
+            instance.created_by = user
+            instance.updated_by = user
+        else:
+            instance.updated_by = user
+        instance.save()
+        form.save_m2m()
+        return instance
+
 admin.site.register(ResellerNetwork)
 admin.site.register(AdvertiseContent)
 admin.site.register(ForwardToPortal)

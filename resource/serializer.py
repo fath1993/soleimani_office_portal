@@ -3,6 +3,7 @@ from rest_framework import serializers
 from resource.models import Product, TeaserMaker, ResellerNetwork, AdvertiseContent, ForwardToPortal, \
     CommunicationChannel, Registrar, Receiver
 from soleimani_office_portal.settings import BASE_URL
+from gallery.serializer import FileGallerySerializer
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -79,9 +80,11 @@ class ReceiverSerializer(serializers.ModelSerializer):
 
 
 class AdvertiseContentSerializer(serializers.ModelSerializer):
+    content = FileGallerySerializer(many=True)
     class Meta:
         model = AdvertiseContent
         fields = "__all__"
+        depth = 1
 
     def to_representation(self, instance):
 

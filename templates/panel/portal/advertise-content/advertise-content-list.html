@@ -24,15 +24,15 @@
 {% block content %}
     <div class="container-xxl flex-grow-1 container-p-y">
         <h4 class="py-3 breadcrumb-wrapper mb-4">
-            <span class="text-muted fw-light">منابع / <span class="text-black">شبکه های ارتباطی</span></span>
+            <span class="text-muted fw-light">منابع / <span class="text-black">محتوای تبلیغاتی</span></span>
         </h4>
         <div class="card mb-3">
             <h5 class="card-header heading-color">
-                فیلتر شبکه ارتباطی
+                فیلتر محتوای تبلیغاتی
             </h5>
             <div class="card-body">
                 <div class="row">
-                    <form method="get" action="{% url 'resource:communication-channel-filter' %}">
+                    <form method="get" action="{% url 'resource:advertise-content-filter' %}">
                         <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="search">جستجو <span class="text-muted">(نام, کد, شناسه)</span></label>
                             <div class="input-group">
@@ -46,10 +46,10 @@
             </div>
         </div>
         <div class="card">
-            {% if request|has_access_to_section:'create,communication_channel' %}
+            {% if request|has_access_to_section:'create,advertise_content' %}
                 <h5 class="card-header heading-color">
                     <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
-                        <i class="ti-plus m-r-5"></i> ایجاد کانال ارتباطی جدید
+                        <i class="ti-plus m-r-5"></i> ایجاد محتوای تبلیغاتی جدید
                     </button>
                     {% if err %}
                         <strong class="text-danger">{{ err }}</strong>
@@ -59,12 +59,12 @@
                     {% endif %}
                     <div class="offcanvas offcanvas-end" id="add-new-record">
                         <div class="offcanvas-header border-bottom">
-                            <h5 class="offcanvas-title" id="exampleModalLabel">کانال ارتباطی جدید</h5>
+                            <h5 class="offcanvas-title" id="exampleModalLabel">محتوای تبلیغاتی جدید</h5>
                             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
                                     aria-label="Close"></button>
                         </div>
                         <div class="offcanvas-body flex-grow-1">
-                            {% include 'panel/portal/communication-channel/form-communication-channel.html' %}
+                            {% include 'panel/portal/advertise-content/form-advertise-content.html' %}
                         </div>
                     </div>
                 </h5>
@@ -76,46 +76,50 @@
                         <tr>
                             <th style="width: 5%">#</th>
                             <th style="width: 15%">نام</th>
-                            <th style="width: 15%">نوع کانال ارتباطی</th>
-                            <th style="width: 15%">شناسه یکتا</th>
-                            <th style="width: 15%">شماره</th>
-                            <th style="width: 15%">قیمت - ریال</th>
-                            <th style="width: 15%">وضعیت</th>
+                            <th style="width: 15%">نوع محتوای تبلیغاتی</th>
+                            <th style="width: 10%">شناسه یکتا</th>
+                            <th style="width: 10%">محصول</th>
+                            <th style="width: 10%">دریافت کننده</th>
+                            <th style="width: 10%">تیزر ساز</th>
+                            <th style="width: 10%">شبکه تبلیغ کننده</th>
+                            <th style="width: 10%">وضعیت</th>
                             <th style="width: 5%">عملیات</th>
                         </tr>
                         </thead>
                         <tbody class="table-border-bottom-0">
-                        {% for communication_channel in page %}
+                        {% for advertise_content in page %}
                             <tr>
                                 <td>{{ forloop.counter }}</td>
-                                <td id="table_communication_channel_id_{{ communication_channel.id }}" data-id="{{ communication_channel.id }}" data-title="{{ communication_channel.code }}" data-bs-toggle="modal" data-bs-target="#communication_channelModal" onclick="set_important_and_get_data(this)">
-                                    <span id="table_communication_channel_name_{{ communication_channel.id }}" class="btn text-primary">{{ communication_channel.name }}</span>
+                                <td id="table_advertise_content_id_{{ advertise_content.id }}" data-id="{{ advertise_content.id }}" data-title="{{ advertise_content.code }}" data-bs-toggle="modal" data-bs-target="#advertise_contentModal" onclick="set_important_and_get_data(this)">
+                                    <span id="table_advertise_content_name_{{ advertise_content.id }}" class="btn text-primary">{{ advertise_content.name }}</span>
                                 </td>
-                                <td id="table_communication_channel_communication_type_{{ communication_channel.id }}">{{ communication_channel.communication_type }}</td>
-                                <td id="table_communication_channel_code_{{ communication_channel.id }}">{{ communication_channel.code }}</td>
-                                <td id="table_communication_channel_phone_number_{{ communication_channel.id }}">{{ communication_channel.phone_number }}</td>
-                                <td id="table_communication_channel_price_{{ communication_channel.id }}">{{ communication_channel.price }}</td>
-                                <td id="table_communication_channel_is_active_{{ communication_channel.id }}">
-                                    {% if communication_channel.is_active %}
+                                <td id="table_advertise_content_advertise_content_type_{{ advertise_content.id }}">{{ advertise_content.advertise_content_type }}</td>
+                                <td id="table_advertise_content_code_{{ advertise_content.id }}">{{ advertise_content.code }}</td>
+                                <td id="table_advertise_content_product_{{ advertise_content.id }}">{{ advertise_content.product.name }}</td>
+                                <td id="table_advertise_content_receiver_{{ advertise_content.id }}">{{ advertise_content.receiver.name }}</td>
+                                <td id="table_advertise_content_teaser_maker_{{ advertise_content.id }}">{{ advertise_content.teaser_maker.name }}</td>
+                                <td id="table_advertise_content_reseller_network_{{ advertise_content.id }}">{{ advertise_content.reseller_network.name }}</td>
+                                <td id="table_advertise_content_is_active_{{ advertise_content.id }}">
+                                    {% if advertise_content.is_active %}
                                         <span class="badge bg-success">فعال</span>
                                     {% else %}
                                         <span class="badge bg-dark">غیر فعال</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if request|has_access_to_section:'modify,delete,communication_channel' %}
+                                    {% if request|has_access_to_section:'modify,delete,advertise_content' %}
                                         <div class="dropdown">
                                             <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
                                                     data-bs-toggle="dropdown">
                                                 <i class="bx bx-dots-vertical-rounded"></i>
                                             </button>
                                             <div class="dropdown-menu">
-                                                {% if request|has_access_to_section:'modify,communication_channel' %}
-                                                    <a id="table_communication_channel_is_active_change_btn_{{ communication_channel.id }}" class="dropdown-item" href="javascript:void(0)" onclick="communication_channel_change_state('{{ communication_channel.id }}')"><span>{% if communication_channel.is_active %}<i
+                                                {% if request|has_access_to_section:'modify,advertise_content' %}
+                                                    <a id="table_advertise_content_is_active_change_btn_{{ advertise_content.id }}" class="dropdown-item" href="javascript:void(0)" onclick="advertise_content_change_state('{{ advertise_content.id }}')"><span>{% if advertise_content.is_active %}<i
                                                             class="bx bx-lock me-1"></i> غیر فعال{% else %}<i class="bx bx-lock-open me-1"></i> فعال{% endif %}</span></a>
                                                     
                                                 {% endif %}
-                                                {% if request|has_access_to_section:'delete,communication_channel' %}
+                                                {% if request|has_access_to_section:'delete,advertise_content' %}
                                                     <a class="dropdown-item" href="javascript:void(0);"
                                                        data-bs-toggle="modal"
                                                        data-bs-target="#deleteModal_{{ forloop.counter }}"><i
@@ -133,8 +137,8 @@
                                                             <div class="text-center mb-4 mt-0 mt-md-n2">
                                                                 <h3 class="mb-4 secondary-font">تایید حذف</h3>
                                                             </div>
-                                                            <h6>آیا از حذف کانال ارتباطی <strong class="bg-warning">{{ communication_channel.name }}</strong> مطمئن هستید؟</h6>
-                                                            <form class="row g-3 mt-3" method="post" action="{% url 'resource:communication-channel-delete-with-id' communication_channel_id=communication_channel.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                            <h6>آیا از حذف محتوای تبلیغاتی <strong class="bg-warning">{{ advertise_content.name }}</strong> مطمئن هستید؟</h6>
+                                                            <form class="row g-3 mt-3" method="post" action="{% url 'resource:advertise-content-delete-with-id' advertise_content_id=advertise_content.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
                                                                 {% csrf_token %}
                                                                 <div class="col-12">
                                                                     <button type="submit"
@@ -159,6 +163,8 @@
                             </tr>
                         {% empty %}
                             <tr>
+                                <td></td>
+                                <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -215,11 +221,11 @@
             </div>
         </div>
     </div>
-    <form id="ccl_data_form" hidden>
-        <input type="hidden" id="ccl_communication_channel_id" value="none">
-        <input type="hidden" id="ccl_communication_channel_title" value="none">
+    <form id="acl_data_form" hidden>
+        <input type="hidden" id="acl_advertise_content_id" value="none">
+        <input type="hidden" id="acl_advertise_content_title" value="none">
     </form>
-    {% include 'panel/portal/communication-channel/modal-communication-channel-create-modify.html' %}
+    {% include 'panel/portal/advertise-content/modal-advertise-content-create-modify.html' %}
 {% endblock %}
 
 {% block extra_body %}
@@ -253,27 +259,29 @@
         function set_important_and_get_data(element){
             const data_id = element.dataset.id
             const data_title = element.dataset.title
-            const ccl_communication_channel_id = document.getElementById('ccl_communication_channel_id')
-            const ccl_communication_channel_title = document.getElementById('ccl_communication_channel_title')
-            ccl_communication_channel_id.value = data_id
-            ccl_communication_channel_title.value = data_title
-            get_communication_channel_data(data_id, data_title)
+            const acl_advertise_content_id = document.getElementById('acl_advertise_content_id')
+            const acl_advertise_content_title = document.getElementById('acl_advertise_content_title')
+            acl_advertise_content_id.value = data_id
+            acl_advertise_content_title.value = data_title
+            get_advertise_content_data(data_id, data_title)
         }
         
-        function get_communication_channel_data(data_id, data_title) {
-            const mcccm_communication_channel_title = document.getElementById('mcccm_communication_channel_title')
-            const mcccm_communication_channel_container = document.getElementById('mcccm_communication_channel_container')
-            const mcccm_communication_channel_title_innerHTML = mcccm_communication_channel_title.innerHTML
-            const mcccm_communication_channel_container_innerHTML = mcccm_communication_channel_container.innerHTML
+        function get_advertise_content_data(data_id, data_title) {
+            const maccm_advertise_content_title = document.getElementById('maccm_advertise_content_title')
+            const maccm_advertise_content_container = document.getElementById('maccm_advertise_content_container')
+            const maccm_advertise_content_title_innerHTML = maccm_advertise_content_title.innerHTML
+            const maccm_advertise_content_container_innerHTML = maccm_advertise_content_container.innerHTML
             
-            const table_communication_channel_id_ = document.getElementById(`table_communication_channel_id_${data_id}`)
-            const table_communication_channel_name_ = document.getElementById(`table_communication_channel_name_${data_id}`)
-            const table_communication_channel_communication_type_ = document.getElementById(`table_communication_channel_communication_type_${data_id}`)
-            const table_communication_channel_code_ = document.getElementById(`table_communication_channel_code_${data_id}`)
-            const table_communication_channel_phone_number_ = document.getElementById(`table_communication_channel_phone_number_${data_id}`)
-            const table_communication_channel_price_ = document.getElementById(`table_communication_channel_price_${data_id}`)
-            const table_communication_channel_is_active_ = document.getElementById(`table_communication_channel_is_active_${data_id}`)
-            const table_communication_channel_is_active_change_btn_ = document.getElementById(`table_communication_channel_is_active_change_btn_${data_id}`)
+            const table_advertise_content_id_ = document.getElementById(`table_advertise_content_id_${data_id}`)
+            const table_advertise_content_name_ = document.getElementById(`table_advertise_content_name_${data_id}`)
+            const table_advertise_content_advertise_content_type_ = document.getElementById(`table_advertise_content_advertise_content_type_${data_id}`)
+            const table_advertise_content_code_ = document.getElementById(`table_advertise_content_code_${data_id}`)
+            const table_advertise_content_product_ = document.getElementById(`table_advertise_content_product_${data_id}`)
+            const table_advertise_content_receiver_ = document.getElementById(`table_advertise_content_receiver_${data_id}`)
+            const table_advertise_content_teaser_maker_ = document.getElementById(`table_advertise_content_teaser_maker_${data_id}`)
+            const table_advertise_content_reseller_network_ = document.getElementById(`table_advertise_content_reseller_network_${data_id}`)
+            const table_advertise_content_is_active_ = document.getElementById(`table_advertise_content_is_active_${data_id}`)
+            const table_advertise_content_is_active_change_btn_ = document.getElementById(`table_advertise_content_is_active_change_btn_${data_id}`)
             
                 
             const loading_text = 'در حال بارگذاری ...'
@@ -281,15 +289,15 @@
                                       <span class="visually-hidden">${loading_text}</span>
                                     </div>`
             const formData = new FormData();
-            formData.append('communication_channel_id', `${data_id}`)
+            formData.append('advertise_content_id', `${data_id}`)
             formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
             const options = {
                 method: 'POST',
                 body: formData,
             }
-            mcccm_communication_channel_title.innerText = `اطلاعاتکانال ارتباطی ${data_title}`
-            mcccm_communication_channel_container.innerHTML=loading_html
-            fetch('{% url 'resource:communication-channel-detail' %}', options)
+            maccm_advertise_content_title.innerText = `اطلاعات محتوای تبلیغاتی ${data_title}`
+            maccm_advertise_content_container.innerHTML=loading_html
+            fetch('{% url 'resource:advertise-content-detail' %}', options)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -298,60 +306,100 @@
                 })
                 .then(data => {
                     console.log(data)
-                    mcccm_communication_channel_title.innerText = `اطلاعات کانال ارتباطی ${data['data'][0]['code']}`
-                    table_communication_channel_name_.innerText = `${data['data'][0]['name']}`
-                    table_communication_channel_communication_type_.innerText = `${data['data'][0]['communication_type']}`
-                    table_communication_channel_code_.innerText = `${data['data'][0]['code']}`
-                    table_communication_channel_phone_number_.innerText = `${data['data'][0]['phone_number']}`
-                    table_communication_channel_price_.innerText = `${data['data'][0]['price']}`
+                    maccm_advertise_content_title.innerText = `اطلاعات محتوای تبلیغاتی ${data['data'][0]['name']}`
+                    table_advertise_content_name_.innerText = `${data['data'][0]['name']}`
+                    table_advertise_content_advertise_content_type_.innerText = `${data['data'][0]['advertise_content_type']}`
+                    table_advertise_content_code_.innerText = `${data['data'][0]['code']}`
+                    table_advertise_content_product_.innerText = `${data['data'][0]['product']['name']}`
+                    table_advertise_content_receiver_.innerText = `${data['data'][0]['receiver']['name']}`
+                    table_advertise_content_teaser_maker_.innerText = `${data['data'][0]['teaser_maker']['name']}`
+                    table_advertise_content_reseller_network_.innerText = `${data['data'][0]['reseller_network']['name']}`
                     if (data['data'][0]['is_active'] === true) {
-                        table_communication_channel_is_active_.innerHTML = '<span class="badge bg-success">فعال</span>'
-                        table_communication_channel_is_active_change_btn_.innerHTML = '<span><i class="bx bx-lock me-1"></i> غیر فعال</span>'
+                        table_advertise_content_is_active_.innerHTML = '<span class="badge bg-success">فعال</span>'
+                        table_advertise_content_is_active_change_btn_.innerHTML = '<span><i class="bx bx-lock me-1"></i> غیر فعال</span>'
                     } else {
-                        table_communication_channel_is_active_.innerHTML = '<span class="badge bg-dark">غیر فعال</span>'
-                        table_communication_channel_is_active_change_btn_.innerHTML = '<span><i class="bx bx-lock-open me-1"></i> فعال</span>'
+                        table_advertise_content_is_active_.innerHTML = '<span class="badge bg-dark">غیر فعال</span>'
+                        table_advertise_content_is_active_change_btn_.innerHTML = '<span><i class="bx bx-lock-open me-1"></i> فعال</span>'
                     }
                     
-                    mcccm_communication_channel_container.innerHTML=`{% include 'panel/portal/communication-channel/form-modal-communication-channel.html' %}`
-                    document.getElementById('fmcc_form_modal_communication_channel_data_name').value=`${data['data'][0]['name']}`
-                    document.getElementById('fmcc_form_modal_communication_channel_data_code').value=`${data['data'][0]['code']}`
-                    document.getElementById('fmcc_form_modal_communication_channel_data_phone_number').value=`${data['data'][0]['phone_number']}`
-                    document.getElementById('fmcc_form_modal_communication_channel_data_price').value=`${data['data'][0]['price']}`
-                    const fmcc_form_modal_communication_channel_data_communication_type = document.querySelector('[name="fmcc_form_modal_communication_channel_data_communication_type"]')
-                    const options_1 = fmcc_form_modal_communication_channel_data_communication_type.querySelectorAll('option');
+                    maccm_advertise_content_container.innerHTML=`{% include 'panel/portal/advertise-content/form-modal-advertise-content.html' %}`
+                    document.getElementById('fmac_form_modal_advertise_content_data_name').value=`${data['data'][0]['name']}`
+                    document.getElementById('fmac_form_modal_advertise_content_data_code').value=`${data['data'][0]['code']}`
+                    
+                    const fmac_form_modal_advertise_content_data_current_content = document.getElementById('fmac_form_modal_advertise_content_data_current_content')
+                    fmac_form_modal_advertise_content_data_current_content.innerHTML = ``
+                    data['data'][0]['content'].forEach((item) => {
+                        fmac_form_modal_advertise_content_data_current_content.innerHTML += `
+                        <div id="acl_file_${item['id']}" class="avatar avatar-xl mx-1 my-1">
+                            <span class="badge bg-dark text-white rounded-pill badge-notifications" onclick="delete_file(${item['id']})"><i class="fa fa-close"></i></span>
+                            <img src="{% static 'assets/img/icons/unicons/cube.png' %}" alt="${item['alt']}"
+                                 class="rounded"
+                                 onclick="window.open('${item['link']}', '_blank')">
+                        </div>`
+                    })
+                    
+                    const fmac_form_modal_advertise_content_data_product = document.querySelector('[name="fmac_form_modal_advertise_content_data_product_id"]')
+                    const options_1 = fmac_form_modal_advertise_content_data_product.querySelectorAll('option');
                     for (let x = 0; x < options_1.length; x++) {
-                        if (options_1[x].value === data['data'][0]['communication_type']) {
+                        if (options_1[x].value === data['data'][0]['product']['id']) {
                             options_1[x].selected = true;
                             break;
                         }
                     }
                     
+                    const fmac_form_modal_advertise_content_data_receiver = document.querySelector('[name="fmac_form_modal_advertise_content_data_receiver_id"]')
+                    const options_2 = fmac_form_modal_advertise_content_data_receiver.querySelectorAll('option');
+                    for (let x = 0; x < options_2.length; x++) {
+                        if (options_2[x].value === data['data'][0]['receiver']['id']) {
+                            options_2[x].selected = true;
+                            break;
+                        }
+                    }
+                    
+                    const fmac_form_modal_advertise_content_data_teaser_maker = document.querySelector('[name="fmac_form_modal_advertise_content_data_teaser_maker_id"]')
+                    const options_3 = fmac_form_modal_advertise_content_data_teaser_maker.querySelectorAll('option');
+                    for (let x = 0; x < options_3.length; x++) {
+                        if (options_3[x].value === data['data'][0]['teaser_maker']['id']) {
+                            options_3[x].selected = true;
+                            break;
+                        }
+                    }
+                    
+                    const fmac_form_modal_advertise_content_data_reseller_network = document.querySelector('[name="fmac_form_modal_advertise_content_data_reseller_network_id"]')
+                    const options_4 = fmac_form_modal_advertise_content_data_reseller_network.querySelectorAll('option');
+                    for (let x = 0; x < options_4.length; x++) {
+                        if (options_4[x].value === data['data'][0]['reseller_network']['id']) {
+                            options_4[x].selected = true;
+                            break;
+                        }
+                    }
+                    
                     if (data['data'][0]['is_active'] === true) {
-                        document.getElementById('fmcc_form_modal_communication_channel_data_is_active').checked = true
+                        document.getElementById('fmac_form_modal_advertise_content_data_is_active').checked = true
                     } else {
-                        document.getElementById('fmcc_form_modal_communication_channel_data_is_active').checked = false
+                        document.getElementById('fmac_form_modal_advertise_content_data_is_active').checked = false
                     }
 
-                    const form_element = document.getElementById('fmcc_form_modal_communication_channel_data')
+                    const form_element = document.getElementById('fmac_form_modal_advertise_content_data')
                     initializeSelect2(form_element);
                 })
                 .catch(error => {
-                    mcccm_communication_channel_container.innerHTML = mcccm_communication_channel_container_innerHTML
+                    maccm_advertise_content_container.innerHTML = maccm_advertise_content_container_innerHTML
                     console.log(error)
                 });
         }
-        function set_communication_channel_data() {
-            const ccl_communication_channel_id = document.getElementById('ccl_communication_channel_id').value
-            const ccl_communication_channel_title = document.getElementById('ccl_communication_channel_title').value
-            const fmcc_form_modal_communication_channel_data = document.getElementById('fmcc_form_modal_communication_channel_data')
+        function set_advertise_content_data() {
+            const acl_advertise_content_id = document.getElementById('acl_advertise_content_id').value
+            const acl_advertise_content_title = document.getElementById('acl_advertise_content_title').value
+            const fmac_form_modal_advertise_content_data = document.getElementById('fmac_form_modal_advertise_content_data')
             
-            const formData = new FormData(fmcc_form_modal_communication_channel_data);
-            formData.append('communication_channel_id', `${ccl_communication_channel_id}`)
+            const formData = new FormData(fmac_form_modal_advertise_content_data);
+            formData.append('advertise_content_id', `${acl_advertise_content_id}`)
             const options = {
                 method: 'POST',
                 body: formData,
             }
-            fetch('{% url 'resource:communication-channel-modify' %}', options)
+            fetch('{% url 'resource:advertise-content-modify' %}', options)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -359,11 +407,11 @@
                     return response.json();
                 })
                 .then(data => {
-                    if (data['message'] === 'communication channel not found') {
-                        toast_maker('error', `کانال ارتباطی با شناسه یکتای ${ccl_communication_channel_id} یافت نشد`)
+                    if (data['message'] === 'advertise content not found') {
+                        toast_maker('error', `محتوای تبلیغاتی با شناسه یکتای ${acl_advertise_content_id} یافت نشد`)
                     }  else {
                         toast_maker('success', `${data['message']}`)
-                        get_communication_channel_data(`${ccl_communication_channel_id}`, `${ccl_communication_channel_title}`)
+                        get_advertise_content_data(`${acl_advertise_content_id}`, `${acl_advertise_content_title}`)
                     }
                     console.log(data)
                 })
@@ -372,25 +420,25 @@
                 });
         }
         
-        function communication_channel_change_state(communication_channel_id) {
-            const table_communication_channel_is_active = document.getElementById(`table_communication_channel_is_active_${communication_channel_id}`)
-            const table_communication_channel_is_active_change_btn = document.getElementById(`table_communication_channel_is_active_change_btn_${communication_channel_id}`)
-            const table_communication_channel_is_active_innerHTML = table_communication_channel_is_active.innerHTML
-            const table_is_active_change_btn_innerHTML = table_communication_channel_is_active_change_btn.innerHTML
+        function advertise_content_change_state(advertise_content_id) {
+            const table_advertise_content_is_active = document.getElementById(`table_advertise_content_is_active_${advertise_content_id}`)
+            const table_advertise_content_is_active_change_btn = document.getElementById(`table_advertise_content_is_active_change_btn_${advertise_content_id}`)
+            const table_advertise_content_is_active_innerHTML = table_advertise_content_is_active.innerHTML
+            const table_is_active_change_btn_innerHTML = table_advertise_content_is_active_change_btn.innerHTML
             const loading_text = 'در حال بارگذاری ...'
             const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
                                   <span class="visually-hidden">${loading_text}</span>
                                 </div>`
             const formData = new FormData();
-            formData.append('communication_channel_id', `${communication_channel_id}`)
+            formData.append('advertise_content_id', `${advertise_content_id}`)
             formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
             const options = {
                 method: 'POST',
                 body: formData,
             }
-            table_communication_channel_is_active.innerHTML = loading_html
-            table_communication_channel_is_active_change_btn.innerHTML = loading_html
-            fetch('{% url 'resource:communication-channel-change-state' %}', options)
+            table_advertise_content_is_active.innerHTML = loading_html
+            table_advertise_content_is_active_change_btn.innerHTML = loading_html
+            fetch('{% url 'resource:advertise-content-change-state' %}', options)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -398,21 +446,21 @@
                     return response.json();
                 })
                 .then(data => {
-                    if (data['communication_channel_is_active'] === 'false') {
-                        table_communication_channel_is_active.innerHTML = '<span class="badge bg-dark">غیر فعال</span>'
-                        table_communication_channel_is_active_change_btn.innerHTML = '<span><i class="bx bx-lock-open me-1"></i> فعال</span>'
+                    if (data['advertise_content_is_active'] === 'false') {
+                        table_advertise_content_is_active.innerHTML = '<span class="badge bg-dark">غیر فعال</span>'
+                        table_advertise_content_is_active_change_btn.innerHTML = '<span><i class="bx bx-lock-open me-1"></i> فعال</span>'
                         toast_maker('success', 'با موفقیت غیر فعال شد')
                     } else {
-                        table_communication_channel_is_active.innerHTML = '<span class="badge bg-success">فعال</span>'
-                        table_communication_channel_is_active_change_btn.innerHTML = '<span><i class="bx bx-lock me-1"></i> غیر فعال</span>'
+                        table_advertise_content_is_active.innerHTML = '<span class="badge bg-success">فعال</span>'
+                        table_advertise_content_is_active_change_btn.innerHTML = '<span><i class="bx bx-lock me-1"></i> غیر فعال</span>'
                         toast_maker('success', 'با موفقیت فعال شد')
                     }
                 })
                 .catch(error => {
-                    table_communication_channel_is_active.innerHTML = table_communication_channel_is_active_innerHTML
-                    table_communication_channel_is_active_change_btn.innerHTML = table_is_active_change_btn_innerHTML
+                    table_advertise_content_is_active.innerHTML = table_advertise_content_is_active_innerHTML
+                    table_advertise_content_is_active_change_btn.innerHTML = table_is_active_change_btn_innerHTML
                     toast_maker('error', 'عملیات ناموفق')
-                    console.error('Error change communication channel state:', error);
+                    console.error('Error change advertise content state:', error);
                 });
             }
         

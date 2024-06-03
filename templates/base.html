@@ -213,6 +213,45 @@
     $('.offcanvas').on('shown.bs.offcanvas', function (e) {
         initializeSelect2(this);
     });
+    
+    function delete_file(file_id) {
+            const file_element = document.getElementById(`acl_file_${file_id}`)
+            console.log(file_element)
+            const file_element_innerHTML = file_element.innerHTML
+            const loading_text = 'در حال بارگذاری ...'
+            const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                      <span class="visually-hidden">${loading_text}</span>
+                                    </div>`
+            const formData = new FormData();
+            formData.append('file_id', file_id)
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+            const options = {
+                method: 'POST',
+                body: formData,
+            }
+            file_element.innerHTML = loading_html
+            fetch('{% url 'file-gallery:delete-file' %}', options)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data['message'] === 'deleted') {
+                        toast_maker('success', `${data['message']}`)
+                        file_element.remove()
+                    }  else {
+                        toast_maker('error', `${data['message']}`)
+                        file_element.innerHTML = element_parent_element_innerHTML
+                    }
+                    console.log(data)
+                })
+                .catch(error => {
+                    file_element.innerHTML = element_parent_element_innerHTML
+                    console.log(error)
+                });
+        }
 
 </script>
 

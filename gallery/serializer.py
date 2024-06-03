@@ -11,5 +11,5 @@ class FileGallerySerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        ret['file'] = f"{BASE_URL}{instance.file.url}"
+        ret['link'] = f"{BASE_URL}{instance.file.url}".replace('//', '/')
         return ret

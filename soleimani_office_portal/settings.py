@@ -135,3 +135,5 @@ BASE_URL = 'https://s-office-portal.a-fathollahi.com/'
 BASE_FRONT_URL = 'https://s-office-portal.a-fathollahi.com/'
 
 BASE_CONTENT_URL = 'https://s-office-portal.a-fathollahi.com/'
+
+ADMIN_URL_PREFIX = env('ADMIN_URL_PREFIX')

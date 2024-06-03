@@ -8,7 +8,7 @@ from accounts.custom_decorator import CheckLogin, CheckPermissions, RequireMetho
 from resource.models import Product, TeaserMaker, ResellerNetwork, Receiver, AdvertiseContent, ForwardToPortal, \
     CommunicationChannel, Registrar
 from resource.serializer import RegistrarSerializer, ReceiverSerializer, ResellerNetworkSerializer, \
-    ForwardToPortalSerializer, CommunicationChannelSerializer
+    ForwardToPortalSerializer, CommunicationChannelSerializer, AdvertiseContentSerializer
 from utilities.http_metod import fetch_data_from_http_post, fetch_files_from_http_post_data, fetch_data_from_http_get
 
 
@@ -1136,7 +1136,7 @@ class AdvertiseContentView:
                     Q(**{'code__icontains': search})
             )
 
-        advertise_contents = AdvertiseContent.objects.filter(q).order_by('id')
+        advertise_contents = AdvertiseContent.objects.filter(q).order_by('-created_at')
         context['advertise_contents'] = advertise_contents
 
         items_per_page = 50
@@ -1149,14 +1149,23 @@ class AdvertiseContentView:
 
     @CheckLogin()
     @CheckPermissions(section='advertise_content', allowed_actions='read')
-    def detail(self, request, advertise_content_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def detail(self, request, *args, **kwargs):
+        context = {}
+        advertise_content_id = fetch_data_from_http_post(request, 'advertise_content_id', context)
         try:
-            advertise_content = AdvertiseContent.objects.get(id=advertise_content_id)
-            context = {'page_title': f'اطلاعات محتوای تبلیغاتی *{advertise_content.code}*',
-                       'advertise_content': advertise_content, 'get_params': request.GET.urlencode()}
-            return render(request, 'panel/portal/advertise-content/advertise-content-detail.html', context)
-        except:
-            return render(request, 'panel/err/err-not-found.html')
+            advertise_content = AdvertiseContent.objects.filter(id=advertise_content_id)
+            serializer = AdvertiseContentSerializer(advertise_content, many=True)
+            json_response_body = {
+                "method": "post",
+                "request": f"دیتای محتوای تبلیغاتی با شناسه یکتای {advertise_content_id}",
+                "result": "موفق",
+                "data": serializer.data
+            }
+            return JsonResponse(json_response_body)
+        except Exception as e:
+            print(e)
+            return JsonResponse({'message': 'failed'})
 
     @CheckLogin()
     @CheckPermissions(section='advertise_content', allowed_actions='read')
@@ -1171,7 +1180,7 @@ class AdvertiseContentView:
                     Q(**{'advertise_content_type__icontains': search}) |
                     Q(**{'code__icontains': search})
             )
-        advertise_contents = AdvertiseContent.objects.filter(q).order_by('id')
+        advertise_contents = AdvertiseContent.objects.filter(q).order_by('-created_at')
         context['advertise_contents'] = advertise_contents
 
         items_per_page = 50
@@ -1185,12 +1194,12 @@ class AdvertiseContentView:
     @CheckLogin()
     @CheckPermissions(section='advertise_content', allowed_actions='create')
     def create(self, request, *args, **kwargs):
-        context = {'page_title': 'ساخت شبکه تبلیغ کننده جدید', 'get_params': request.GET.urlencode()}
+        context = {'page_title': 'ساخت محتوای تبلیغاتی جدید', 'get_params': request.GET.urlencode()}
 
         name = fetch_data_from_http_post(request, 'name', context)
         advertise_content_type = fetch_data_from_http_post(request, 'advertise_content_type', context)
         code = fetch_data_from_http_post(request, 'code', context)
-        contents = fetch_files_from_http_post_data(request, 'contents', context)
+        contents = fetch_files_from_http_post_data(request, 'content', context)
         product_id = fetch_data_from_http_post(request, 'product_id', context)
         receiver_id = fetch_data_from_http_post(request, 'receiver_id', context)
         teaser_maker_id = fetch_data_from_http_post(request, 'teaser_maker_id', context)
@@ -1263,78 +1272,67 @@ class AdvertiseContentView:
                 new_advertise_content.content.add(new_file)
             context['message'] = f'محتوای تبلیغاتی با شناسه یکتا {code} ایجاد گردید'
 
-        return redirect('panel:advertise-content-list')
+        return redirect('resource:advertise-content-list')
 
     @CheckLogin()
     @CheckPermissions(section='advertise_content', allowed_actions='modify')
-    def modify(self, request, advertise_content_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def modify(self, request, *args, **kwargs):
+        context = {}
+        advertise_content_id = fetch_data_from_http_post(request, 'advertise_content_id', context)
         try:
             advertise_content = AdvertiseContent.objects.get(id=advertise_content_id)
-            context = {'page_title': f'ویرایش اطلاعات محتوای تبلیغاتی *{advertise_content.code}*',
+            context = {'page_title': f'ویرایش محتوای تبلیغاتی با شناسه یکتای *{advertise_content_id}*',
                        'advertise_content': advertise_content, 'get_params': request.GET.urlencode()}
-            if request.method == 'GET':
-                return render(request, 'panel/portal/advertise-content/advertise-content-edit.html', context)
+            name = fetch_data_from_http_post(request, 'fmac_form_modal_advertise_content_data_name', context, False)
+            advertise_content_type = fetch_data_from_http_post(request, 'fmac_form_modal_advertise_content_data_advertise_content_type', context, False)
+            code = fetch_data_from_http_post(request, 'fmac_form_modal_advertise_content_data_code', context, False)
+            content = fetch_files_from_http_post_data(request, 'fmac_form_modal_advertise_content_data_content', context)
+            product_id = fetch_data_from_http_post(request, 'fmac_form_modal_advertise_content_data_product_id', context, False)
+            receiver_id = fetch_data_from_http_post(request, 'fmac_form_modal_advertise_content_data_receiver_id', context)
+            teaser_maker_id = fetch_data_from_http_post(request, 'fmac_form_modal_advertise_content_data_teaser_maker_id', context, False)
+            reseller_network_id = fetch_data_from_http_post(request, 'fmac_form_modal_advertise_content_data_reseller_network_id', context)
+            is_active = fetch_data_from_http_post(request, 'fmac_form_modal_advertise_content_data_is_active', context)
+
+            if name:
+                advertise_content.name = name
+            if advertise_content_type:
+                advertise_content.advertise_content_type = advertise_content_type
+            if code:
+                advertise_content.code = code
+            if product_id:
+                try:
+                    advertise_content.product = Product.objects.get(id=product_id)
+                except:
+                    pass
+            if receiver_id:
+                try:
+                    advertise_content.receiver = Receiver.objects.get(id=receiver_id)
+                except:
+                    pass
+            if teaser_maker_id:
+                try:
+                    advertise_content.teaser_maker = TeaserMaker.objects.get(id=teaser_maker_id)
+                except:
+                    pass
+            if reseller_network_id:
+                try:
+                    advertise_content.reseller_network = ResellerNetwork.objects.get(id=reseller_network_id)
+                except:
+                    pass
+            if content:
+                for file in content:
+                    new_file = create_file(request, file)
+                    advertise_content.content.add(new_file)
+            if is_active == 'true':
+                advertise_content.is_active = True
             else:
-                name = fetch_data_from_http_post(request, 'name', context, False)
-                advertise_content_type = fetch_data_from_http_post(request, 'advertise_content_type', context, False)
-                code = fetch_data_from_http_post(request, 'code', context, False)
-                contents = fetch_files_from_http_post_data(request, 'contents', context)
-                product_id = fetch_data_from_http_post(request, 'product_id', context)
-                receiver_id = fetch_data_from_http_post(request, 'receiver_id', context)
-                teaser_maker_id = fetch_data_from_http_post(request, 'teaser_maker_id', context)
-                reseller_network_id = fetch_data_from_http_post(request, 'reseller_network_id', context)
-                is_active = fetch_data_from_http_post(request, 'is_active', context, False)
+                advertise_content.is_active = False
+            advertise_content.save()
 
-                if name:
-                    advertise_content.name = name
-                if advertise_content_type:
-                    advertise_content.advertise_content_type = advertise_content_type
-                if code:
-                    advertise_content.code = code
-                if product_id:
-                    try:
-                        advertise_content.product = Product.objects.get(id=product_id)
-                    except:
-                        pass
-                if receiver_id:
-                    try:
-                        advertise_content.receiver = Receiver.objects.get(id=receiver_id)
-                    except:
-                        pass
-                if teaser_maker_id:
-                    try:
-                        advertise_content.teaser_maker = TeaserMaker.objects.get(id=teaser_maker_id)
-                    except:
-                        pass
-                if reseller_network_id:
-                    try:
-                        advertise_content.reseller_network = ResellerNetwork.objects.get(id=reseller_network_id)
-                    except:
-                        pass
-                if is_active == 'true':
-                    advertise_content.is_active = True
-                else:
-                    advertise_content.is_active = False
-
-                advertise_content.save()
-
-                for content in contents:
-                    try:
-                        file = FileGallery.objects.create(
-                            alt=content.name,
-                            file=content,
-                            created_by=request.user,
-                        )
-                        advertise_content.content.add(file)
-                    except:
-                        pass
-
-                context['message'] = f'محتوای تبلیغاتی با کد {advertise_content.code} ویرایش گردید'
-                return redirect(
-                    reverse('panel:advertise-content-modify-with-id',
-                            kwargs={'advertise_content_id': advertise_content_id}) + f'?{request.GET.urlencode()}')
+            return JsonResponse({'message': f'محتوای تبلیغاتی با شناسه یکتا {advertise_content_id} ویرایش گردید'})
         except:
-            return render(request, 'panel/err/err-not-found.html')
+            return JsonResponse({'message': f'advertise content not found'})
 
     @CheckLogin()
     @CheckPermissions(section='advertise_content', allowed_actions='delete')
@@ -1350,7 +1348,10 @@ class AdvertiseContentView:
 
     @CheckLogin()
     @CheckPermissions(section='advertise_content', allowed_actions='modify')
-    def change_state(self, request, advertise_content_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def change_state(self, request, *args, **kwargs):
+        context = {}
+        advertise_content_id = fetch_data_from_http_post(request, 'advertise_content_id', context)
         try:
             advertise_content = AdvertiseContent.objects.get(id=advertise_content_id)
             context = {'page_title': f'تغییر وضعیت محتوای تبلیغاتی {advertise_content.code}',
