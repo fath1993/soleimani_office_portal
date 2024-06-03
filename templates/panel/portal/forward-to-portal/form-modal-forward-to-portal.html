@@ -1,0 +1,56 @@
+{% load panel_custom_tag %}
+{% load account_custom_tag %}
+{% load static %}
+
+<form id="fftp_form_modal_forward_to_portal_data">
+    {% csrf_token %}
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fftp_form_modal_forward_to_portal_data_name">نام</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fftp_form_modal_forward_to_portal_data_name" class="form-control"
+                   name="fftp_form_modal_forward_to_portal_data_name">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="select2Basic" class="form-label">نوع کانال ارتباطی</label>
+        <select id="select2Basic" name="fftp_form_modal_forward_to_portal_data_communication_type"
+                class="select2 form-select">
+            <option value="اپلیکیشن خارجی">اپلیکیشن خارجی</option>
+            <option value="اپلیکیشن بومی">اپلیکیشن بومی</option>
+        </select>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fftp_form_modal_forward_to_portal_data_code">شناسه یکتا</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fftp_form_modal_forward_to_portal_data_code" class="form-control"
+                   name="fftp_form_modal_forward_to_portal_data_code">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fftp_form_modal_forward_to_portal_data_address">آدرس</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fftp_form_modal_forward_to_portal_data_address" class="form-control"
+                   name="fftp_form_modal_forward_to_portal_data_address">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fftp_form_modal_forward_to_portal_data_price">قیمت - ریال</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fftp_form_modal_forward_to_portal_data_price" class="form-control"
+                   name="fftp_form_modal_forward_to_portal_data_price">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-3">
+        <div class="form-check form-check-primary mt-3">
+            <input class="form-check-input" type="checkbox" value="true" id="fftp_form_modal_forward_to_portal_data_is_active" name="fftp_form_modal_forward_to_portal_data_is_active"
+                   checked>
+            <label class="form-check-label" for="fftp_form_modal_forward_to_portal_data_is_active">فعال</label>
+        </div>
+    </div>
+    {% if request|has_access_to_section:'modify,forward_to_portal' %}
+    <div class="col-sm-12 mt-3">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+            aria-label="Close" onclick="set_forward_to_portal_data()">ویرایش</button>
+    </div>
+    {% endif %}
+</form>

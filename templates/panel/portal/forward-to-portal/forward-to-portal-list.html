@@ -13,7 +13,7 @@
           href="{% static 'assets/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css' %}">
     <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css' %}">
     <link rel="stylesheet" href="{% static 'assets/vendor/libs/flatpickr/flatpickr.css' %}">
-    <link rel="stylesheet" href="{% static 'assets/vendor/libs/sweetalert2/sweetalert2.css' %}">
+    
     <!-- Row Group CSS -->
     <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css' %}">
     <!-- Form Validation -->
@@ -24,15 +24,15 @@
 {% block content %}
     <div class="container-xxl flex-grow-1 container-p-y">
         <h4 class="py-3 breadcrumb-wrapper mb-4">
-            <span class="text-muted fw-light">مدیریت منابع / <span class="text-black">تیزر سازها</span></span>
+            <span class="text-muted fw-light">منابع / <span class="text-black">انتقال دهندگان</span></span>
         </h4>
         <div class="card mb-3">
             <h5 class="card-header heading-color">
-                فیلتر تیزر ساز
+                فیلتر انتقال دهنده
             </h5>
             <div class="card-body">
                 <div class="row">
-                    <form method="get" action="{% url 'resource:teaser-maker-filter' %}">
+                    <form method="get" action="{% url 'resource:forward-to-portal-filter' %}">
                         <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
                             <label class="form-label" for="search">جستجو <span class="text-muted">(نام, کد, شناسه)</span></label>
                             <div class="input-group">
@@ -43,93 +43,13 @@
                         </div>
                     </form>
                 </div>
-                <div class="row">
-                    <form method="get" action="{% url 'resource:teaser-maker-filter' %}">
-                        <div class="row">
-                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label for="defaultSelect" class="form-label">نوع محتوا</label>
-                                <select id="defaultSelect" name="content_type" class="form-select dt-user-role">
-                                    <option {% if not content_type %} selected {% endif %} value="">انتخاب</option>
-                                    <option {% if content_type == 'صوتی' %} selected {% endif %} value="صوتی">صوتی</option>
-                                    <option {% if content_type == 'تصویری' %} selected {% endif %}value="تصویری">تصویری</option>
-                                    <option {% if content_type == 'ویدیویی' %} selected {% endif %} value="ویدیویی">ویدیویی</option>
-                                    <option {% if content_type == 'متنی' %} selected {% endif %}value="متنی">متنی</option>
-                                    <option {% if content_type == 'تلفیقی' %} selected {% endif %} value="تلفیقی">تلفیقی</option>
-                                    <option {% if content_type == 'اینستاگرامی' %} selected {% endif %}value="اینستاگرامی">اینستاگرامی</option>
-                                </select>
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label for="defaultSelect" class="form-label">وضعیت</label>
-                                <select id="defaultSelect" name="is_active" class="form-select dt-is_active">
-                                    <option {% if is_active != 'فعال' and type != 'غیر فعال' %} selected {% endif %} value="">انتخاب</option>
-                                    <option {% if is_active == 'فعال' %} selected {% endif %} value="فعال">فعال</option>
-                                    <option {% if is_active == 'غیر فعال' %} selected {% endif %} value="غیر فعال">غیر فعال</option>
-                                </select>
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label class="form-label" for="address">
-                                    آدرس</label>
-                                <div class="input-group input-group-merge">
-                                    <input type="text" id="address"
-                                           class="form-control dt-address"
-                                           name="address"
-                                           placeholder="" aria-label="address"
-                                           aria-describedby="address"
-                                           value="{{ address|default:'' }}">
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label class="form-label" for="phone_number">
-                                    شماره تماس</label>
-                                <div class="input-group input-group-merge">
-                                    <input type="text" id="phone_number"
-                                           class="form-control dt-phone_number"
-                                           name="phone_number"
-                                           placeholder="" aria-label="phone_number"
-                                           aria-describedby="phone_number"
-                                           value="{{ phone_number|default:'' }}">
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label class="form-label" for="creation_price_from">
-                                    هزینه ساخت از...تا</label>
-                                <div class="input-group input-group-merge">
-                                    <input class="form-control d-inline-block" type="number"
-                                           id="creation_price_from"
-                                           name="creation_price_from"
-                                           value="{{ creation_price_from|default:'' }}">
-                                    <input class="form-control d-inline-block" type="number"
-                                           id="creation_price_to" name="creation_price_to"
-                                           value="{{ creation_price_to|default:'' }}">
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-3 mb-2">
-                                <label class="form-label" for="editing_price_from">
-                                    هزینه ویرایش از...تا</label>
-                                <div class="input-group input-group-merge">
-                                    <input class="form-control d-inline-block" type="number"
-                                           id="editing_price_from"
-                                           name="editing_price_from"
-                                           value="{{ editing_price_from|default:'' }}">
-                                    <input class="form-control d-inline-block" type="number"
-                                           id="editing_price_to" name="editing_price_to"
-                                           value="{{ editing_price_to|default:'' }}">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <button type="submit" class="btn btn-outline-secondary"><i class="fa fa-search"> فیلتر</i></button>
-                            <a href="{% url 'resource:teaser-maker-filter' %}" target="_self" class="btn btn-outline-gray"><i class="fa fa-refresh"> ریست</i></a>
-                        </div>
-                    </form>
-                </div>
             </div>
         </div>
         <div class="card">
-            {% if request|has_access_to_section:'create,teaser_maker' %}
+            {% if request|has_access_to_section:'create,forward_to_portal' %}
                 <h5 class="card-header heading-color">
                     <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
-                        <i class="ti-plus m-r-5"></i> ایجاد تیزر ساز جدید
+                        <i class="ti-plus m-r-5"></i> ایجاد انتقال دهنده جدید
                     </button>
                     {% if err %}
                         <strong class="text-danger">{{ err }}</strong>
@@ -139,118 +59,12 @@
                     {% endif %}
                     <div class="offcanvas offcanvas-end" id="add-new-record">
                         <div class="offcanvas-header border-bottom">
-                            <h5 class="offcanvas-title" id="exampleModalLabel">تیزر ساز جدید</h5>
+                            <h5 class="offcanvas-title" id="exampleModalLabel">انتقال دهنده جدید</h5>
                             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
                                     aria-label="Close"></button>
                         </div>
                         <div class="offcanvas-body flex-grow-1">
-                            <form class="add-new-record pt-0 row g-2" method="post"
-                                  action="{% url 'resource:teaser-maker-create' %}" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="name">نام</label>
-                                    <div class="input-group input-group-merge">
-                                    <span id="name" class="input-group-text"></span>
-                                        <input type="text" id="name" class="form-control"
-                                               name="name" required
-                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                               oninput="setCustomValidity('')"
-                                               placeholder="" aria-label="نام"
-                                               aria-describedby="نام"
-                                               value="{{ name|default:'' }}">
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label for="defaultSelect" class="form-label">نوع محصول</label>
-                                    <select id="defaultSelect" name="content_type"
-                                            class="form-select dt-content_type" required>
-                                        <option {% if content_type == 'صوتی' %} selected {% endif %} value="صوتی">صوتی</option>
-                                        <option {% if content_type == 'تصویری' %} selected {% endif %} value="تصویری">تصویری</option>
-                                        <option {% if content_type == 'ویدیویی' %} selected {% endif %} value="ویدیویی">ویدیویی</option>
-                                        <option {% if content_type == 'متنی' %} selected {% endif %} value="متنی">متنی</option>
-                                        <option {% if content_type == 'تلفیقی' %} selected {% endif %} value="تلفیقی">تلفیقی</option>
-                                        <option {% if content_type == 'اینستاگرامی' %} selected {% endif %} value="اینستاگرامی">اینستاگرامی</option>
-                                    </select>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="code">کد</label>
-                                    <div class="input-group input-group-merge">
-                                    <span id="code" class="input-group-text"></span>
-                                        <input type="text" id="code" class="form-control"
-                                               name="code" required
-                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                               oninput="setCustomValidity('')"
-                                               placeholder="123456" aria-label="کد"
-                                               aria-describedby="کد"
-                                               value="{{ code|default:'' }}">
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="address">آدرس</label>
-                                    <div class="input-group input-group-merge">
-                                    <span id="address" class="input-group-text"></span>
-                                        <input type="text" id="address" class="form-control"
-                                               name="address" required
-                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                               oninput="setCustomValidity('')"
-                                               placeholder="آدرس" aria-label="آدرس"
-                                               aria-describedby="آدرس"
-                                               value="{{ address|default:'' }}">
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="phone_number">شماره تماس</label>
-                                    <div class="input-group input-group-merge">
-                                    <span id="phone_number" class="input-group-text"></span>
-                                        <input type="text" id="phone_number" class="form-control"
-                                               name="phone_number" required
-                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                               oninput="setCustomValidity('')"
-                                               placeholder="شماره تماس" aria-label="شماره تماس"
-                                               aria-describedby="شماره تماس"
-                                               value="{{ phone_number|default:'' }}">
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="creation_price">هزینه ساخت</label>
-                                    <div class="input-group input-group-merge">
-                                    <span id="creation_price" class="input-group-text"></span>
-                                        <input type="number" min="0" id="creation_price" class="form-control"
-                                               name="creation_price" required
-                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                               oninput="setCustomValidity('')"
-                                               placeholder="ریال" aria-label="هزینه ساخت"
-                                               aria-describedby="هزینه ساخت"
-                                               value="{{ creation_price|default:'' }}">
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <label class="form-label" for="editing_price">هزینه ویرایش</label>
-                                    <div class="input-group input-group-merge">
-                                    <span id="editing_price" class="input-group-text"></span>
-                                        <input type="number" min="0" id="editing_price" class="form-control"
-                                               name="editing_price" required
-                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
-                                               oninput="setCustomValidity('')"
-                                               placeholder="ریال" aria-label="هزینه ویرایش"
-                                               aria-describedby="هزینه ویرایش"
-                                               value="{{ editing_price|default:'' }}">
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12">
-                                    <div class="form-check form-check-primary mt-3">
-                                        <input class="form-check-input" type="checkbox" value="true" id="is_active" name="is_active"
-                                               checked>
-                                        <label class="form-check-label" for="is_active">فعال</label>
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-12 col-lg-12 mt-3">
-                                    <button type="submit" class="btn btn-primary data-submit me-sm-3 me-1">ایجاد</button>
-                                    <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">
-                                        انصراف
-                                    </button>
-                                </div>
-                            </form>
+                            {% include 'panel/portal/forward-to-portal/form-forward-to-portal.html' %}
                         </div>
                     </div>
                 </h5>
@@ -261,46 +75,47 @@
                         <thead>
                         <tr>
                             <th style="width: 5%">#</th>
-                            <th style="width: 50%">نام</th>
-                            <th style="width: 10%">نوع محتوا</th>
-                            <th style="width: 10%">کد</th>
-                            <th style="width: 20%">وضعیت</th>
+                            <th style="width: 15%">نام</th>
+                            <th style="width: 15%">نوع کانال ارتباطی</th>
+                            <th style="width: 15%">شناسه یکتا</th>
+                            <th style="width: 15%">آدرس</th>
+                            <th style="width: 15%">قیمت - ریال</th>
+                            <th style="width: 15%">وضعیت</th>
                             <th style="width: 5%">عملیات</th>
                         </tr>
                         </thead>
                         <tbody class="table-border-bottom-0">
-                        {% for teaser_maker in page %}
+                        {% for forward_to_portal in page %}
                             <tr>
                                 <td>{{ forloop.counter }}</td>
-                                <td>
-                                    <strong><a href="{% url 'resource:teaser-maker-detail-with-id' teaser_maker_id=teaser_maker.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
-                                               target="_self">{{ teaser_maker.name }}</a></strong>
+                                <td id="table_forward_to_portal_id_{{ forward_to_portal.id }}" data-id="{{ forward_to_portal.id }}" data-title="{{ forward_to_portal.code }}" data-bs-toggle="modal" data-bs-target="#forward_to_portalModal" onclick="set_important_and_get_data(this)">
+                                    <span id="table_forward_to_portal_name_{{ forward_to_portal.id }}" class="btn text-primary">{{ forward_to_portal.name }}</span>
                                 </td>
-                                <td>{{ teaser_maker.content_type }}</td>
-                                <td>{{ teaser_maker.code }}</td>
-                                <td id="td_teaser_maker_is_active_{{ forloop.counter }}">
-                                    {% if teaser_maker.is_active %}
+                                <td id="table_forward_to_portal_communication_type_{{ forward_to_portal.id }}">{{ forward_to_portal.communication_type }}</td>
+                                <td id="table_forward_to_portal_code_{{ forward_to_portal.id }}">{{ forward_to_portal.code }}</td>
+                                <td id="table_forward_to_portal_address_{{ forward_to_portal.id }}">{{ forward_to_portal.address }}</td>
+                                <td id="table_forward_to_portal_price_{{ forward_to_portal.id }}">{{ forward_to_portal.price }}</td>
+                                <td id="table_forward_to_portal_is_active_{{ forward_to_portal.id }}">
+                                    {% if forward_to_portal.is_active %}
                                         <span class="badge bg-success">فعال</span>
                                     {% else %}
                                         <span class="badge bg-dark">غیر فعال</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if request|has_access_to_section:'modify,delete,teaser_maker' %}
+                                    {% if request|has_access_to_section:'modify,delete,forward_to_portal' %}
                                         <div class="dropdown">
                                             <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
                                                     data-bs-toggle="dropdown">
                                                 <i class="bx bx-dots-vertical-rounded"></i>
                                             </button>
                                             <div class="dropdown-menu">
-                                                {% if request|has_access_to_section:'modify,teaser_maker' %}
-                                                    <a class="dropdown-item" href="{% url 'resource:teaser-maker-modify-with-id' teaser_maker_id=teaser_maker.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"><i
-                                                            class="bx bx-edit-alt me-1"></i> ویرایش</a>
-                                                    <a id="teaser_maker_is_active_change_btn_{{ forloop.counter }}" class="dropdown-item" href="javascript:void(0)" onclick="teaser_maker_change_state('{{ teaser_maker.id }}', '{{ forloop.counter }}')"><span>{% if teaser_maker.is_active %}<i
+                                                {% if request|has_access_to_section:'modify,forward_to_portal' %}
+                                                    <a id="table_forward_to_portal_is_active_change_btn_{{ forward_to_portal.id }}" class="dropdown-item" href="javascript:void(0)" onclick="forward_to_portal_change_state('{{ forward_to_portal.id }}')"><span>{% if forward_to_portal.is_active %}<i
                                                             class="bx bx-lock me-1"></i> غیر فعال{% else %}<i class="bx bx-lock-open me-1"></i> فعال{% endif %}</span></a>
                                                     
                                                 {% endif %}
-                                                {% if request|has_access_to_section:'delete,teaser_maker' %}
+                                                {% if request|has_access_to_section:'delete,forward_to_portal' %}
                                                     <a class="dropdown-item" href="javascript:void(0);"
                                                        data-bs-toggle="modal"
                                                        data-bs-target="#deleteModal_{{ forloop.counter }}"><i
@@ -318,8 +133,8 @@
                                                             <div class="text-center mb-4 mt-0 mt-md-n2">
                                                                 <h3 class="mb-4 secondary-font">تایید حذف</h3>
                                                             </div>
-                                                            <h6>آیا از حذف تیزر ساز <strong class="bg-warning">{{ teaser_maker.name }}</strong> مطمئن هستید؟</h6>
-                                                            <form class="row g-3 mt-3" method="post" action="{% url 'resource:teaser-maker-delete-with-id' teaser_maker_id=teaser_maker.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                            <h6>آیا از حذف انتقال دهنده <strong class="bg-warning">{{ forward_to_portal.name }}</strong> مطمئن هستید؟</h6>
+                                                            <form class="row g-3 mt-3" method="post" action="{% url 'resource:forward-to-portal-delete-with-id' forward_to_portal_id=forward_to_portal.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
                                                                 {% csrf_token %}
                                                                 <div class="col-12">
                                                                     <button type="submit"
@@ -344,6 +159,8 @@
                             </tr>
                         {% empty %}
                             <tr>
+                                <td></td>
+                                <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -398,14 +215,19 @@
             </div>
         </div>
     </div>
+    <form id="ftpl_data_form" hidden>
+        <input type="hidden" id="ftpl_forward_to_portal_id" value="none">
+        <input type="hidden" id="ftpl_forward_to_portal_title" value="none">
+    </form>
+    {% include 'panel/portal/forward-to-portal/modal-forward-to-portal-create-modify.html' %}
 {% endblock %}
 
 {% block extra_body %}
+    
+    
     <!-- Main JS -->
     <script src="{% static 'assets/js/main.js' %}"></script>
-
-    <!-- Page JS -->
-
+    
     <script>
         'use strict';
         let fv, offCanvasEl;
@@ -428,14 +250,46 @@
             })();
         });
         
-        function teaser_maker_change_state(teaser_maker_id, forloop_counter) {
+        function set_important_and_get_data(element){
+            const data_id = element.dataset.id
+            const data_title = element.dataset.title
+            const ftpl_forward_to_portal_id = document.getElementById('ftpl_forward_to_portal_id')
+            const ftpl_forward_to_portal_title = document.getElementById('ftpl_forward_to_portal_title')
+            ftpl_forward_to_portal_id.value = data_id
+            ftpl_forward_to_portal_title.value = data_title
+            get_forward_to_portal_data(data_id, data_title)
+        }
+        
+        function get_forward_to_portal_data(data_id, data_title) {
+            const mftpcm_forward_to_portal_title = document.getElementById('mftpcm_forward_to_portal_title')
+            const mftpcm_forward_to_portal_container = document.getElementById('mftpcm_forward_to_portal_container')
+            const mftpcm_forward_to_portal_title_innerHTML = mftpcm_forward_to_portal_title.innerHTML
+            const mftpcm_forward_to_portal_container_innerHTML = mftpcm_forward_to_portal_container.innerHTML
+            
+            const table_forward_to_portal_id_ = document.getElementById(`table_forward_to_portal_id_${data_id}`)
+            const table_forward_to_portal_name_ = document.getElementById(`table_forward_to_portal_name_${data_id}`)
+            const table_forward_to_portal_communication_type_ = document.getElementById(`table_forward_to_portal_communication_type_${data_id}`)
+            const table_forward_to_portal_code_ = document.getElementById(`table_forward_to_portal_code_${data_id}`)
+            const table_forward_to_portal_address_ = document.getElementById(`table_forward_to_portal_address_${data_id}`)
+            const table_forward_to_portal_price_ = document.getElementById(`table_forward_to_portal_price_${data_id}`)
+            const table_forward_to_portal_is_active_ = document.getElementById(`table_forward_to_portal_is_active_${data_id}`)
+            const table_forward_to_portal_is_active_change_btn_ = document.getElementById(`table_forward_to_portal_is_active_change_btn_${data_id}`)
+            
+                
+            const loading_text = 'در حال بارگذاری ...'
+            const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                      <span class="visually-hidden">${loading_text}</span>
+                                    </div>`
             const formData = new FormData();
+            formData.append('forward_to_portal_id', `${data_id}`)
             formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
             const options = {
                 method: 'POST',
                 body: formData,
             }
-            fetch('{% url 'resource:teaser-maker-change_state-with-id' teaser_maker_id=0 %}'.replace('0', teaser_maker_id).replace('amp;', ''), options)
+            mftpcm_forward_to_portal_title.innerText = `اطلاعاتانتقال دهنده ${data_title}`
+            mftpcm_forward_to_portal_container.innerHTML=loading_html
+            fetch('{% url 'resource:forward-to-portal-detail' %}', options)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -443,17 +297,125 @@
                     return response.json();
                 })
                 .then(data => {
-                    if (data['teaser_maker_is_active'] === 'false') {
-                        document.getElementById('td_teaser_maker_is_active_' + forloop_counter).innerHTML = '<span class="badge bg-dark">غیر فعال</span>'
-                        document.getElementById('teaser_maker_is_active_change_btn_' + forloop_counter).innerHTML = '<span><i class="bx bx-lock-open me-1"></i> فعال</span>'
+                    console.log(data)
+                    mftpcm_forward_to_portal_title.innerText = `اطلاعات انتقال دهنده ${data['data'][0]['code']}`
+                    table_forward_to_portal_name_.innerText = `${data['data'][0]['name']}`
+                    table_forward_to_portal_communication_type_.innerText = `${data['data'][0]['communication_type']}`
+                    table_forward_to_portal_code_.innerText = `${data['data'][0]['code']}`
+                    table_forward_to_portal_address_.innerText = `${data['data'][0]['address']}`
+                    table_forward_to_portal_price_.innerText = `${data['data'][0]['price']}`
+                    if (data['data'][0]['is_active'] === true) {
+                        table_forward_to_portal_is_active_.innerHTML = '<span class="badge bg-success">فعال</span>'
+                        table_forward_to_portal_is_active_change_btn_.innerHTML = '<span><i class="bx bx-lock me-1"></i> غیر فعال</span>'
                     } else {
-                        document.getElementById('td_teaser_maker_is_active_' + forloop_counter).innerHTML = '<span class="badge bg-success">فعال</span>'
-                        document.getElementById('teaser_maker_is_active_change_btn_' + forloop_counter).innerHTML = '<span><i class="bx bx-lock me-1"></i> غیر فعال</span>'
+                        table_forward_to_portal_is_active_.innerHTML = '<span class="badge bg-dark">غیر فعال</span>'
+                        table_forward_to_portal_is_active_change_btn_.innerHTML = '<span><i class="bx bx-lock-open me-1"></i> فعال</span>'
+                    }
+                    
+                    mftpcm_forward_to_portal_container.innerHTML=`{% include 'panel/portal/forward-to-portal/form-modal-forward-to-portal.html' %}`
+                    document.getElementById('fftp_form_modal_forward_to_portal_data_name').value=`${data['data'][0]['name']}`
+                    document.getElementById('fftp_form_modal_forward_to_portal_data_code').value=`${data['data'][0]['code']}`
+                    document.getElementById('fftp_form_modal_forward_to_portal_data_address').value=`${data['data'][0]['address']}`
+                    document.getElementById('fftp_form_modal_forward_to_portal_data_price').value=`${data['data'][0]['price']}`
+                    const fftp_form_modal_forward_to_portal_data_communication_type = document.querySelector('[name="fftp_form_modal_forward_to_portal_data_communication_type"]')
+                    const options_1 = fftp_form_modal_forward_to_portal_data_communication_type.querySelectorAll('option');
+                    for (let x = 0; x < options_1.length; x++) {
+                        if (options_1[x].value === data['data'][0]['communication_type']) {
+                            options_1[x].selected = true;
+                            break;
+                        }
+                    }
+                    
+                    if (data['data'][0]['is_active'] === true) {
+                        document.getElementById('fftp_form_modal_forward_to_portal_data_is_active').checked = true
+                    } else {
+                        document.getElementById('fftp_form_modal_forward_to_portal_data_is_active').checked = false
+                    }
+
+                    const form_element = document.getElementById('fftp_form_modal_forward_to_portal_data')
+                    initializeSelect2(form_element);
+                })
+                .catch(error => {
+                    mftpcm_forward_to_portal_container.innerHTML = mftpcm_forward_to_portal_container_innerHTML
+                    console.log(error)
+                });
+        }
+        function set_forward_to_portal_data() {
+            const ftpl_forward_to_portal_id = document.getElementById('ftpl_forward_to_portal_id').value
+            const ftpl_forward_to_portal_title = document.getElementById('ftpl_forward_to_portal_title').value
+            const fftp_form_modal_forward_to_portal_data = document.getElementById('fftp_form_modal_forward_to_portal_data')
+            
+            const formData = new FormData(fftp_form_modal_forward_to_portal_data);
+            formData.append('forward_to_portal_id', `${ftpl_forward_to_portal_id}`)
+            const options = {
+                method: 'POST',
+                body: formData,
+            }
+            fetch('{% url 'resource:forward-to-portal-modify' %}', options)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data['message'] === 'forward to portal not found') {
+                        toast_maker('error', `شبکه انتقال دهنده با شناسه یکتای ${ftpl_forward_to_portal_id} یافت نشد`)
+                    }  else {
+                        toast_maker('success', `${data['message']}`)
+                        get_forward_to_portal_data(`${ftpl_forward_to_portal_id}`, `${ftpl_forward_to_portal_title}`)
+                    }
+                    console.log(data)
+                })
+                .catch(error => {
+                    console.log(error)
+                });
+        }
+        
+        function forward_to_portal_change_state(forward_to_portal_id) {
+            const table_forward_to_portal_is_active = document.getElementById(`table_forward_to_portal_is_active_${forward_to_portal_id}`)
+            const table_forward_to_portal_is_active_change_btn = document.getElementById(`table_forward_to_portal_is_active_change_btn_${forward_to_portal_id}`)
+            const table_forward_to_portal_is_active_innerHTML = table_forward_to_portal_is_active.innerHTML
+            const table_is_active_change_btn_innerHTML = table_forward_to_portal_is_active_change_btn.innerHTML
+            const loading_text = 'در حال بارگذاری ...'
+            const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                  <span class="visually-hidden">${loading_text}</span>
+                                </div>`
+            const formData = new FormData();
+            formData.append('forward_to_portal_id', `${forward_to_portal_id}`)
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+            const options = {
+                method: 'POST',
+                body: formData,
+            }
+            table_forward_to_portal_is_active.innerHTML = loading_html
+            table_forward_to_portal_is_active_change_btn.innerHTML = loading_html
+            fetch('{% url 'resource:forward-to-portal-change-state' %}', options)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data['forward_to_portal_is_active'] === 'false') {
+                        table_forward_to_portal_is_active.innerHTML = '<span class="badge bg-dark">غیر فعال</span>'
+                        table_forward_to_portal_is_active_change_btn.innerHTML = '<span><i class="bx bx-lock-open me-1"></i> فعال</span>'
+                        toast_maker('success', 'با موفقیت غیر فعال شد')
+                    } else {
+                        table_forward_to_portal_is_active.innerHTML = '<span class="badge bg-success">فعال</span>'
+                        table_forward_to_portal_is_active_change_btn.innerHTML = '<span><i class="bx bx-lock me-1"></i> غیر فعال</span>'
+                        toast_maker('success', 'با موفقیت فعال شد')
                     }
                 })
                 .catch(error => {
-                    console.error('Error change teaser_maker state:', error);
+                    table_forward_to_portal_is_active.innerHTML = table_forward_to_portal_is_active_innerHTML
+                    table_forward_to_portal_is_active_change_btn.innerHTML = table_is_active_change_btn_innerHTML
+                    toast_maker('error', 'عملیات ناموفق')
+                    console.error('Error change forward_to_portal state:', error);
                 });
             }
+        
+        
     </script>
 {% endblock %}

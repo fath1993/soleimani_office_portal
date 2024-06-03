@@ -22,6 +22,7 @@ ADVERTISE_CONTENT_TYPE = (('محتوای ویدیویی تلویزیون', 'مح
                           ('محتوای تصویری', 'محتوای تصویری'), ('محتوای متنی (زیرنویس)', 'محتوای متنی (زیرنویس)'),
                           ('محتوای صوتی (نریشن)', 'محتوای صوتی (نریشن)'),)
 
+FORWARD_TO_PORTAL_TYPE = (('اپلیکیشن خارجی', 'اپلیکیشن خارجی'), ('اپلیکیشن بومی', 'اپلیکیشن بومی'),)
 COMMUNICATION_CHANNEL_TYPE = (('سامانه پیامکی', 'سامانه پیامکی'), ('ربات تلگرام', 'ربات تلگرام'),)
 REGISTRAR_TYPE = (('تخصیص دستی', 'تخصیص دستی'), ('تخصیص خودکار', 'تخصیص خودکار'),
                  ('تخصیص خودکار بر اساس عملکرد', 'تخصیص خودکار بر اساس عملکرد'),)
@@ -233,10 +234,10 @@ class AdvertiseContent(models.Model):
 
 class ForwardToPortal(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False, verbose_name='نام')
-    communication_type = models.CharField(max_length=255, choices=COMMUNICATION_CHANNEL_TYPE, default='سامانه پیامکی',
+    communication_type = models.CharField(max_length=255, choices=FORWARD_TO_PORTAL_TYPE, default='اپلیکیشن خارجی',
                                           null=False,
                                           blank=False,
-                                          verbose_name='نوع کانال ارتباطی')
+                                          verbose_name='نوع انتقال دهنده')
     code = models.CharField(max_length=255, null=False, blank=False, verbose_name='کد')
     address = models.CharField(max_length=3000, null=False, blank=False, verbose_name='آدرس')
     price = models.IntegerField(default=0, null=False, blank=False, verbose_name='قیمت - ریال')

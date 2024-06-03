@@ -55,19 +55,19 @@ urlpatterns = [
     path('forward-to-portal/list/', ForwardToPortalView().list, name='forward-to-portal-list'),
     path('forward-to-portal/filter/', ForwardToPortalView().filter, name='forward-to-portal-filter'),
     path('forward-to-portal/create/', ForwardToPortalView().create, name='forward-to-portal-create'),
-    path('forward-to-portal/detail&id=<int:forward_to_portal_id>/', ForwardToPortalView().detail, name='forward-to-portal-detail-with-id'),
-    path('forward-to-portal/modify&id=<int:forward_to_portal_id>/', ForwardToPortalView().modify, name='forward-to-portal-modify-with-id'),
+    path('forward-to-portal/detail/', ForwardToPortalView().detail, name='forward-to-portal-detail'),
+    path('forward-to-portal/modify/', ForwardToPortalView().modify, name='forward-to-portal-modify'),
     path('forward-to-portal/delete&id=<int:forward_to_portal_id>/', ForwardToPortalView().delete, name='forward-to-portal-delete-with-id'),
-    path('forward-to-portal/change-state&id=<int:forward_to_portal_id>/', ForwardToPortalView().change_state, name='forward-to-portal-change_state-with-id'),
+    path('forward-to-portal/change-state/', ForwardToPortalView().change_state, name='forward-to-portal-change-state'),
 
     # Communication Channel
     path('communication-channel/list/', CommunicationChannelView().list, name='communication-channel-list'),
     path('communication-channel/filter/', CommunicationChannelView().filter, name='communication-channel-filter'),
     path('communication-channel/create/', CommunicationChannelView().create, name='communication-channel-create'),
-    path('communication-channel/detail&id=<int:communication_channel_id>/', CommunicationChannelView().detail, name='communication-channel-detail-with-id'),
-    path('communication-channel/modify&id=<int:communication_channel_id>/', CommunicationChannelView().modify, name='communication-channel-modify-with-id'),
+    path('communication-channel/detail/', CommunicationChannelView().detail, name='communication-channel-detail'),
+    path('communication-channel/modify/', CommunicationChannelView().modify, name='communication-channel-modify'),
     path('communication-channel/delete&id=<int:communication_channel_id>/', CommunicationChannelView().delete, name='communication-channel-delete-with-id'),
-    path('communication-channel/change-state&id=<int:communication_channel_id>/', CommunicationChannelView().change_state, name='communication-channel-change_state-with-id'),
+    path('communication-channel/change-state/', CommunicationChannelView().change_state, name='communication-channel-change-state'),
 
     # Registrar
     path('registrar/list/', RegistrarView().list, name='registrar-list'),

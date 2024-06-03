@@ -1,0 +1,79 @@
+{% load panel_custom_tag %}
+{% load account_custom_tag %}
+{% load static %}
+
+<form id="fmcc_form_communication_channel_data" action="{% url 'resource:communication-channel-create' %}" method="post" class="add-new-record pt-0 row g-2">
+    {% csrf_token %}
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="name">نام</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="name" class="form-control"
+                   name="name" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="نام"
+                                               aria-describedby="نام"
+                                               value="{{ name|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="select2Basic" class="form-label">نوع کانال ارتباطی</label>
+        <select id="select2Basic" name="communication_type"
+                class="select2 form-select" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="نوع کانال ارتباطی"
+                                               aria-describedby="نوع کانال ارتباطی">
+            <option {% if communication_type == "سامانه پیامکی" %} selected {% endif %} value="سامانه پیامکی">سامانه پیامکی</option>
+            <option {% if communication_type == "ربات تلگرام" %} selected {% endif %} value="ربات تلگرام">ربات تلگرام</option>
+        </select>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="code">شناسه یکتا</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="code" class="form-control"
+                   name="code" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="شناسه یکتا"
+                                               aria-describedby="شناسه یکتا"
+                                               value="{{ code|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="phone_number">شماره</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="phone_number" class="form-control"
+                   name="phone_number" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="شماره"
+                                               aria-describedby="شماره"
+                                               value="{{ phone_number|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="price">قیمت - ریال</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="price" class="form-control"
+                   name="price" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="قیمت - ریال"
+                                               aria-describedby="قیمت - ریال"
+                                               value="{{ price|default:'' }}">
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-3">
+        <div class="form-check form-check-primary mt-3">
+            <input class="form-check-input" type="checkbox" value="true" id="is_active" name="is_active"
+                   {% if is_active %} checked {% endif %}>
+            <label class="form-check-label" for="is_active">فعال</label>
+        </div>
+    </div>
+    {% if request|has_access_to_section:'create,communication_channel' %}
+    <div class="col-sm-12 mt-3">
+        <button type="submit" class="btn btn-primary">ایجاد</button>
+    </div>
+    {% endif %}
+</form>

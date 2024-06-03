@@ -7,7 +7,8 @@ from gallery.models import FileGallery, create_file
 from accounts.custom_decorator import CheckLogin, CheckPermissions, RequireMethod
 from resource.models import Product, TeaserMaker, ResellerNetwork, Receiver, AdvertiseContent, ForwardToPortal, \
     CommunicationChannel, Registrar
-from resource.serializer import RegistrarSerializer, ReceiverSerializer, ResellerNetworkSerializer
+from resource.serializer import RegistrarSerializer, ReceiverSerializer, ResellerNetworkSerializer, \
+    ForwardToPortalSerializer, CommunicationChannelSerializer
 from utilities.http_metod import fetch_data_from_http_post, fetch_files_from_http_post_data, fetch_data_from_http_get
 
 
@@ -1401,14 +1402,23 @@ class ForwardToPortalView:
 
     @CheckLogin()
     @CheckPermissions(section='forward_to_portal', allowed_actions='read')
-    def detail(self, request, forward_to_portal_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def detail(self, request, *args, **kwargs):
+        context = {}
+        forward_to_portal_id = fetch_data_from_http_post(request, 'forward_to_portal_id', context)
         try:
-            forward_to_portal = ForwardToPortal.objects.get(id=forward_to_portal_id)
-            context = {'page_title': f'اطلاعات انتقال دهنده *{forward_to_portal.code}*',
-                       'forward_to_portal': forward_to_portal, 'get_params': request.GET.urlencode()}
-            return render(request, 'panel/portal/forward-to-portal/forward-to-portal-detail.html', context)
-        except:
-            return render(request, 'panel/err/err-not-found.html')
+            forward_to_portal = ForwardToPortal.objects.filter(id=forward_to_portal_id)
+            serializer = ForwardToPortalSerializer(forward_to_portal, many=True)
+            json_response_body = {
+                "method": "post",
+                "request": f"دیتای انتقال دهنده با شناسه یکتای {forward_to_portal_id}",
+                "result": "موفق",
+                "data": serializer.data
+            }
+            return JsonResponse(json_response_body)
+        except Exception as e:
+            print(e)
+            return JsonResponse({'message': 'failed'})
 
     @CheckLogin()
     @CheckPermissions(section='forward_to_portal', allowed_actions='read')
@@ -1477,44 +1487,41 @@ class ForwardToPortalView:
                 is_active=True,
             )
             context['message'] = f'انتقال دهنده با شناسه یکتا {code} ایجاد گردید'
-        return redirect('panel:forward-to-portal-list')
+        return redirect('resource:forward-to-portal-list')
 
     @CheckLogin()
     @CheckPermissions(section='forward_to_portal', allowed_actions='modify')
-    def modify(self, request, forward_to_portal_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def modify(self, request, *args, **kwargs):
+        context = {}
+        forward_to_portal_id = fetch_data_from_http_post(request, 'forward_to_portal_id', context)
         try:
             forward_to_portal = ForwardToPortal.objects.get(id=forward_to_portal_id)
-            context = {'page_title': f'ویرایش اطلاعات انتقال دهنده *{forward_to_portal.code}*',
+            context = {'page_title': f'ویرایش انتقال دهنده با شناسه یکتای *{forward_to_portal_id}*',
                        'forward_to_portal': forward_to_portal, 'get_params': request.GET.urlencode()}
-            if request.method == 'GET':
-                return render(request, 'panel/portal/forward-to-portal/forward-to-portal-edit.html', context)
+            name = fetch_data_from_http_post(request, 'fftp_form_modal_forward_to_portal_data_name', context, False)
+            communication_type = fetch_data_from_http_post(request, 'fftp_form_modal_forward_to_portal_data_communication_type', context, False)
+            address = fetch_data_from_http_post(request, 'fftp_form_modal_forward_to_portal_data_address', context, False)
+            price = fetch_data_from_http_post(request, 'fftp_form_modal_forward_to_portal_data_price', context)
+            is_active = fetch_data_from_http_post(request, 'fftp_form_modal_forward_to_portal_data_is_active', context)
+
+            if name:
+                forward_to_portal.name = name
+            if communication_type:
+                forward_to_portal.communication_type = communication_type
+            if address:
+                forward_to_portal.address = address
+            if price:
+                forward_to_portal.price = price
+            if is_active == 'true':
+                forward_to_portal.is_active = True
             else:
-                name = fetch_data_from_http_post(request, 'name', context, False)
-                communication_type = fetch_data_from_http_post(request, 'communication_type', context, False)
-                address = fetch_data_from_http_post(request, 'address', context, False)
-                price = fetch_data_from_http_post(request, 'price', context, False)
-                is_active = fetch_data_from_http_post(request, 'is_active', context, False)
+                forward_to_portal.is_active = False
+            forward_to_portal.save()
 
-                if name:
-                    forward_to_portal.name = name
-                if communication_type:
-                    forward_to_portal.communication_type = communication_type
-                if address:
-                    forward_to_portal.address = address
-                if price:
-                    forward_to_portal.price = price
-                if is_active == 'true':
-                    forward_to_portal.is_active = True
-                else:
-                    forward_to_portal.is_active = False
-
-                forward_to_portal.save()
-                context['message'] = f'دریافت کننده با کد {forward_to_portal.code} ویرایش گردید'
-                return redirect(
-                    reverse('panel:forward-to-portal-modify-with-id',
-                            kwargs={'forward_to_portal_id': forward_to_portal_id}) + f'?{request.GET.urlencode()}')
+            return JsonResponse({'message': f'انتقال دهنده با شناسه یکتا {forward_to_portal_id} ویرایش گردید'})
         except:
-            return render(request, 'panel/err/err-not-found.html')
+            return JsonResponse({'message': f'forward to portal network not found'})
 
     @CheckLogin()
     @CheckPermissions(section='forward_to_portal', allowed_actions='delete')
@@ -1530,7 +1537,10 @@ class ForwardToPortalView:
 
     @CheckLogin()
     @CheckPermissions(section='forward_to_portal', allowed_actions='modify')
-    def change_state(self, request, forward_to_portal_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def change_state(self, request, *args, **kwargs):
+        context = {}
+        forward_to_portal_id = fetch_data_from_http_post(request, 'forward_to_portal_id', context)
         try:
             forward_to_portal = ForwardToPortal.objects.get(id=forward_to_portal_id)
             context = {'page_title': f'تغییر وضعیت انتقال دهنده {forward_to_portal.code}',
@@ -1582,14 +1592,23 @@ class CommunicationChannelView:
 
     @CheckLogin()
     @CheckPermissions(section='communication_channel', allowed_actions='read')
-    def detail(self, request, communication_channel_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def detail(self, request, *args, **kwargs):
+        context = {}
+        communication_channel_id = fetch_data_from_http_post(request, 'communication_channel_id', context)
         try:
-            communication_channel = CommunicationChannel.objects.get(id=communication_channel_id)
-            context = {'page_title': f'اطلاعات کانال ارتباطی *{communication_channel.code}*',
-                       'communication_channel': communication_channel, 'get_params': request.GET.urlencode()}
-            return render(request, 'panel/portal/communication-channel/communication-channel-detail.html', context)
-        except:
-            return render(request, 'panel/err/err-not-found.html')
+            communication_channel = CommunicationChannel.objects.filter(id=communication_channel_id)
+            serializer = CommunicationChannelSerializer(communication_channel, many=True)
+            json_response_body = {
+                "method": "post",
+                "request": f"دیتای شبکه ارتباطی با شناسه یکتای {communication_channel_id}",
+                "result": "موفق",
+                "data": serializer.data
+            }
+            return JsonResponse(json_response_body)
+        except Exception as e:
+            print(e)
+            return JsonResponse({'message': 'failed'})
 
     @CheckLogin()
     @CheckPermissions(section='communication_channel', allowed_actions='read')
@@ -1629,19 +1648,19 @@ class CommunicationChannelView:
 
         if not name:
             context['err'] = 'نام بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            return render(request, 'panel/portal/communication-channel/communication-channel-list.html', context)
         if not communication_type:
             context['err'] = 'نوع ارتباط بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            return render(request, 'panel/portal/communication-channel/communication-channel-list.html', context)
         if not code:
             context['err'] = 'کد بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            return render(request, 'panel/portal/communication-channel/communication-channel-list.html', context)
         if not phone_number:
             context['err'] = 'شماره بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            return render(request, 'panel/portal/communication-channel/communication-channel-list.html', context)
         if not price:
             context['err'] = 'قیمت بدرستی وارد نشده است'
-            return render(request, 'panel/portal/reseller-network/reseller-network-list.html', context)
+            return render(request, 'panel/portal/communication-channel/communication-channel-list.html', context)
 
         try:
             CommunicationChannel.objects.get(code=code)
@@ -1654,48 +1673,49 @@ class CommunicationChannelView:
                 phone_number=phone_number,
                 price=price,
                 is_active=True,
+                created_by=request.user,
+                updated_by=request.user,
             )
             context['message'] = f'کانال ارتباطی با شناسه یکتا {code} ایجاد گردید'
 
-        return redirect('panel:communication-channel-list')
+        return redirect('resource:communication-channel-list')
 
     @CheckLogin()
     @CheckPermissions(section='communication_channel', allowed_actions='modify')
-    def modify(self, request, communication_channel_id, *args, **kwargs):
+    @RequireMethod(allowed_method='POST')
+    def modify(self, request, *args, **kwargs):
+        context = {}
+        communication_channel_id = fetch_data_from_http_post(request, 'communication_channel_id', context)
         try:
             communication_channel = CommunicationChannel.objects.get(id=communication_channel_id)
-            context = {'page_title': f'ویرایش کانال ارتباطی *{communication_channel.code}*',
+            context = {'page_title': f'ویرایش انتقال دهنده با شناسه یکتای *{communication_channel_id}*',
                        'communication_channel': communication_channel, 'get_params': request.GET.urlencode()}
-            if request.method == 'GET':
-                return render(request, 'panel/portal/communication-channel/communication-channel-edit.html', context)
+            name = fetch_data_from_http_post(request, 'fmcc_form_modal_communication_channel_data_name', context, False)
+            communication_type = fetch_data_from_http_post(request, 'fmcc_form_modal_communication_channel_data_communication_type', context, False)
+            code = fetch_data_from_http_post(request, 'fmcc_form_modal_communication_channel_data_code', context, False)
+            phone_number = fetch_data_from_http_post(request, 'fmcc_form_modal_communication_channel_data_phone_number', context)
+            price = fetch_data_from_http_post(request, 'fmcc_form_modal_communication_channel_data_price', context)
+            is_active = fetch_data_from_http_post(request, 'fmcc_form_modal_communication_channel_data_is_active', context)
+
+            if name:
+                communication_channel.name = name
+            if communication_type:
+                communication_channel.communication_type = communication_type
+            if code:
+                communication_channel.code = code
+            if phone_number:
+                communication_channel.phone_number = phone_number
+            if price:
+                communication_channel.price = price
+            if is_active == 'true':
+                communication_channel.is_active = True
             else:
-                name = fetch_data_from_http_post(request, 'name', context, False)
-                communication_type = fetch_data_from_http_post(request, 'communication_type', context, False)
-                phone_number = fetch_data_from_http_post(request, 'phone_number', context, False)
-                price = fetch_data_from_http_post(request, 'price', context, False)
-                is_active = fetch_data_from_http_post(request, 'is_active', context, False)
+                communication_channel.is_active = False
+            communication_channel.save()
 
-                if name:
-                    communication_channel.name = name
-                if communication_type:
-                    communication_channel.communication_type = communication_type
-                if phone_number:
-                    communication_channel.phone_number = phone_number
-                if price:
-                    communication_channel.price = price
-                if is_active == 'true':
-                    communication_channel.is_active = True
-                else:
-                    communication_channel.is_active = False
-
-                communication_channel.save()
-                context['message'] = f'کانال ارتباطی با کد {communication_channel.code} ویرایش گردید'
-                return redirect(
-                    reverse('panel:communication-channel-modify-with-id',
-                            kwargs={
-                                'communication_channel_id': communication_channel_id}) + f'?{request.GET.urlencode()}')
+            return JsonResponse({'message': f'کانال ارتباطی با شناسه یکتا {communication_channel_id} ویرایش گردید'})
         except:
-            return render(request, 'panel/err/err-not-found.html')
+            return JsonResponse({'message': f'communication channel not found'})
 
     @CheckLogin()
     @CheckPermissions(section='communication_channel', allowed_actions='delete')
@@ -1711,10 +1731,12 @@ class CommunicationChannelView:
 
     @CheckLogin()
     @CheckPermissions(section='communication_channel', allowed_actions='modify')
-    def change_state(self, request, communication_channel_id, *args, **kwargs):
+    def change_state(self, request, *args, **kwargs):
+        context = {}
+        communication_channel_id = fetch_data_from_http_post(request, 'communication_channel_id', context)
         try:
             communication_channel = CommunicationChannel.objects.get(id=communication_channel_id)
-            context = {'page_title': f'تغییر وضعیت شبکه ارتباطی {communication_channel.code}',
+            context = {'page_title': f'تغییر وضعیت کانال ارتباطی {communication_channel.code}',
                        'get_params': request.GET.urlencode()}
             if communication_channel.is_active:
                 communication_channel.is_active = False
