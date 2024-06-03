@@ -4,6 +4,8 @@ import time
 import jdatetime
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django_jalali.db import models as jmodel
 
 from accounts.models import SellerProfile, WarehouseProfile, DeliveryProfile, Profile
@@ -46,6 +48,38 @@ class ProductRelation(models.Model):
         ordering = ['created_at', ]
         verbose_name = 'ارتباط محصول و دریافت کننده'
         verbose_name_plural = 'ارتباط محصولات و دریافت کنندگان'
+
+
+class ProductWarehouse(models.Model):
+    product = models.OneToOneField(Product, related_name='product_product_warehouse', on_delete=models.CASCADE, null=False,
+                                   blank=False, editable=False, verbose_name='محصول')
+    available_number = models.IntegerField(default=0, null=False, blank=False, verbose_name='تعداد موجودی')
+
+    created_at = jmodel.jDateTimeField(auto_now_add=True, verbose_name='تاریخ و زمان ایجاد')
+    updated_at = jmodel.jDateTimeField(auto_now=True, verbose_name='تاریخ و زمان بروزرسانی')
+    created_by = models.ForeignKey(User, related_name='created_by_product_warehouse', on_delete=models.CASCADE, null=False,
+                                   blank=False, editable=False, verbose_name='ایجاد شده توسط')
+    updated_by = models.ForeignKey(User, related_name='updated_by_product_warehouse', on_delete=models.CASCADE, null=False,
+                                   blank=False, editable=False, verbose_name='بروز شده توسط')
+
+    def __str__(self):
+        return f'product: {self.product.name} | code: {self.product.code}'
+
+    class Meta:
+        ordering = ['created_at', ]
+        verbose_name = 'اطلاعات جانبی محصول'
+        verbose_name_plural = 'اطلاعات جانبی محصولات'
+
+
+@receiver(post_save, sender=Product)
+def auto_create_product_profile(sender, instance, created, **kwargs):
+    if created:
+        admin = User.objects.get(username='admin')
+        ProductWarehouse.objects.create(
+            product=instance,
+            created_by=admin,
+            updated_by=admin,
+        )
 
 
 class CreditCard(models.Model):

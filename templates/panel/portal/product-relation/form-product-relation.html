@@ -1,0 +1,46 @@
+{% load panel_custom_tag %}
+{% load account_custom_tag %}
+{% load static %}
+
+<form id="fpr_form_product_relation_data" action="{% url 'automation:product-relation-create' %}" method="post" class="add-new-record pt-0 row g-2">
+    {% csrf_token %}
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="product_id" class="form-label">محصول</label>
+        <select id="product_id" name="product_id"
+                class="select2 form-select" required>
+            {% for product in request|product_list %}
+            <option {% if product_id == product.id %} selected {% endif %} value="{{ product.id }}">{{ product.name }}</option>
+            {% empty %}
+            <option value="">بدون انتخاب</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="receiver_id" class="form-label">دریافت کننده</label>
+        <select id="receiver_id" name="receiver_id"
+                class="select2 form-select" required>
+            {% for receiver in request|receiver_list %}
+            <option {% if receiver_id == receiver.id %} selected {% endif %} value="{{ receiver.id }}">{{ receiver.name }}</option>
+            {% empty %}
+            <option value="">بدون انتخاب</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="number">شماره</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="number" class="form-control"
+                   name="number" required
+                                               oninvalid="this.setCustomValidity('پر کردن این بخش ضروری است')"
+                                               oninput="setCustomValidity('')"
+                                               placeholder="" aria-label="شماره"
+                                               aria-describedby="شماره"
+                                               value="{{ number|default:'' }}">
+        </div>
+    </div>
+    {% if request|has_access_to_section:'create,product_relation' %}
+    <div class="col-sm-12 mt-3">
+        <button type="submit" class="btn btn-primary">ایجاد</button>
+    </div>
+    {% endif %}
+</form>

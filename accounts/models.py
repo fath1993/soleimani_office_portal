@@ -21,7 +21,7 @@ SECTIONS = (
             ('sale', 'فروش'),
             ('warehouse', 'انبار'),
             ('delivery', 'ارسال'),
-            ('credit_card', 'کارت بانکی'), ('customer', 'مشتری'),
+            ('credit_card', 'کارت بانکی'), ('customer', 'مشتری'), ('product_relation', 'ارتباط محصول'),
 )
 
 

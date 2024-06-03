@@ -1,0 +1,349 @@
+{% extends 'base.html' %}
+{% load account_custom_tag %}
+{% load static %}
+{% load panel_custom_tag %}
+
+{% block extra_head %}
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/typeahead-js/typeahead.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'assets/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/flatpickr/flatpickr.css' %}">
+    
+    <!-- Row Group CSS -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css' %}">
+    <!-- Form Validation -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/formvalidation/dist/css/formValidation.min.css' %}">
+{% endblock %}
+
+
+{% block content %}
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <h4 class="py-3 breadcrumb-wrapper mb-4">
+            <span class="text-muted fw-light">اداری / <span class="text-black">ارتباط محصول</span></span>
+        </h4>
+        <div class="card mb-3">
+            <h5 class="card-header heading-color">
+                فیلتر ارتباط محصول و دریافت کننده
+            </h5>
+            <div class="card-body">
+                <div class="row">
+                    <form method="get" action="{% url 'automation:product-relation-filter' %}">
+                        <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
+                            <label class="form-label" for="search">جستجو <span class="text-muted">(نام, کد, شناسه)</span></label>
+                            <div class="input-group">
+                                <input type="text" id="search" name="search" class="form-control text-start"
+                                       placeholder="جستجو" dir="rtl" value="">
+                                <button type="submit" class="input-group-text"><i class="fa fa-search"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            {% if request|has_access_to_section:'create,product_relation' %}
+                <h5 class="card-header heading-color">
+                    <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
+                        <i class="ti-plus m-r-5"></i> ایجاد ارتباط محصول و دریافت کننده جدید
+                    </button>
+                    {% if err %}
+                        <strong class="text-danger">{{ err }}</strong>
+                    {% endif %}
+                    {% if message %}
+                        <strong class="text-success">{{ message }}</strong>
+                    {% endif %}
+                    <div class="offcanvas offcanvas-end" id="add-new-record">
+                        <div class="offcanvas-header border-bottom">
+                            <h5 class="offcanvas-title" id="exampleModalLabel">ارتباط محصول و دریافت کننده جدید</h5>
+                            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
+                                    aria-label="Close"></button>
+                        </div>
+                        <div class="offcanvas-body flex-grow-1">
+                            {% include 'panel/portal/product-relation/form-product-relation.html' %}
+                        </div>
+                    </div>
+                </h5>
+            {% endif %}
+            <div class="card-body">
+                <div class="table-responsive text-nowrap" style="min-height: 250px">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th style="width: 5%">#</th>
+                            <th style="width: 25%">شناسه یکتا</th>
+                            <th style="width: 25%">محصول</th>
+                            <th style="width: 25%">دریافت کننده</th>
+                            <th style="width: 20%">شماره</th>
+                            <th style="width: 5%">عملیات</th>
+                        </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                        {% for product_relation in page %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td id="table_product_relation_id_{{ product_relation.id }}" data-id="{{ product_relation.id }}" data-title="{{ product_relation.id }}" data-bs-toggle="modal" data-bs-target="#product_relationModal" onclick="set_important_and_get_data(this)">
+                                    <span id="table_product_relation_code_{{ product_relation.id }}" class="btn text-primary">{{ product_relation.id }}</span>
+                                </td>
+                                <td id="table_product_relation_product_{{ product_relation.id }}">{{ product_relation.product.name }}</td>
+                                <td id="table_product_relation_receiver_{{ product_relation.id }}">{{ product_relation.receiver.name }} - {{ product_relation.receiver.receiver_phone_number }}</td>
+                                <td id="table_product_relation_number_{{ product_relation.id }}">{{ product_relation.number }}</td>
+                                <td>
+                                    {% if request|has_access_to_section:'modify,delete,product_relation' %}
+                                        <div class="dropdown">
+                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                    data-bs-toggle="dropdown">
+                                                <i class="bx bx-dots-vertical-rounded"></i>
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                {% if request|has_access_to_section:'delete,product_relation' %}
+                                                    <a class="dropdown-item" href="javascript:void(0);"
+                                                       data-bs-toggle="modal"
+                                                       data-bs-target="#deleteModal_{{ forloop.counter }}"><i
+                                                            class="bx bx-trash me-1"></i> حذف</a>
+                                                {% endif %}
+                                            </div>
+                                            <div class="modal fade" id="deleteModal_{{ forloop.counter }}"
+                                                 tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-simple modal-enable-otp modal-dialog-centered">
+                                                    <div class="modal-content p-3 p-md-5">
+                                                        <div class="modal-body">
+                                                            <button type="button" class="btn-close"
+                                                                    data-bs-dismiss="modal"
+                                                                    aria-label="Close"></button>
+                                                            <div class="text-center mb-4 mt-0 mt-md-n2">
+                                                                <h3 class="mb-4 secondary-font">تایید حذف</h3>
+                                                            </div>
+                                                            <h6>آیا از حذف ارتباط محصول و دریافت کننده <strong class="bg-warning">{{ product_relation.id }}</strong> مطمئن هستید؟</h6>
+                                                            <form class="row g-3 mt-3" method="post" action="{% url 'automation:product-relation-delete-with-id' product_relation_id=product_relation.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                                                {% csrf_token %}
+                                                                <div class="col-12">
+                                                                    <button type="submit"
+                                                                            class="btn btn-primary me-sm-3 me-1">
+                                                                        بله
+                                                                    </button>
+                                                                    <button type="reset" class="btn btn-label-secondary"
+                                                                            data-bs-dismiss="modal" aria-label="Close">
+                                                                        انصراف
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="demo-inline-spacing">
+                            <!-- Display page links -->
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination justify-content-center">
+                                    {% if page.has_previous %}
+                                        <li class="page-item prev">
+                                            <a class="page-link" href="?page={{ page.previous_page_number }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"><i
+                                                    class="tf-icon bx bx-chevrons-left"></i></a>
+                                        </li>
+                                    {% endif %}
+                                    {% for num in page.paginator.page_range %}
+                                        {% if num == page.number %}
+                                            <li class="page-item active">
+                                                <a class="page-link" href="?page={{ num }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">{{ num }}</a>
+                                            </li>
+                                        {% elif num == page.paginator.page_range.0 or num == page.paginator.page_range.1 or num == page.paginator.page_range.2 or num == page.paginator.page_range.3 or num == page.paginator.page_range.4 %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">{{ num }}</a>
+                                            </li>
+                                        {% elif num == page.paginator.page_range.5 %}
+                                            <li class="page-item">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if page.has_next %}
+                                        <li class="page-item next">
+                                            <a class="page-link" href="?page={{ page.next_page_number }}{% if request.GET|length > 0 %}&{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"><i
+                                                    class="tf-icon bx bx-chevrons-right"></i></a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <form id="prl_data_form" hidden>
+        <input type="hidden" id="prl_product_relation_id" value="none">
+        <input type="hidden" id="prl_product_relation_title" value="none">
+    </form>
+    {% include 'panel/portal/product-relation/modal-product-relation-create-modify.html' %}
+{% endblock %}
+
+{% block extra_body %}
+    
+    
+    <!-- Main JS -->
+    <script src="{% static 'assets/js/main.js' %}"></script>
+    
+    <script>
+        'use strict';
+        let fv, offCanvasEl;
+        document.addEventListener('DOMContentLoaded', function (e) {
+            (function () {
+                const formAddNewRecord = document.getElementById('form-add-new-record');
+
+                setTimeout(() => {
+                    const newRecord = document.querySelector('#create-new'),
+                        offCanvasElement = document.querySelector('#add-new-record');
+
+                    // To open offCanvas, to add new record
+                    if (newRecord) {
+                        newRecord.addEventListener('click', function () {
+                            offCanvasEl = new bootstrap.Offcanvas(offCanvasElement);
+                            offCanvasEl.show();
+                        });
+                    }
+                }, 200);
+            })();
+        });
+        
+        function set_important_and_get_data(element){
+            const data_id = element.dataset.id
+            const data_title = element.dataset.title
+            const prl_product_relation_id = document.getElementById('prl_product_relation_id')
+            const prl_product_relation_title = document.getElementById('prl_product_relation_title')
+            prl_product_relation_id.value = data_id
+            prl_product_relation_title.value = data_title
+            get_product_relation_data(data_id, data_title)
+        }
+        
+        function get_product_relation_data(data_id, data_title) {
+            const mprcm_product_relation_title = document.getElementById('mprcm_product_relation_title')
+            const mprcm_product_relation_container = document.getElementById('mprcm_product_relation_container')
+            const mprcm_product_relation_title_innerHTML = mprcm_product_relation_title.innerHTML
+            const mprcm_product_relation_container_innerHTML = mprcm_product_relation_container.innerHTML
+            
+            const table_product_relation_id_ = document.getElementById(`table_product_relation_id_${data_id}`)
+            const table_product_relation_product_ = document.getElementById(`table_product_relation_product_${data_id}`)
+            const table_product_relation_code_ = document.getElementById(`table_product_relation_code_${data_id}`)
+            const table_product_relation_receiver_ = document.getElementById(`table_product_relation_receiver_${data_id}`)
+            const table_product_relation_number_ = document.getElementById(`table_product_relation_number_${data_id}`)
+            
+                
+            const loading_text = 'در حال بارگذاری ...'
+            const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                      <span class="visually-hidden">${loading_text}</span>
+                                    </div>`
+            const formData = new FormData();
+            formData.append('product_relation_id', `${data_id}`)
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+            const options = {
+                method: 'POST',
+                body: formData,
+            }
+            mprcm_product_relation_title.innerText = `اطلاعات ارتباط محصول و دریافت کننده ${data_title}`
+            mprcm_product_relation_container.innerHTML=loading_html
+            fetch('{% url 'automation:product-relation-detail' %}', options)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log(data)
+                    mprcm_product_relation_title.innerText = `اطلاعات ارتباط محصول و دریافت کننده با شناسه یکتای ${data['data'][0]['id']}`
+                    table_product_relation_product_.innerText = `${data['data'][0]['product']['name']}`
+                    table_product_relation_code_.innerText = `${data['data'][0]['id']}`
+                    table_product_relation_receiver_.innerText = `${data['data'][0]['receiver']['name']} - ${data['data'][0]['receiver']['receiver_phone_number']}`
+                    table_product_relation_number_.innerText = `${data['data'][0]['number']}`
+                    
+                    
+                    mprcm_product_relation_container.innerHTML=`{% include 'panel/portal/product-relation/form-modal-product-relation.html' %}`
+                    document.getElementById('fpr_form_modal_product_relation_data_number').value=`${data['data'][0]['number']}`
+
+                    const fpr_form_modal_product_relation_data_product_id = document.querySelector('[name="fpr_form_modal_product_relation_data_product_id"]')
+                    const options_1 = fpr_form_modal_product_relation_data_product_id.querySelectorAll('option');
+                    for (let x = 0; x < options_1.length; x++) {
+                        if (options_1[x].value === data['data'][0]['product']['id']) {
+                            options_1[x].selected = true;
+                            break;
+                        }
+                    }
+                    
+                    const fpr_form_modal_product_relation_data_receiver_id = document.querySelector('[name="fpr_form_modal_product_relation_data_receiver_id"]')
+                    const options_2 = fpr_form_modal_product_relation_data_receiver_id.querySelectorAll('option');
+                    for (let x = 0; x < options_2.length; x++) {
+                        if (options_2[x].value === data['data'][0]['receiver']['id']) {
+                            options_2[x].selected = true;
+                            break;
+                        }
+                    }
+
+                    const form_element = document.getElementById('fpr_form_modal_product_relation_data')
+                    initializeSelect2(form_element);
+                })
+                .catch(error => {
+                    mprcm_product_relation_container.innerHTML = mprcm_product_relation_container_innerHTML
+                    console.log(error)
+                });
+        }
+        function set_product_relation_data() {
+            const prl_product_relation_id = document.getElementById('prl_product_relation_id').value
+            const prl_product_relation_title = document.getElementById('prl_product_relation_title').value
+            const fpr_form_modal_product_relation_data = document.getElementById('fpr_form_modal_product_relation_data')
+            
+            const formData = new FormData(fpr_form_modal_product_relation_data);
+            formData.append('product_relation_id', `${prl_product_relation_id}`)
+            const options = {
+                method: 'POST',
+                body: formData,
+            }
+            fetch('{% url 'automation:product-relation-modify' %}', options)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data['message'] === 'product relation not found') {
+                        toast_maker('error', `ارتباط محصول و دریافت کننده با شناسه یکتای ${prl_product_relation_id} یافت نشد`)
+                    }  else {
+                        toast_maker('success', `${data['message']}`)
+                        get_product_relation_data(`${prl_product_relation_id}`, `${prl_product_relation_title}`)
+                    }
+                    console.log(data)
+                })
+                .catch(error => {
+                    console.log(error)
+                });
+        }
+    </script>
+{% endblock %}

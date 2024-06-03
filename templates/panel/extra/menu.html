@@ -202,18 +202,38 @@
                 <div>اداری</div>
             </a>
             <ul class="menu-sub">
+                {% if request|has_access_to_section:'read,product_relation' %}
+                <li id="product-relation-list" class="menu-item">
+                    <a href="{% url 'automation:product-relation-list' %}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-rocket"></i>
+                        <div>ارتباط محصول</div>
+                    </a>
+                </li>
+                {% endif %}    
+                {% if request|has_access_to_section:'read,warehouse' %}
+                <li id="product-warehouse-list" class="menu-item">
+                    <a href="{% url 'automation:product-warehouse-list' %}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-building-house"></i>
+                        <div>موجودی محصول</div>
+                    </a>
+                </li>
+                {% endif %}   
+                {% if request|has_access_to_section:'read,credit_card' %}
                 <li id="card-list" class="menu-item">
                     <a href="{% url 'automation:credit-card-list' %}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-credit-card"></i>
                         <div>کارت بانکی</div>
                     </a>
                 </li>
+                {% endif %}    
+                {% if request|has_access_to_section:'read,customer' %}
                 <li id="customer-list" class="menu-item">
                     <a href="{% url 'automation:customer-list' %}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-body"></i>
                         <div>مشتری</div>
                     </a>
                 </li>
+                {% endif %}    
                 {% if request.user.is_superuser %}
                 <li id="requested-product-processing-admin-list" class="menu-item">
                     <a href="{% url 'automation:requested-product-processing-admin-list' %}" class="menu-link">

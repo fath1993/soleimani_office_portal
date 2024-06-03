@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from resource.models import Product, Registrar, ForwardToPortal, CommunicationChannel, TeaserMaker, ResellerNetwork, \
-    Receiver, AdvertiseContent, ProductWarehouse
+    Receiver, AdvertiseContent
 
 
 @admin.register(Product)
@@ -62,31 +62,6 @@ class ProductAdmin(admin.ModelAdmin):
         instance.save()
         form.save_m2m()
         return instance
-
-
-@admin.register(ProductWarehouse)
-class ProductWarehouseAdmin(admin.ModelAdmin):
-    list_display = (
-        'product',
-        'available_number',
-    )
-
-    readonly_fields = (
-        'product',
-        'created_at',
-        'updated_at',
-        'created_by',
-        'updated_by',
-    )
-
-    fields = (
-        'product',
-        'available_number',
-        'created_at',
-        'updated_at',
-        'created_by',
-        'updated_by',
-    )
 
 
 @admin.register(Receiver)
@@ -225,6 +200,7 @@ class TeaserMakerAdmin(admin.ModelAdmin):
         instance.save()
         form.save_m2m()
         return instance
+
 
 admin.site.register(ResellerNetwork)
 admin.site.register(AdvertiseContent)

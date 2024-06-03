@@ -1,0 +1,43 @@
+{% load panel_custom_tag %}
+{% load account_custom_tag %}
+{% load static %}
+
+<form id="fmpw_form_modal_product_warehouse_data">
+    {% csrf_token %}
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <label class="form-label" for="fmpw_form_modal_product_data_product">محصول</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fmpw_form_modal_product_data_product" class="form-control"
+                   name="fmpw_form_modal_product_data_product" readonly disabled>
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <label class="form-label" for="fmpw_form_modal_product_data_available_number">تعداد موجودی</label>
+        <div class="input-group input-group-merge">
+            <input type="number" min="0" id="fmpw_form_modal_product_data_available_number" class="form-control"
+                   name="fmpw_form_modal_product_data_available_number">
+        </div>
+    </div>
+
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <label class="form-label" for="fmpw_form_modal_product_data_updated_by">بروز شده توسط</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fmpw_form_modal_product_data_updated_by" class="form-control"
+                   name="fmpw_form_modal_product_data_updated_by" readonly disabled>
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <label class="form-label" for="fmpw_form_modal_product_data_updated_at">آخرین بروزرسانی در</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fmpw_form_modal_product_data_updated_at" class="form-control"
+                   name="fmpw_form_modal_product_data_updated_at" readonly disabled>
+        </div>
+    </div>
+
+    {% if request|has_access_to_section:'modify,warehouse' %}
+    <div class="col-sm-12 mt-3">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+            aria-label="Close" onclick="set_product_warehouse_data()">ویرایش</button>
+    </div>
+    {% endif %}
+</form>

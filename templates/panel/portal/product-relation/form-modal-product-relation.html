@@ -1,0 +1,42 @@
+{% load panel_custom_tag %}
+{% load account_custom_tag %}
+{% load static %}
+
+<form id="fpr_form_modal_product_relation_data">
+    {% csrf_token %}
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="fpr_form_modal_product_relation_data_product_id" class="form-label">محصول</label>
+        <select id="fpr_form_modal_product_relation_data_product_id" name="fpr_form_modal_product_relation_data_product_id"
+                class="select2 form-select" required>
+            {% for product in request|product_list %}
+            <option {% if product_id == product.id %} selected {% endif %} value="{{ product.id }}">{{ product.name }}</option>
+            {% empty %}
+            <option value="">بدون انتخاب</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label for="fpr_form_modal_product_relation_data_receiver_id" class="form-label">دریافت کننده</label>
+        <select id="fpr_form_modal_product_relation_data_receiver_id" name="fpr_form_modal_product_relation_data_receiver_id"
+                class="select2 form-select" required>
+            {% for receiver in request|receiver_list %}
+            <option {% if receiver_id == receiver.id %} selected {% endif %} value="{{ receiver.id }}">{{ receiver.name }} - {{ receiver.receiver_phone_number }}</option>
+            {% empty %}
+            <option value="">بدون انتخاب</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-sm-12 col-md-12 col-lg-12 mb-1">
+        <label class="form-label" for="fpr_form_modal_product_relation_data_number">شماره</label>
+        <div class="input-group input-group-merge">
+            <input type="text" id="fpr_form_modal_product_relation_data_number" class="form-control"
+                   name="fpr_form_modal_product_relation_data_number">
+        </div>
+    </div>
+    {% if request|has_access_to_section:'modify,product_relation' %}
+    <div class="col-sm-12 mt-3">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+            aria-label="Close" onclick="set_product_relation_data()">ویرایش</button>
+    </div>
+    {% endif %}
+</form>

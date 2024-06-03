@@ -1,10 +1,25 @@
 from django.urls import path
 
-from automation.views import CreditCardView, CustomerView, RequestedProductView, RequestedProductProcessingView
+from automation.views import CreditCardView, CustomerView, RequestedProductView, RequestedProductProcessingView, \
+    ProductRelationView, ProductWarehouseView
 
 app_name = 'automation'
 
 urlpatterns = [
+    # Product Relation
+    path('product-relation/list/', ProductRelationView().list, name='product-relation-list'),
+    path('product-relation/filter/', ProductRelationView().filter, name='product-relation-filter'),
+    path('product-relation/create/', ProductRelationView().create, name='product-relation-create'),
+    path('product-relation/detail/', ProductRelationView().detail, name='product-relation-detail'),
+    path('product-relation/modify/', ProductRelationView().modify, name='product-relation-modify'),
+    path('product-relation/delete&id=<int:product_relation_id>/', ProductRelationView().delete, name='product-relation-delete-with-id'),
+
+    # Product
+    path('product-warehouse/list/', ProductWarehouseView().list, name='product-warehouse-list'),
+    path('product-warehouse/filter/', ProductWarehouseView().filter, name='product-warehouse-filter'),
+    path('product-warehouse/detail/', ProductWarehouseView().detail, name='product-warehouse-detail'),
+    path('product-warehouse/modify/', ProductWarehouseView().modify, name='product-warehouse-modify'),
+
     # Credit Card
     path('credit-card/list/', CreditCardView().list, name='credit-card-list'),
     path('credit-card/filter/', CreditCardView().filter, name='credit-card-filter'),

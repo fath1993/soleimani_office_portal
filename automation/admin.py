@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from automation.models import CreditCard, RequestedProductProcessing, Customer, RequestedProduct, \
-    RequestedProductProcessingReport, ProductRelation, RequestedProductProcessingCancelReport
+    RequestedProductProcessingReport, ProductRelation, RequestedProductProcessingCancelReport, ProductWarehouse
 
 
 @admin.register(ProductRelation)
@@ -23,6 +23,43 @@ class ProductRelationAdmin(admin.ModelAdmin):
         'number',
         'created_at',
         'created_by',
+    )
+
+    def save_model(self, request, instance, form, change):
+        user = request.user
+        instance = form.save(commit=False)
+        if not change:
+            instance.created_by = user
+            instance.updated_by = user
+        else:
+            instance.updated_by = user
+        instance.save()
+        form.save_m2m()
+        return instance
+
+
+@admin.register(ProductWarehouse)
+class ProductWarehouseAdmin(admin.ModelAdmin):
+    list_display = (
+        'product',
+        'available_number',
+    )
+
+    readonly_fields = (
+        'product',
+        'created_at',
+        'updated_at',
+        'created_by',
+        'updated_by',
+    )
+
+    fields = (
+        'product',
+        'available_number',
+        'created_at',
+        'updated_at',
+        'created_by',
+        'updated_by',
     )
 
     def save_model(self, request, instance, form, change):
