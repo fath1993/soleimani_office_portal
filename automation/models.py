@@ -4,6 +4,7 @@ import time
 import jdatetime
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django_jalali.db import models as jmodel
@@ -17,7 +18,9 @@ REQUESTED_PRODUCT_PROCESSING_IN_DEPARTMENT_STATUS = (('sale', 'فروش'), ('war
 REQUESTED_PRODUCT_SALES_STATUS = (('pending', 'در انتظار'), ('processing', 'در حال پردازش'),
                                   ('sold', 'فروخته شده'),
                                   ('canceled', 'کنسل شده'),
-                                  ('pending_sales_approval', 'در انتظار تایید مدیریت فروش'))
+                                  ('pending_sales_approval', 'در انتظار تایید مدیریت فروش'),
+                                  ('recheck', 'بازبینی مجدد'),
+                                  ('change_seller', 'تغییر فروشنده'),)
 
 REQUESTED_PRODUCT_WAREHOUSE_STATUS = (
     ('pending', 'در انتظار'), ('processing', 'در حال پردازش'), ('sent_to_delivery', 'تحویل به واحد ارسال'),
@@ -266,7 +269,6 @@ class RequestedProductProcessingReport(models.Model):
                                                      on_delete=models.CASCADE, null=False,
                                                      blank=False, editable=False, verbose_name='محصول درخواستی پردازشی')
     department = models.CharField(max_length=255,
-                                  choices=REQUESTED_PRODUCT_PROCESSING_IN_DEPARTMENT_STATUS,
                                   null=False,
                                   editable=False,
                                   blank=False, verbose_name='واحد پردازش کننده محصول')
@@ -327,7 +329,7 @@ def create_requested_product_processing_report(requested_product_processing, dep
     if status == 'everyone':
         status = 'آزادسازی پردازش سفارش برای همه'
 
-    system_report = f'گزارش سیستمی از وضعیت *{status}* با شماره سفارش #{requested_product_processing.id} توسط واحد *{department}* ثبت گردید.'
+    system_report = f'گزارش سیستمی از تغییر وضعیت *{status}* با شماره سفارش #{requested_product_processing.id} توسط واحد *{department}* ثبت گردید.'
 
     system_admin = User.objects.filter(is_superuser=True).latest('id')
     RequestedProductProcessingReport.objects.create(
@@ -353,15 +355,23 @@ def create_requested_product_processing_report(requested_product_processing, dep
 
 
 def pick_seller(exclude_profile=None):
-    sales_allowed_profiles = SellerProfile.objects.filter(daily_allowed_product_processing_number__gte=0).exclude(
-        profile=exclude_profile)
+    print(1)
+    print(exclude_profile)
+    if exclude_profile:
+        sales_allowed_profiles = SellerProfile.objects.filter(daily_allowed_product_processing_number__gte=0).exclude(
+            profile=exclude_profile)
+    else:
+        sales_allowed_profiles = SellerProfile.objects.filter(daily_allowed_product_processing_number__gte=0)
+    print(2)
     sales_allowed_profiles_with_available_quantity = []
     for sales_allowed_profile in sales_allowed_profiles:
         now = jdatetime.datetime.now()
         start_of_today = jdatetime.datetime(year=now.year, month=now.month, day=now.day, hour=0,
                                             minute=0, second=0)
+        print(3)
         all_request_product_processing_that_belong_to_user = RequestedProductProcessing.objects.filter(
             created_at__gte=start_of_today, seller=sales_allowed_profile)
+        print(4)
         if all_request_product_processing_that_belong_to_user.count() < sales_allowed_profile.daily_allowed_product_processing_number:
             sales_allowed_profiles_with_available_quantity.append(sales_allowed_profile)
     if len(sales_allowed_profiles_with_available_quantity) > 0:
@@ -371,8 +381,21 @@ def pick_seller(exclude_profile=None):
         return None
 
 
+def check_seller_available_quantity(seller_profile):
+    now = jdatetime.datetime.now()
+    start_of_today = jdatetime.datetime(year=now.year, month=now.month, day=now.day, hour=0,
+                                        minute=0, second=0)
+    all_request_product_processing_that_belong_to_user = RequestedProductProcessing.objects.filter(
+        created_at__gte=start_of_today, seller=seller_profile)
+
+    if all_request_product_processing_that_belong_to_user.count() < seller_profile.daily_allowed_product_processing_number:
+        return True
+    else:
+        return False
+
+
 def pick_warehouse_keeper(exclude_profile=None):
-    warehouse_profiles = WarehouseProfile.objects.all().exclude(profile=exclude_profile)
+    warehouse_profiles = WarehouseProfile.objects.filter(warehouse_allowance=True).exclude(profile=exclude_profile)
     if warehouse_profiles.count() == 0:
         return None
     else:
@@ -381,7 +404,7 @@ def pick_warehouse_keeper(exclude_profile=None):
 
 
 def pick_delivery_man(exclude_profile=None):
-    delivery_profiles = DeliveryProfile.objects.all().exclude(profile=exclude_profile)
+    delivery_profiles = DeliveryProfile.objects.filter(delivery_allowance=True).exclude(profile=exclude_profile)
     if delivery_profiles.count() == 0:
         return None
     else:

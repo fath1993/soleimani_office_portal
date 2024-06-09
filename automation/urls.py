@@ -48,6 +48,12 @@ urlpatterns = [
          name='requested-product-processing-filter'),
     path('requested-product-processing/change-sale-state/', RequestedProductProcessingView().change_sale_state,
          name='requested-product-processing-change-sale-state'),
+
+
+    path('requested-product-processing/assign-myself/', RequestedProductProcessingView().assign_myself,
+         name='requested-product-processing-assign-myself'),
+
+
     path('requested-product-processing/change-warehouse-state/',
          RequestedProductProcessingView().change_warehouse_state,
          name='requested-product-processing-change-warehouse-state'),

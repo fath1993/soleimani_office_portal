@@ -1,6 +1,5 @@
 {% load static %}
 
-{% if request.user.is_superuser or request.user.user_profile.profile_seller_profile %}
 <div class="modal fade" id="cancelRetry" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-md modal-dialog-centered modal-simple">
         <div class="modal-content p-3 p-md-5">
@@ -9,9 +8,9 @@
                     {% csrf_token %}
                     <div class="row justify-content-between">
                         <div class="d-grid gap-2 col-lg-12 mx-auto">
-                            <button type="button" class="btn btn-lg btn-success" data-bs-dismiss="modal"
+                            <button type="button" class="btn btn-lg btn-info" data-bs-dismiss="modal"
                             aria-label="Close" onclick="mcr_cancel_retry('myself', 'mcr_form_cancel_retry')">بازگشایی سفارش برای خودم</button>
-                            <button type="button" class="btn btn-lg btn-success" data-bs-dismiss="modal"
+                            <button type="button" class="btn btn-lg btn-warning" data-bs-dismiss="modal"
                             aria-label="Close" onclick="mcr_cancel_retry('everyone', 'mcr_form_cancel_retry')">آزاد سازی پردازش سفارش برای همه</button>
                         </div>
                     </div>
@@ -37,18 +36,13 @@
         const cl_requested_product_id = document.getElementById('cl_requested_product_id').value
         const cl_requested_processed_by = document.getElementById('cl_requested_processed_by').value
         const message_list = document.getElementsByClassName('dt-message')
-        const department_status_innerHTML = document.getElementById(`department_status_${cl_requested_product_id}`).innerHTML
-        const sales_status_innerHTML = document.getElementById(`sales_status_${cl_requested_product_id}`).innerHTML
-        const warehouse_status_innerHTML = document.getElementById(`warehouse_status_${cl_requested_product_id}`).innerHTML
-        const delivery_status_innerHTML = document.getElementById(`delivery_status_${cl_requested_product_id}`).innerHTML
+        
         const department_status = document.getElementById(`department_status_${cl_requested_product_id}`)
+        console.log(department_status)
         const sales_status = document.getElementById(`sales_status_${cl_requested_product_id}`)
-        const warehouse_status = document.getElementById(`warehouse_status_${cl_requested_product_id}`)
-        const delivery_status = document.getElementById(`delivery_status_${cl_requested_product_id}`)
-        const text_1 = 'در انتظار تایید مدیریت فروش ...'
-        const text_2 = 'در انتظار'
-        const text_3 = 'کنسل شده'
-        const text_4 = 'در حال پردازش ...'
+        const department_status_innerHTML = department_status.innerHTML
+        const sales_status_innerHTML = sales_status.innerHTML
+
         const loading_text = 'در حال بارگذاری ...'
         const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
                                   <span class="visually-hidden">${loading_text}</span>
@@ -63,44 +57,48 @@
         }
         department_status.innerHTML=loading_html
         sales_status.innerHTML=loading_html
-        warehouse_status.innerHTML=loading_html
-        delivery_status.innerHTML=loading_html
         fetch('{% url 'automation:requested-product-processing-reopen-sale' %}', options)
             .then(response => {
-                document.getElementById('msa_message').value=''
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
                 return response.json();
             })
             .then(data => {
-                department_status.innerHTML=department_status_innerHTML
-                sales_status.innerHTML=sales_status_innerHTML
-                warehouse_status.innerHTML=warehouse_status_innerHTML
-                delivery_status.innerHTML=delivery_status_innerHTML
-                if (data['message'] === 'seller profile not found') {
-                    toast_maker('error', 'فروشنده نیستید')
-                } else if (data['message'] === 'not authorized seller') {
-                    toast_maker('error', 'فروشنده غیر مجاز')
-                } else if (data['message'] === 'requested product processing not found') {
-                    toast_maker('error', 'محصول یافت نشد')
-                } else if (data['message'] === 'seller qualification error') {
-                    toast_maker('error', 'صلاحیت فروش این محصول احراز نشد')
-                } else if (data['message'] === 'myself') {
-                    department_status.innerHTML=`<span><span
+                if (data['message_id'] === 1) {
+                    if (data['message_data'] === 'myself') {
+                        department_status.innerHTML=`<span><span
                                                 class="badge bg-secondary rounded-pill">فروش</span> - <span>${cl_requested_processed_by}</span></span>`
-                    sales_status.innerHTML=`<span class="btn badge bg-info" data-bs-toggle="modal"
-                                                  data-bs-target="#saleStatus" onclick="change_requested_product_id('${cl_requested_product_id}')">${text_4}</span>`
-                    warehouse_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
-                    delivery_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
-                    toast_maker('success', 'سفارش مجددا بازگشایی شد')
-                } else if (data['message'] === 'everyone') {
-                    department_status.innerHTML=`<span><span
+                        sales_status.innerHTML=`<span class="btn badge bg-info" data-bs-toggle="modal"
+                                                      data-bs-target="#saleStatus" onclick="change_requested_product_id('${cl_requested_product_id}')">در حال پردازش ...</span>`
+                        toast_maker('success', 'سفارش مجددا بازگشایی شد')
+                    } else {
+                        department_status.innerHTML=`<span><span
                                                 class="badge bg-secondary rounded-pill">فروش</span><span></span></span>`
-                    sales_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
-                    warehouse_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
-                    delivery_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
-                    toast_maker('info', 'سفارش ازاد شد')
+                        sales_status.innerHTML=`<span class="badge bg-warning">در انتظار</span>`
+                        toast_maker('info', 'سفارش ازاد شد')
+                    }
+                } else if (data['message_id'] === 2) {
+                    console.log('assa')
+                    department_status.innerHTML = department_status_innerHTML
+                    sales_status.innerHTML = sales_status_innerHTML
+                    toast_maker('error', `${data['message']}`)
+                } else if (data['message_id'] === 3) {
+                    department_status.innerHTML = department_status_innerHTML
+                    sales_status.innerHTML = sales_status_innerHTML
+                    toast_maker('error', `${data['message']}`)
+                } else if (data['message_id'] === 4) {
+                    department_status.innerHTML = department_status_innerHTML
+                    sales_status.innerHTML = sales_status_innerHTML
+                    toast_maker('error', `${data['message']}`)
+                } else if (data['message_id'] === 5) {
+                    department_status.innerHTML = department_status_innerHTML
+                    sales_status.innerHTML = sales_status_innerHTML
+                    toast_maker('error', `${data['message']}`)
+                } else if (data['message_id'] === 6) {
+                    department_status.innerHTML = department_status_innerHTML
+                    sales_status.innerHTML = sales_status_innerHTML
+                    toast_maker('error', `${data['message']}`)
                 }
             })
             .catch(error => {
@@ -113,4 +111,3 @@
         }
     }
 </script>
-{% endif %}

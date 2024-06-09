@@ -121,40 +121,52 @@
                                 <td id="department_status_{{ requested_product_processing.id }}">
                                     {% if requested_product_processing.in_department_status == 'sale' %}
                                         <span>
-                                            <span class="badge bg-secondary rounded-pill">فروش</span> - <span>{{ requested_product_processing.seller.profile.user.username }}</span>
+                                            <span class="badge bg-secondary rounded-pill">فروش</span> - <span>{{ requested_product_processing.seller.profile.user.username|default:'آزاد' }}</span>
                                         </span>
                                     {% elif requested_product_processing.in_department_status == 'warehouse' %}
                                         <span><span
-                                                class="badge bg-secondary rounded-pill">انبار</span> - <span>{{ requested_product_processing.seller.profile.user.username }}</span></span>
+                                                class="badge bg-secondary rounded-pill">انبار</span> - <span>{{ requested_product_processing.warehouse_keeper.profile.user.username }}</span></span>
                                     {% elif requested_product_processing.in_department_status == 'delivery' %}
                                         <span><span
-                                                class="badge bg-secondary rounded-pill">ارسال</span> - <span>{{ requested_product_processing.seller.profile.user.username }}</span></span>
+                                                class="badge bg-secondary rounded-pill">ارسال</span> - <span>{{ requested_product_processing.delivery_man.profile.user.username }}</span></span>
                                     {% else %}
                                         <span class="badge bg-primary"> - </span>
                                     {% endif %}
                                 </td>
                                 <td id="sales_status_{{ requested_product_processing.id }}">
-                                    {% if requested_product_processing.sales_status == 'processing' %}
-                                        {% if request.user.user_profile.profile_seller_profile %}
+                                    {% if not requested_product_processing.seller %}
                                             <span class="btn badge bg-info" data-bs-toggle="modal"
-                                                  data-bs-target="#saleStatus" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">در حال پردازش ...</span>
-                                        {% else %}
-                                            <span id="sales_status" class="badge bg-info">در حال پردازش ...</span>
-                                        {% endif %}
-                                    {% elif requested_product_processing.sales_status == 'sold' %}
-                                        <span class="badge bg-success">فروخته شده</span>
-                                    {% elif requested_product_processing.sales_status == 'canceled' %}
-                                        <span>
-                                            <span class="badge bg-dark text-white rounded-pill badge-notifications cancel-number-multiply"  data-cancel-number="{{ requested_product_processing.cancel_number }}" data-cancel-multiply="{{ requested_product_processing.cancel_multiply }}"></span>
-                                            <span class="btn badge bg-danger" data-bs-toggle="modal" data-bs-target="#cancelRetry" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">کنسل شده</span>
-                                        </span>
-                                    {% elif requested_product_processing.sales_status == 'pending' %}
-                                        <span class="btn badge bg-warning">در انتظار</span>
-                                    {% elif requested_product_processing.sales_status == 'pending_sales_approval' %}
-                                        <span class="btn badge bg-warning" data-bs-toggle="modal"
-                                                  data-bs-target="#saleApproval" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">در انتظار تایید مدیریت فروش ...</span>
+                                                      data-bs-target="#assignMyselfModal" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">بازگشایی برای خودم</span>
                                     {% else %}
-                                        <span class="btn badge bg-primary"> - </span>
+                                        {% if requested_product_processing.sales_status == 'processing' %}
+                                            <span class="btn badge bg-info" data-bs-toggle="modal"
+                                                      data-bs-target="#saleStatus" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">در حال پردازش ...</span>
+                                        {% elif requested_product_processing.sales_status == 'sold' %}
+                                            <span class="badge bg-success">فروخته شده</span>
+                                        {% elif requested_product_processing.sales_status == 'canceled' %}
+                                            <span>
+                                                <span class="badge bg-dark text-white rounded-pill badge-notifications cancel-number-multiply"  data-cancel-number="{{ requested_product_processing.cancel_number }}" data-cancel-multiply="{{ requested_product_processing.cancel_multiply }}"></span>
+                                                <span class="btn badge bg-danger" data-bs-toggle="modal" data-bs-target="#cancelRetry" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">کنسل شده</span>
+                                            </span>
+                                        {% elif requested_product_processing.sales_status == 'pending' %}
+                                            <span class="btn badge bg-warning">در انتظار</span>
+                                        {% elif requested_product_processing.sales_status == 'pending_sales_approval' %}
+                                            <span class="btn badge bg-warning" data-bs-toggle="modal"
+                                                      data-bs-target="#saleApproval" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">در انتظار تایید مدیریت فروش ...</span>
+                                        {% elif requested_product_processing.sales_status == 'recheck' %}
+                                            <span class="btn badge bg-danger" data-bs-toggle="modal"
+                                                      data-bs-target="#saleStatus" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">بازبینی مجدد</span>
+                                        {% elif requested_product_processing.sales_status == 'change_seller' %}
+                                            {% if requested_product_processing.seller %}
+                                            <span class="btn badge bg-danger" data-bs-toggle="modal"
+                                                      data-bs-target="#saleStatus" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">در حال پردازش ...</span>
+                                            {% else %}
+                                            <span class="btn badge bg-danger" data-bs-toggle="modal"
+                                                      data-bs-target="#assignMyselfModal" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">تغییر فروشنده</span>    
+                                            {% endif %}    
+                                        {% else %}
+                                            <span class="btn badge bg-primary"> - </span>
+                                        {% endif %}
                                     {% endif %}
                                 </td>
                                 <td id="warehouse_status_{{ requested_product_processing.id }}">
@@ -197,7 +209,7 @@
                                         {% endif %}
                                     {% endif %}
                                 </td>
-                                <td>{{ requested_product_processing.updated_at|date:'Y-m-d ساعت H:i' }}</td>
+                                <td id="updated_at_{{ requested_product_processing.id }}">{{ requested_product_processing.updated_at|date:'Y-m-d ساعت H:i' }}</td>
                             </tr>
                         {% empty %}
                             <tr>

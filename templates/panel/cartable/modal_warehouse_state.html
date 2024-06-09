@@ -1,7 +1,8 @@
+{% load account_custom_tag %}
 {% load static %}
 
 
-{% if request.user.is_superuser or request.user.user_profile.profile_warehouse_profile %}
+{% if request|has_access_to_section:'warehouse' %}
 <div class="modal fade" id="warehouseStateModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-md modal-dialog-centered modal-simple">
         <div class="modal-content p-3 p-md-5">
@@ -36,17 +37,16 @@
 <script>
     function mws_change_warehouse_state(status, form_id) {
         const cl_requested_product_id = document.getElementById('cl_requested_product_id').value
-        const cl_requested_processed_by = document.getElementById('cl_requested_processed_by').value
         const message_list = document.getElementsByClassName('dt-message')
         const department_status = document.getElementById(`department_status_${cl_requested_product_id}`)
         const sales_status = document.getElementById(`sales_status_${cl_requested_product_id}`)
         const warehouse_status = document.getElementById(`warehouse_status_${cl_requested_product_id}`)
         const delivery_status = document.getElementById(`delivery_status_${cl_requested_product_id}`)
-        const text_2 = 'در انتظار'
-        const text_4 = 'فروخته شده'
-        const text_5 = 'تحویل به واحد ارسال'
-        const text_6 = 'در حال پردازش ...'
-        const text_7 = 'بازگشت به واحد فروش'
+        const department_status_innerHTML = department_status.innerHTML
+        const sales_status_innerHTML = sales_status.innerHTML
+        const warehouse_status_innerHTML = warehouse_status.innerHTML
+        const delivery_status_innerHTML = delivery_status.innerHTML
+        
         const loading_text = 'در حال بارگذاری ...'
         const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
                                   <span class="visually-hidden">${loading_text}</span>
@@ -71,31 +71,45 @@
                 return response.json();
             })
             .then(data => {
-                if (data['message'] === 'warehouse profile not found') {
-                    toast_maker('error', 'انباردار نیستید')
-                } else if (data['message'] === 'not authorized warehouse keeper') {
-                    toast_maker('error', 'انبار دار غیر مجاز')
-                } else if (data['message'] === 'requested product processing not found') {
-                    toast_maker('error', 'محصول یافت نشد')
-                } else if (data['message'] === 'send_to_delivery') {
-                    department_status.innerHTML=`<span><span
-                                                class="badge bg-secondary rounded-pill">ارسال</span> - <span>${cl_requested_processed_by}</span></span>`
-                    sales_status.innerHTML=`<span class="badge bg-success">${text_4}</span>`
-                    warehouse_status.innerHTML=`<span class="badge bg-success">${text_5}</span>`
-                    delivery_status.innerHTML=`<span class="badge bg-info">${text_6}</span>`
-                    toast_maker('success', `${text_5}`)
-                } else if (data['message'] === 'return_to_sales') {
-                    department_status.innerHTML=`<span><span
-                                                class="badge bg-secondary rounded-pill">فروش</span> - <span>${cl_requested_processed_by}</span></span>`
-                    sales_status.innerHTML=`<span class="btn badge bg-info" data-bs-toggle="modal"
-                                                  data-bs-target="#saleStatus" onclick="change_requested_product_id('${cl_requested_product_id}')">${text_6}</span>`
-                    warehouse_status.innerHTML=`<span class="badge bg-danger">${text_7}</span>`
-                    delivery_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
-                    toast_maker('info', `${text_7}`)
+                console.log(data)
+                if (data['message_id'] === 1) {
+                    document.getElementById(`department_status_${cl_requested_product_id}`).innerHTML = `<span><span class="badge bg-secondary rounded-pill">ارسال</span> - <span>${data['delivery_username']}</span></span>`
+                    document.getElementById(`sales_status_${cl_requested_product_id}`).innerHTML = `<span class="badge bg-success">فروخته شده</span>`
+                    document.getElementById(`warehouse_status_${cl_requested_product_id}`).innerHTML = ` <span class="badge bg-success">تحویل به واحد ارسال</span>`
+                    document.getElementById(`delivery_status_${cl_requested_product_id}`).innerHTML = `<span class="btn badge bg-info" data-bs-toggle="modal" data-bs-target="#deliveryStateModal" onclick="change_requested_product_id('${cl_requested_product_id}')">در حال پردازش ...</span>`
+                    document.getElementById(`updated_at_${cl_requested_product_id}`).innerHTML = `${data['updated_at']}`
+                    toast_maker('success', `${data['message']}`)
+                } else if (data['message_id'] === 2) {
+                    document.getElementById(`department_status_${cl_requested_product_id}`).innerHTML = `<span><span class="badge bg-secondary rounded-pill">فروش</span> - <span>${data['seller_username']}</span></span>`
+                    document.getElementById(`sales_status_${cl_requested_product_id}`).innerHTML = `<span class="btn badge bg-danger" data-bs-toggle="modal" data-bs-target="#saleStatus" onclick="change_requested_product_id('${cl_requested_product_id}')">نیاز به بازبینی</span>`
+                    document.getElementById(`warehouse_status_${cl_requested_product_id}`).innerHTML = `<span class="badge bg-danger">بازگشت به واحد فروش</span>`
+                    document.getElementById(`delivery_status_${cl_requested_product_id}`).innerHTML = `<span class="badge bg-warning">در انتظار</span>`
+                    document.getElementById(`updated_at_${cl_requested_product_id}`).innerHTML = `${data['updated_at']}`
+                    toast_maker('error', `${data['message']}`)
+                } else if (data['message_id'] === 3) {
+                    document.getElementById(`department_status_${cl_requested_product_id}`).innerHTML = department_status_innerHTML
+                    document.getElementById(`sales_status_${cl_requested_product_id}`).innerHTML = sales_status_innerHTML
+                    document.getElementById(`warehouse_status_${cl_requested_product_id}`).innerHTML = warehouse_status_innerHTML
+                    document.getElementById(`delivery_status_${cl_requested_product_id}`).innerHTML = delivery_status_innerHTML
+                    toast_maker('error', `${data['message']}`)
+                } else if (data['message_id'] === 4) {
+                    document.getElementById(`department_status_${cl_requested_product_id}`).innerHTML = department_status_innerHTML
+                    document.getElementById(`sales_status_${cl_requested_product_id}`).innerHTML = sales_status_innerHTML
+                    document.getElementById(`warehouse_status_${cl_requested_product_id}`).innerHTML = warehouse_status_innerHTML
+                    document.getElementById(`delivery_status_${cl_requested_product_id}`).innerHTML = delivery_status_innerHTML
+                    toast_maker('error', `${data['message']}`)
+                } else if (data['message_id'] === 5) {
+                    document.getElementById(`department_status_${cl_requested_product_id}`).innerHTML = department_status_innerHTML
+                    document.getElementById(`sales_status_${cl_requested_product_id}`).innerHTML = sales_status_innerHTML
+                    document.getElementById(`warehouse_status_${cl_requested_product_id}`).innerHTML = warehouse_status_innerHTML
+                    document.getElementById(`delivery_status_${cl_requested_product_id}`).innerHTML = delivery_status_innerHTML
+                    toast_maker('error', `${data['message']}`)
                 }
+                
             })
             .catch(error => {
-                toast_maker('warning', data['message'])
+                console.log(error)
+                toast_maker('warning', error['message'])
             });
         
         for (let i = 0; i < message_list.length; i++) {

@@ -11,5 +11,5 @@ class Command(base.BaseCommand):
         # Permission.objects.all().delete()
         # Role.objects.all().delete()
         #User.objects.all().delete()
-        create_test_account()
-        #set_user_password()
+        #create_test_account()
+        set_user_password()

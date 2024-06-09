@@ -1,7 +1,8 @@
+{% load account_custom_tag %}
 {% load static %}
 
 
-{% if request.user.is_superuser or request.user.user_profile.profile_seller_profile %}
+{% if request|has_access_to_section:'read,modify,sale' %}
 <div class="modal fade" id="saleStatus" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-md modal-dialog-centered modal-simple">
         <div class="modal-content p-3 p-md-5">
@@ -86,6 +87,24 @@
         </div>
     </div>
 </div>
+    
+<div class="modal fade" id="assignMyselfModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered modal-simple">
+        <div class="modal-content p-3 p-md-5">
+            <div class="modal-body">
+                <form id="mss_form_sold">
+                    {% csrf_token %}
+                    <div class="row justify-content-between">
+                        <div class="d-grid gap-2 col-lg-12 mx-auto">
+                            <button type="button" class="btn btn-lg btn-success" data-bs-dismiss="modal"
+                            aria-label="Close" onclick="mss_assign_myself()">اختصاص سفارش به خودم</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>    
 
 <script>
     function mss_change_sale_state(status, form_id) {
@@ -96,6 +115,10 @@
         const sales_status = document.getElementById(`sales_status_${cl_requested_product_id}`)
         const warehouse_status = document.getElementById(`warehouse_status_${cl_requested_product_id}`)
         const delivery_status = document.getElementById(`delivery_status_${cl_requested_product_id}`)
+        const department_status_innerHTML = department_status.innerHTML
+        const sales_status_innerHTML = warehouse_status.innerHTML
+        const warehouse_status_innerHTML = delivery_status.innerHTML
+        const delivery_status_innerHTML = delivery_status.innerHTML
         const text_1 = 'در انتظار تایید مدیریت فروش ...'
         const text_2 = 'در انتظار'
         const text_3 = 'کنسل شده'
@@ -124,10 +147,14 @@
             })
             .then(data => {
                 if (data['message'] === 'seller profile not found') {
+                    department_status.innerHTML = department_status_innerHTML
+                    sales_status.innerHTML = sales_status_innerHTML
+                    warehouse_status.innerHTML = warehouse_status_innerHTML
+                    delivery_status.innerHTML = delivery_status_innerHTML
                     toast_maker('error', 'فروشنده نیستید')
                 } else if (data['message'] === 'sold') {
                     department_status.innerHTML=`<span><span
-                                                class="badge bg-secondary rounded-pill">انبار</span> - <span>${cl_requested_processed_by}</span></span>`
+                                                class="badge bg-secondary rounded-pill">فروش</span> - <span>${cl_requested_processed_by}</span></span>`
                     sales_status.innerHTML=`<span class="btn badge bg-warning" data-bs-toggle="modal"
                                                   data-bs-target="#saleApproval">${text_1}</span>`
                     warehouse_status.innerHTML=`<span class="badge bg-warning">${text_2}</span>`
@@ -144,18 +171,85 @@
                     delivery_status.innerHTML=`<span class="badge bg-dark">${text_3}</span>`
                     toast_maker('info', 'کنسل شد')
                 } else if (data['message'] === 'not authorized seller') {
+                    department_status.innerHTML = department_status_innerHTML
+                    sales_status.innerHTML = sales_status_innerHTML
+                    warehouse_status.innerHTML = warehouse_status_innerHTML
+                    delivery_status.innerHTML = delivery_status_innerHTML
                     toast_maker('error', 'فروشنده غیر مجاز')
                 } else if (data['message'] === 'requested product processing not found') {
+                    department_status.innerHTML = department_status_innerHTML
+                    sales_status.innerHTML = sales_status_innerHTML
+                    warehouse_status.innerHTML = warehouse_status_innerHTML
+                    delivery_status.innerHTML = delivery_status_innerHTML
                     toast_maker('error', 'محصول یافت نشد')
                 }
             })
             .catch(error => {
-                toast_maker('warning', data['message'])
+                department_status.innerHTML = department_status_innerHTML
+                sales_status.innerHTML = sales_status_innerHTML
+                warehouse_status.innerHTML = warehouse_status_innerHTML
+                delivery_status.innerHTML = delivery_status_innerHTML
+                toast_maker('warning', error['message'])
             });
         
         for (let i = 0; i < message_list.length; i++) {
           message_list[i].value=''
         }
+    }
+    
+    function mss_assign_myself() {
+        const cl_requested_product_id = document.getElementById('cl_requested_product_id').value
+        const department_status = document.getElementById(`department_status_${cl_requested_product_id}`)
+        const sales_status = document.getElementById(`sales_status_${cl_requested_product_id}`)
+        const department_status_innerHTML = department_status.innerHTML
+        const sales_status_innerHTML = department_status_innerHTML.innerHTML
+
+        const loading_text = 'در حال بارگذاری ...'
+        const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                  <span class="visually-hidden">${loading_text}</span>
+                                </div>`
+        
+        const formData = new FormData();
+        formData.append('mam_status', 'assign_myself')
+        formData.append('requested_product_processing_id', `${cl_requested_product_id}`)
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+        const options = {
+            method: 'POST',
+            body: formData,
+        }
+        department_status.innerHTML=loading_html
+        sales_status.innerHTML=loading_html
+        fetch('{% url 'automation:requested-product-processing-assign-myself' %}', options)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data['message_id'] === 3) {
+                    department_status.innerHTML = `<span><span class="badge bg-secondary rounded-pill">فروش</span> - <span>آزاد</span></span>`
+                    sales_status.innerHTML = `<span class="btn badge bg-info" data-bs-toggle="modal" data-bs-target="#saleStatus" onclick="change_requested_product_id('${cl_requested_product_id}')">در حال پردازش ...</span>`
+                    document.getElementById(`updated_at_${cl_requested_product_id}`).innerHTML = `${data['updated_at']}`
+                    toast_maker('error', `${data['message']}`)
+                } else if (data['message_id'] === 1) {
+                    department_status.innerHTML = `<span><span class="badge bg-secondary rounded-pill">فروش</span> - <span>آزاد</span></span>`
+                    sales_status.innerHTML = `<span class="btn badge bg-info" data-bs-toggle="modal" data-bs-target="#saleStatus" onclick="change_requested_product_id('${cl_requested_product_id}')">در حال پردازش ...</span>`
+                    document.getElementById(`updated_at_${cl_requested_product_id}`).innerHTML = `${data['updated_at']}`
+                    toast_maker('error', `${data['message']}`)
+                } else if (data['message_id'] === 2) {
+                    department_status.innerHTML = `<span><span class="badge bg-secondary rounded-pill">فروش</span> - <span>${data['seller_username']}</span></span>`
+                    sales_status.innerHTML = `<span class="btn badge bg-info" data-bs-toggle="modal" data-bs-target="#saleStatus" onclick="change_requested_product_id('${cl_requested_product_id}')">در حال پردازش ...</span>`
+                    document.getElementById(`updated_at_${cl_requested_product_id}`).innerHTML = `${data['updated_at']}`
+                    toast_maker('success', `${data['message']}`)
+                }
+
+            })
+            .catch(error => {
+                department_status.innerHTML = department_status_innerHTML
+                sales_status.innerHTML = sales_status_innerHTML
+                toast_maker('error', error['message'])
+            });
     }
 </script>
 {% endif %}

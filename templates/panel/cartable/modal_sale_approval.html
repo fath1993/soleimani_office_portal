@@ -11,9 +11,9 @@
                         <div class="d-grid gap-2 col-lg-12 mx-auto">
                             <button type="button" class="btn btn-lg btn-success" data-bs-dismiss="modal"
                             aria-label="Close" onclick="msa_sale_approval('confirmed')">تایید</button>
-                            <button type="button" class="btn btn-lg btn-success" data-bs-dismiss="modal"
+                            <button type="button" class="btn btn-lg btn-warning" data-bs-dismiss="modal"
                             aria-label="Close" onclick="msa_sale_approval('recheck')">بازگردانی</button>
-                            <button type="button" class="btn btn-lg btn-success" data-bs-dismiss="modal"
+                            <button type="button" class="btn btn-lg btn-danger" data-bs-dismiss="modal"
                             aria-label="Close" onclick="msa_sale_approval('change_seller')">تغییر فروشنده</button>
                         </div>
                     </div>
@@ -38,6 +38,14 @@
     function msa_sale_approval(status) {
         const cl_requested_product_id = document.getElementById('cl_requested_product_id').value
         const message_list = document.getElementsByClassName('dt-message')
+        const department_status = document.getElementById(`department_status_${cl_requested_product_id}`)
+        const sales_status = document.getElementById(`sales_status_${cl_requested_product_id}`)
+        const warehouse_status = document.getElementById(`warehouse_status_${cl_requested_product_id}`)
+        
+        const loading_text = 'در حال بارگذاری ...'
+        const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
+                                  <span class="visually-hidden">${loading_text}</span>
+                                </div>`
         const form = document.getElementById('msa_form');
         const formData = new FormData(form);
         formData.append('msa_status', status)
@@ -46,6 +54,9 @@
             method: 'POST',
             body: formData,
         }
+        department_status.innerHTML=loading_html
+        sales_status.innerHTML=loading_html
+        warehouse_status.innerHTML=loading_html
         fetch('{% url 'automation:requested-product-processing-confirm-sale' %}', options)
             .then(response => {
                 document.getElementById('msa_message').value=''
@@ -56,10 +67,28 @@
             })
             .then(data => {
                 console.log(data)
+                if (data['message'] === 'confirmed') {
+                    document.getElementById(`department_status_${cl_requested_product_id}`).innerHTML = `<span><span class="badge bg-secondary rounded-pill">انبار</span> - <span>${data['warehouse_keeper_username']}</span></span>`
+                    document.getElementById(`sales_status_${cl_requested_product_id}`).innerHTML = `<span class="badge bg-success">فروخته شده</span>`
+                    document.getElementById(`warehouse_status_${cl_requested_product_id}`).innerHTML = `<span class="btn badge bg-info" data-bs-toggle="modal" data-bs-target="#warehouseStateModal" onclick="change_requested_product_id('${cl_requested_product_id}')">در حال پردازش ...</span>`
+                    document.getElementById(`updated_at_${cl_requested_product_id}`).innerHTML = `${data['updated_at']}`
+                    toast_maker('success', 'سفارش تایید شد')
+                } else if (data['message'] === 'recheck') {
+                    document.getElementById(`department_status_${cl_requested_product_id}`).innerHTML = `<span><span class="badge bg-secondary rounded-pill">فروش</span> - <span>${data['seller_username']}</span></span>`
+                    document.getElementById(`sales_status_${cl_requested_product_id}`).innerHTML = `<span class="btn badge bg-danger" data-bs-toggle="modal" data-bs-target="#saleStatus" onclick="change_requested_product_id('${cl_requested_product_id}')">نیاز به بازبینی</span>`
+                    document.getElementById(`warehouse_status_${cl_requested_product_id}`).innerHTML = `<span class="badge bg-warning">در انتظار</span>`
+                    document.getElementById(`updated_at_${cl_requested_product_id}`).innerHTML = `${data['updated_at']}`
+                    toast_maker('success', 'سفارش جهت بازبینی مجدد اعلام شد')
+                } else {
+                    document.getElementById(`department_status_${cl_requested_product_id}`).innerHTML = `<span><span class="badge bg-secondary rounded-pill">فروش</span> - <span>${data['seller_username']}</span></span>`
+                    document.getElementById(`sales_status_${cl_requested_product_id}`).innerHTML = `<span class="btn badge bg-danger" data-bs-toggle="modal" data-bs-target="#saleStatus" onclick="change_requested_product_id('${cl_requested_product_id}')">تغییر فروشنده</span>`
+                    document.getElementById(`updated_at_${cl_requested_product_id}`).innerHTML = `${data['updated_at']}`
+                    toast_maker('success', 'فروشنده سفارش تغییر داده شد')
+                }
             })
             .catch(error => {
                 console.log(error)
-                toast_maker('warning', data['message'])
+                toast_maker('warning', error['message'])
             });
         
         for (let i = 0; i < message_list.length; i++) {

@@ -4,10 +4,11 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from accounts.models import WarehouseProfile, Profile
+from accounts.templatetags.account_custom_tag import has_access_to_section
 from automation.models import RequestedProductProcessing, create_requested_product_processing_report, \
     RequestedProductProcessingReport, pick_seller, pick_warehouse_keeper, pick_delivery_man, Customer, \
     create_requested_product_processing_cancel_report, report_requested_product_processing_cancel_number, CreditCard, \
-    ProductRelation, ProductWarehouse
+    ProductRelation, ProductWarehouse, check_seller_available_quantity
 from gallery.models import FileGallery
 from accounts.custom_decorator import CheckLogin, CheckPermissions, RequireMethod
 from automation.serializer import RequestedProductProcessingReportSerializer, ProductSerializer, CustomerSerializer, \
@@ -632,15 +633,15 @@ class RequestedProductProcessingView:
 
     @CheckLogin()
     def public_list(self, request, *args, **kwargs):
+        if not has_access_to_section(request, 'read,modify,sale'):
+            return render(request, 'panel/err/err-not-authorized.html')
+
         context = {'page_title': 'لیست پردازش سفارش های عمومی', 'get_params': request.GET.urlencode()}
 
         q = Q()
 
         q &= (
             Q(**{'seller__isnull': True})
-        )
-        q &= (
-            Q(**{'sales_status': 'canceled'})
         )
 
         requested_product_processing = RequestedProductProcessing.objects.filter(q)
@@ -672,7 +673,6 @@ class RequestedProductProcessingView:
                     Q(**{'warehouse_keeper': profile.profile_warehouse_profile}) |
                     Q(**{'delivery_man': profile.profile_delivery_profile})
             )
-
         requested_product_processing = RequestedProductProcessing.objects.filter(q)
         context['requested_product_processing'] = requested_product_processing
 
@@ -965,16 +965,10 @@ class RequestedProductProcessingView:
     @RequireMethod(allowed_method='POST')
     def confirm_sale(self, request, *args, **kwargs):
         context = {}
-        if not request.user.is_superuser:
-            try:
-                seller_profile = request.user.user_profile.profile_seller_profile
+        seller_profile = request.user.user_profile.profile_seller_profile
 
-                if not seller_profile.is_sales_admin:
-                    return JsonResponse({"message": 'seller profile is not sale admin'})
-            except:
-                return JsonResponse({"message": 'seller profile not found'})
-        else:
-            seller_profile = None
+        if not seller_profile.is_sales_admin:
+            return JsonResponse({'message': 'کاربر دسترسی تایید سفارش را ندارد'})
 
         requested_product_processing_id = fetch_data_from_http_post(request, 'requested_product_processing_id',
                                                                     context)
@@ -984,56 +978,102 @@ class RequestedProductProcessingView:
             msa_status = fetch_data_from_http_post(request, 'msa_status', context)
             msa_message = fetch_data_from_http_post(request, 'msa_message', context)
 
-            warehouse_profiles = WarehouseProfile.objects.all()
-            if warehouse_profiles.count() == 0:
-                return JsonResponse({"message": 'no available warehouse keeper'})
+            if msa_status == 'confirmed':
+                warehouse_profiles = WarehouseProfile.objects.all()
+                if warehouse_profiles.count() == 0:
+                    return JsonResponse({'message': 'به علت نبود انبار دار امکان تغییر وضعیت سفارش وجود ندارد'})
 
             requested_product_processing_action(request, requested_product_processing, 'sale', msa_status, msa_message)
-            return JsonResponse({"message": f'{msa_status}'})
+            updated_requested_product_processing = RequestedProductProcessing.objects.get(id=requested_product_processing_id)
 
+            if msa_status == 'confirmed':
+                return JsonResponse({"message": f'{msa_status}',
+                                     'warehouse_keeper_username': requested_product_processing.warehouse_keeper.profile.user.username,
+                                     'updated_at': updated_requested_product_processing.updated_at.strftime(
+                                         "%Y-%m-%d ساعت %H:%M")})
+            else:
+                if updated_requested_product_processing.seller:
+                    return JsonResponse({"message": f'{msa_status}', 'seller_username': requested_product_processing.seller.profile.user.username,
+                                         'updated_at': updated_requested_product_processing.updated_at.strftime("%Y-%m-%d ساعت %H:%M")})
+                else:
+                    return JsonResponse({"message": f'{msa_status}',
+                                     'seller_username': 'آزاد',
+                                     'updated_at': updated_requested_product_processing.updated_at.strftime(
+                                         "%Y-%m-%d ساعت %H:%M")})
         except Exception as e:
             print(e)
             return JsonResponse({"message": 'requested product processing not found'})
 
     @CheckLogin()
     @RequireMethod(allowed_method='POST')
-    def reopen_sale(self, request, *args, **kwargs):
+    def assign_myself(self, request, *args, **kwargs):
         context = {}
-        if not request.user.is_superuser:
-            try:
-                seller_profile = request.user.user_profile.profile_seller_profile
-            except:
-                return JsonResponse({"message": 'seller profile not found'})
-        else:
-            seller_profile = None
 
         requested_product_processing_id = fetch_data_from_http_post(request, 'requested_product_processing_id',
                                                                     context)
         try:
             requested_product_processing = RequestedProductProcessing.objects.get(id=requested_product_processing_id)
-            if not request.user.is_superuser:
-                if not requested_product_processing.seller == seller_profile:
-                    return JsonResponse({"message": 'not authorized seller'})
+
+            if requested_product_processing.seller:
+                return render(request, 'panel/err/err-not-authorized.html')
+
+            mam_status = fetch_data_from_http_post(request, 'mam_status', context)
+
+            if not check_seller_available_quantity(request.user.user_profile.profile_seller_profile):
+                return JsonResponse({"message": f'ماکسیمم فروش محصولات روزانه تکمیل شده است', 'message_id': 1})
+
+            requested_product_processing_action(request, requested_product_processing, 'sale', mam_status, '')
+
+            updated_requested_product_processing = RequestedProductProcessing.objects.get(id=requested_product_processing_id)
+            return JsonResponse({"message": f'فروش این محصول به کاربر {request.user.username} اختصاص یافت', 'message_id': 2, 'seller_username': f'{request.user.username}', 'updated_at': updated_requested_product_processing.updated_at.strftime('%Y-%m-%d ساعت %H:%M')})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"message": 'پردازش محصول درخواستی یافت نشد', 'message_id': 3})
+
+    @CheckLogin()
+    @RequireMethod(allowed_method='POST')
+    def reopen_sale(self, request, *args, **kwargs):
+        context = {}
+        if not has_access_to_section(request, 'sale'):
+            return JsonResponse({"message": f'دسترسی غیر مجاز', "message_id": 4})
+        if not request.user.user_profile.profile_seller_profile.sale_allowance:
+            return JsonResponse({"message": f'کاربر اجازه فروش ندارد', "message_id": 5})
+
+        requested_product_processing_id = fetch_data_from_http_post(request, 'requested_product_processing_id',
+                                                                    context)
+        try:
+            requested_product_processing = RequestedProductProcessing.objects.get(id=requested_product_processing_id)
+            if not requested_product_processing.seller == request.user.user_profile.profile_seller_profile:
+                return JsonResponse({"message": f'محصول متعلق به فروشنده دیگری می باشد', "message_id": 3})
+
             mcr_status = fetch_data_from_http_post(request, 'mcr_status', context)
             mcr_message = fetch_data_from_http_post(request, 'mcr_message', context)
 
-            if report_requested_product_processing_cancel_number(requested_product_processing, seller_profile) >= 3:
-                return JsonResponse({"message": f'seller qualification error'})
-            requested_product_processing_action(request, requested_product_processing, 'sale', mcr_status, mcr_message)
-            return JsonResponse({"message": f'{mcr_status}'})
+            if report_requested_product_processing_cancel_number(requested_product_processing, request.user.user_profile.profile_seller_profile) >= 3:
+                if mcr_status == 'myself':
+                    return JsonResponse({"message": f'صلاحیت فروش محصول را ندارید', "message_id": 2})
+                else:
+                    return JsonResponse({"message": f'اجازه تغییر در محصول را ندارید', "message_id": 2})
 
+            requested_product_processing_action(request, requested_product_processing, 'sale', mcr_status, mcr_message)
+            updated_requested_product_processing = RequestedProductProcessing.objects.get(
+                id=requested_product_processing_id)
+            if mcr_status == 'myself':
+                return JsonResponse({"message": f'{mcr_status}', "message_data": "myself", "message_id": 1, 'seller_username': f'{request.user.username}', 'updated_at': updated_requested_product_processing.updated_at.strftime('%Y-%m-%d ساعت %H:%M')})
+            else:
+                return JsonResponse({"message": f'{mcr_status}', "message_data": "everyone", "message_id": 1, 'seller_username': f'آزاد', 'updated_at': updated_requested_product_processing.updated_at.strftime('%Y-%m-%d ساعت %H:%M')})
         except Exception as e:
             print(e)
-            return JsonResponse({"message": 'requested product processing not found'})
+            return JsonResponse({"message": f'پردازش محصول درخواستی یافت نشد', "message_id": 6})
 
     @CheckLogin()
     @RequireMethod(allowed_method='POST')
     def change_warehouse_state(self, request, *args, **kwargs):
         context = {}
-        try:
-            warehouse_profile = request.user.user_profile.profile_warehouse_profile
-        except:
-            return JsonResponse({"message": 'warehouse profile not found'})
+        if not has_access_to_section(request, 'warehouse'):
+            return JsonResponse({"message": f'دسترسی غیر مجاز', "message_id": 4})
+        if not request.user.user_profile.profile_warehouse_profile.warehouse_allowance:
+            return JsonResponse({"message": f'کاربر اجازه انبار داری ندارد', "message_id": 5})
 
         requested_product_processing_id = fetch_data_from_http_post(request, 'requested_product_processing_id',
                                                                     context)
@@ -1043,11 +1083,25 @@ class RequestedProductProcessingView:
             mws_status = fetch_data_from_http_post(request, 'mws_status', context)
             mws_message = fetch_data_from_http_post(request, 'mws_message', context)
 
-            requested_product_processing_action(request, requested_product_processing, 'sale', mws_status, mws_message)
-            return JsonResponse({"message": f'{mws_status}'})
+            requested_product_processing_action(request, requested_product_processing, 'warehouse', mws_status, mws_message)
 
-        except:
-            return JsonResponse({"message": 'not authorized warehouse keeper'})
+            updated_requested_product_processing = RequestedProductProcessing.objects.get(
+                id=requested_product_processing_id)
+            if mws_status == 'sent_to_delivery':
+                return JsonResponse(
+                    {"message": f'ارسال این محصول به کاربر {updated_requested_product_processing.delivery_man.profile.user.username} اختصاص یافت', 'message_id': 1,
+                     "delivery_username": f"{updated_requested_product_processing.delivery_man.profile.user.username}",
+                     "updated_at": updated_requested_product_processing.updated_at.strftime('%Y-%m-%d ساعت %H:%M')})
+            else:
+                return JsonResponse(
+                    {"message": f'محصول به واحد فروش مرجوع گردید', "message_id": 2,
+                     "seller_username": f'{updated_requested_product_processing.seller.profile.user.username}',
+                     "updated_at": updated_requested_product_processing.updated_at.strftime('%Y-%m-%d ساعت %H:%M')})
+
+
+        except Exception as e:
+            print(e)
+            return JsonResponse({"message": f'پردازش محصول درخواستی یافت نشد', "message_id": 3})
 
     @CheckLogin()
     @RequireMethod(allowed_method='POST')
@@ -1130,9 +1184,16 @@ def requested_product_processing_action(request, requested_product_processing, r
         requested_product_processing.in_department_status = 'sale'
         requested_product_processing.is_confirmed_by_sales_department = False
         requested_product_processing.sales_status = 'change_seller'
-        old_seller = requested_product_processing.seller
-        requested_product_processing.seller = pick_seller(old_seller)
+        if requested_product_processing.seller:
+            requested_product_processing.seller = pick_seller(requested_product_processing.seller.profile)
+        else:
+            requested_product_processing.seller = pick_seller()
+
+    if status == 'assign_myself':
+        requested_product_processing.in_department_status = 'sale'
+        requested_product_processing.is_confirmed_by_sales_department = False
         requested_product_processing.sales_status = 'processing'
+        requested_product_processing.seller = request.user.user_profile.profile_seller_profile
 
     if status == 'sent_to_delivery':
         requested_product_processing.in_department_status = 'delivery'
