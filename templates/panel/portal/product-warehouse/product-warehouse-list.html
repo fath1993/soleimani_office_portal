@@ -171,7 +171,8 @@
             
             const table_product_warehouse_product_ = document.getElementById(`table_product_warehouse_product_${data_id}`)
             const table_product_warehouse_available_number_ = document.getElementById(`table_product_warehouse_available_number_${data_id}`)
-                
+            const table_product_warehouse_available_number_innerHTML = table_product_warehouse_available_number_.innerHTML
+            
             const loading_text = 'در حال بارگذاری ...'
             const loading_html = `<div class="spinner-border spinner-border-md text-light" role="status">
                                       <span class="visually-hidden">${loading_text}</span>
@@ -185,6 +186,7 @@
             }
             mpwcm_product_warehouse_title.innerText = `اطلاعات انبار محصول ${data_title}`
             mpwcm_product_warehouse_container.innerHTML=loading_html
+            table_product_warehouse_available_number_.innerHTML = loading_html
             fetch('{% url 'automation:product-warehouse-detail' %}', options)
                 .then(response => {
                     if (!response.ok) {
@@ -196,10 +198,10 @@
                     console.log(data)
                     mpwcm_product_warehouse_title.innerText = `اطلاعات انبار محصول ${data['data'][0]['product']['name']}`
                     table_product_warehouse_product_.innerText = `${data['data'][0]['product']['name']}`
+                    table_product_warehouse_available_number_.innerHTML = table_product_warehouse_available_number_innerHTML
                     table_product_warehouse_available_number_.innerText = `${data['data'][0]['available_number']}`
                     
-                    
-                    mpwcm_product_warehouse_container.innerHTML=`{% include 'panel/portal/product-warehouse/modal-product-warehouse-create-modify.html' %}`
+                    mpwcm_product_warehouse_container.innerHTML=`{% include 'panel/portal/product-warehouse/form-modal-product-warehouse.html' %}`
                     document.getElementById('fmpw_form_modal_product_data_product').value=`${data['data'][0]['product']['name']}`
                     document.getElementById('fmpw_form_modal_product_data_available_number').value=`${data['data'][0]['available_number']}`
                     document.getElementById('fmpw_form_modal_product_data_updated_by').value=`${data['data'][0]['updated_by']}`
@@ -211,6 +213,7 @@
                 })
                 .catch(error => {
                     mpwcm_product_warehouse_container.innerHTML = mpwcm_product_warehouse_container_innerHTML
+                    table_product_warehouse_available_number_.innerHTML = table_product_warehouse_available_number_innerHTML
                     console.log(error)
                 });
         }

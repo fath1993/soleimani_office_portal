@@ -10,8 +10,9 @@ from django.shortcuts import render, redirect
 from accounts.models import UserNotification
 from accounts.templatetags.account_custom_tag import has_access_to_section
 from gallery.models import FileGallery
-from accounts.custom_decorator import RequireMethod
-from accounts.views import CheckLogin, CheckPermissions
+from accounts.custom_decorator import RequireMethod, CheckPermissions
+from panel.views import CheckLogin
+from resource.models import TeaserMaker
 from tickets.models import Ticket, Message, Notification
 from tickets.serializer import MessageSerializer
 from utilities.http_metod import fetch_data_from_http_post, \
@@ -30,16 +31,16 @@ class TicketView:
             q &= (
                 Q(**{'owner': request.user})
             )
-            context = {'page_title': 'صندوق پیام های ارسالی', 'get_params': request.GET.urlencode()}
+            context = {'page_title': 'صندوق پیام های ارسالی', 'get_params': request.GET.urlencode(), 'err': request.GET.get('err', None), 'message': request.GET.get('message', None)}
         elif box_status == 'received':
             q &= (
                 Q(**{'receiver': request.user})
             )
-            context = {'page_title': 'صندوق پیام های دریافتی', 'get_params': request.GET.urlencode()}
+            context = {'page_title': 'صندوق پیام های دریافتی', 'get_params': request.GET.urlencode(), 'err': request.GET.get('err', None), 'message': request.GET.get('message', None)}
         elif box_status == 'all':
             if not has_access_to_section(request, 'read,ticket_admin'):
                 return render(request, 'panel/err/err-not-authorized.html')
-            context = {'page_title': 'مدیریت پیام های کاربران سامانه', 'get_params': request.GET.urlencode()}
+            context = {'page_title': 'مدیریت پیام های کاربران سامانه', 'get_params': request.GET.urlencode(), 'err': request.GET.get('err', None), 'message': request.GET.get('message', None)}
         else:
             return render(request, 'panel/err/err-not-found.html')
 
@@ -84,7 +85,102 @@ class TicketView:
                        'ticket': ticket, 'messages': messages, 'get_params': request.GET.urlencode()}
             return render(request, 'panel/tickets/ticket-detail.html', context)
         except Exception as e:
+            print(e)
             return render(request, 'panel/err/err-not-found.html')
+
+    @CheckLogin()
+    @CheckPermissions(section='ticket', allowed_actions='read')
+    def filter(self, request, *args, **kwargs):
+        context = {}
+        search = fetch_data_from_http_get(request, 'search', context)
+        content_type = fetch_data_from_http_get(request, 'content_type', context)
+        is_active = fetch_data_from_http_get(request, 'is_active', context)
+        address = fetch_data_from_http_get(request, 'address', context)
+        phone_number = fetch_data_from_http_get(request, 'phone_number', context)
+        creation_price_from = fetch_data_from_http_get(request, 'creation_price_from', context)
+        creation_price_to = fetch_data_from_http_get(request, 'creation_price_to', context)
+        editing_price_from = fetch_data_from_http_get(request, 'editing_price_from', context)
+        editing_price_to = fetch_data_from_http_get(request, 'editing_price_to', context)
+
+        page_title = f''''''
+        q = Q()
+        if search:
+            page_title += f'search: {search}, '
+            if search.isdigit():
+                q &= (
+                    Q(**{'id': search})
+                )
+            else:
+                q &= (
+                        Q(**{'name__icontains': search}) |
+                        Q(**{'code': search})
+                )
+
+        if content_type:
+            page_title += f'content_type: {content_type}, '
+            q &= (
+                Q(**{'content_type': content_type})
+            )
+
+        if is_active:
+            page_title += f'is_active: {is_active}, '
+            if is_active == 'فعال':
+                is_active = True
+            else:
+                is_active = False
+            q &= (
+                Q(**{'is_active': is_active})
+            )
+
+        if address:
+            page_title += f'address: {address}, '
+            q &= (
+                Q(**{'address__icontains': address})
+            )
+
+        if phone_number:
+            page_title += f'phone_number: {phone_number}, '
+            q &= (
+                Q(**{'phone_number__icontains': phone_number})
+            )
+
+        if creation_price_from:
+            page_title += f'creation_price_from: {creation_price_from}, '
+            q &= (
+                Q(**{'creation_price__gte': int(creation_price_from)})
+            )
+
+        if creation_price_to:
+            page_title += f'creation_price_to: {creation_price_to}, '
+            q &= (
+                Q(**{'creation_price__lte': int(creation_price_to)})
+            )
+
+        if editing_price_from:
+            page_title += f'editing_price_from: {editing_price_from}, '
+            q &= (
+                Q(**{'editing_price__gte': int(editing_price_from)})
+            )
+
+        if editing_price_to:
+            page_title += f'editing_price_to: {editing_price_to}, '
+            q &= (
+                Q(**{'editing_price__lte': int(editing_price_to)})
+            )
+
+        context['page_title'] = f'لیست تیزر ساز ها شامل *{page_title}*'
+        context['get_params'] = request.GET.urlencode()
+
+        teaser_makers = TeaserMaker.objects.filter(q).order_by('id')
+        context['teaser_makers'] = teaser_makers
+
+        items_per_page = 50
+        paginator = Paginator(teaser_makers, items_per_page)
+        page_number = request.GET.get('page')
+        page = paginator.get_page(page_number)
+        context['page'] = page
+
+        return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
 
     @CheckLogin()
     @CheckPermissions(section='ticket', allowed_actions='create')
@@ -98,22 +194,30 @@ class TicketView:
         files = fetch_files_from_http_post_data(request, 'files', context)
 
         if not subject:
-            context['err'] = 'موضوع پیام بدرستی وارد نشده است'
-            return render(request, 'panel/tickets/ticket-list.html', context)
+            err = 'موضوع پیام بدرستی وارد نشده است'
+            return redirect(
+                reverse('ticket:ticket-list-with-box-status',
+                        kwargs={'box_status': 'sent'}) + f'?err={err}&{request.GET.urlencode()}')
         if not receiver:
-            context['err'] = 'شناسه گیرنده بدرستی وارد نشده است'
-            return render(request, 'panel/tickets/ticket-list.html', context)
+            err = 'شناسه گیرنده بدرستی وارد نشده است'
+            return redirect(
+                reverse('ticket:ticket-list-with-box-status',
+                        kwargs={'box_status': 'sent'}) + f'?err={err}&{request.GET.urlencode()}')
         else:
             username = str(receiver).replace('#', '')
         if not content:
-            context['err'] = 'محتوای پیام بدرستی وارد نشده است'
-            return render(request, 'panel/tickets/ticket-list.html', context)
+            err = 'محتوای پیام بدرستی وارد نشده است'
+            return redirect(
+                reverse('ticket:ticket-list-with-box-status',
+                        kwargs={'box_status': 'sent'}) + f'?err={err}&{request.GET.urlencode()}')
 
         try:
             receiver = User.objects.get(username=username)
         except:
-            context['err'] = f'شناسه پیام رسانی گیرنده با مقدار {username} یافت نشد'
-            return render(request, 'panel/tickets/ticket-list.html', context)
+            err = f'شناسه پیام رسانی گیرنده با مقدار {username} یافت نشد'
+            return redirect(
+                reverse('ticket:ticket-list-with-box-status',
+                        kwargs={'box_status': 'sent'}) + f'?err={err}&{request.GET.urlencode()}')
 
         new_ticket = Ticket.objects.create(
             status='created',
@@ -132,21 +236,65 @@ class TicketView:
             created_by=request.user,
         )
 
-        for file in files:
-            try:
-                new_file = FileGallery.objects.create(
-                    alt=file.name,
-                    file=file,
-                    created_by=request.user,
-                )
-                new_message.attachments.add(new_file)
-            except:
-                pass
+        if files:
+            for file in files:
+                try:
+                    new_file = FileGallery.objects.create(
+                        alt=file.name,
+                        file=file,
+                        created_by=request.user,
+                    )
+                    new_message.attachments.add(new_file)
+                except:
+                    pass
 
-        context['message'] = f'پیام با شناسه یکتای {new_ticket.id} ایجاد گردید'
+        message = f'پیام با شناسه یکتای {new_ticket.id} ایجاد گردید'
         return redirect(
             reverse('ticket:ticket-list-with-box-status',
-                    kwargs={'box_status': 'sent'}) + f'?{request.GET.urlencode()}')
+                    kwargs={'box_status': 'sent'}) + f'?message={message}&{request.GET.urlencode()}')
+
+
+    @CheckLogin()
+    @CheckPermissions(section='ticket', allowed_actions='delete')
+    def delete(self, request, ticket_id, *args, **kwargs):
+        try:
+            ticket = Ticket.objects.get(id=ticket_id)
+            context = {'page_title': f'حذف تیکت با ایدی {ticket_id}'}
+            if has_access_to_section(request, 'delete,ticket_admin'):
+                ticket.delete()
+                message = 'با موفقیت حذف گردید'
+                return redirect(
+                    reverse('ticket:ticket-list-with-box-status'
+                    , kwargs={'box_status': 'all'}) + f'?message={message}')
+            else:
+                if ticket.owner == request.user:
+                    message = 'با موفقیت حذف گردید'
+                    ticket.delete()
+                    return redirect(reverse(
+                        'ticket:ticket-list-with-box-status'
+                    , kwargs={'box_status': 'sent'}) + f'?message={message}')
+                else:
+                    return render(request, 'panel/err/err-not-authorized.html')
+        except Exception as e:
+            print(e)
+            return render(request, 'panel/err/err-not-found.html')
+
+    @CheckLogin()
+    @CheckPermissions(section='ticket', allowed_actions='modify')
+    def change_state(self, request, teaser_maker_id, *args, **kwargs):
+        try:
+            teaser_maker = TeaserMaker.objects.get(id=teaser_maker_id)
+            context = {'page_title': f'تغییر وضعیت تیزر ساز {teaser_maker.name}', 'get_params': request.GET.urlencode()}
+            if teaser_maker.is_active:
+                teaser_maker.is_active = False
+                teaser_maker_is_active = 'false'
+            else:
+                teaser_maker.is_active = True
+                teaser_maker_is_active = 'true'
+            teaser_maker.save()
+            return JsonResponse({"teaser_maker_is_active": teaser_maker_is_active})
+        except:
+            return render(request, 'panel/err/err-not-found.html')
 
 
 class NotificationView:
@@ -186,6 +334,100 @@ class NotificationView:
             return render(request, 'panel/err/err-not-found.html')
 
     @CheckLogin()
+    @CheckPermissions(section='notification', allowed_actions='read')
+    def filter(self, request, *args, **kwargs):
+        context = {}
+        search = fetch_data_from_http_get(request, 'search', context)
+        content_type = fetch_data_from_http_get(request, 'content_type', context)
+        is_active = fetch_data_from_http_get(request, 'is_active', context)
+        address = fetch_data_from_http_get(request, 'address', context)
+        phone_number = fetch_data_from_http_get(request, 'phone_number', context)
+        creation_price_from = fetch_data_from_http_get(request, 'creation_price_from', context)
+        creation_price_to = fetch_data_from_http_get(request, 'creation_price_to', context)
+        editing_price_from = fetch_data_from_http_get(request, 'editing_price_from', context)
+        editing_price_to = fetch_data_from_http_get(request, 'editing_price_to', context)
+
+        page_title = f''''''
+        q = Q()
+        if search:
+            page_title += f'search: {search}, '
+            if search.isdigit():
+                q &= (
+                    Q(**{'id': search})
+                )
+            else:
+                q &= (
+                        Q(**{'name__icontains': search}) |
+                        Q(**{'code': search})
+                )
+
+        if content_type:
+            page_title += f'content_type: {content_type}, '
+            q &= (
+                Q(**{'content_type': content_type})
+            )
+
+        if is_active:
+            page_title += f'is_active: {is_active}, '
+            if is_active == 'فعال':
+                is_active = True
+            else:
+                is_active = False
+            q &= (
+                Q(**{'is_active': is_active})
+            )
+
+        if address:
+            page_title += f'address: {address}, '
+            q &= (
+                Q(**{'address__icontains': address})
+            )
+
+        if phone_number:
+            page_title += f'phone_number: {phone_number}, '
+            q &= (
+                Q(**{'phone_number__icontains': phone_number})
+            )
+
+        if creation_price_from:
+            page_title += f'creation_price_from: {creation_price_from}, '
+            q &= (
+                Q(**{'creation_price__gte': int(creation_price_from)})
+            )
+
+        if creation_price_to:
+            page_title += f'creation_price_to: {creation_price_to}, '
+            q &= (
+                Q(**{'creation_price__lte': int(creation_price_to)})
+            )
+
+        if editing_price_from:
+            page_title += f'editing_price_from: {editing_price_from}, '
+            q &= (
+                Q(**{'editing_price__gte': int(editing_price_from)})
+            )
+
+        if editing_price_to:
+            page_title += f'editing_price_to: {editing_price_to}, '
+            q &= (
+                Q(**{'editing_price__lte': int(editing_price_to)})
+            )
+
+        context['page_title'] = f'لیست تیزر ساز ها شامل *{page_title}*'
+        context['get_params'] = request.GET.urlencode()
+
+        teaser_makers = TeaserMaker.objects.filter(q).order_by('id')
+        context['teaser_makers'] = teaser_makers
+
+        items_per_page = 50
+        paginator = Paginator(teaser_makers, items_per_page)
+        page_number = request.GET.get('page')
+        page = paginator.get_page(page_number)
+        context['page'] = page
+
+        return render(request, 'panel/teaser-maker/teaser-maker-list.html', context)
+
+    @CheckLogin()
     @CheckPermissions(section='notification', allowed_actions='create')
     @RequireMethod(allowed_method='POST')
     def create(self, request, *args, **kwargs):
@@ -203,16 +445,17 @@ class NotificationView:
             created_by=request.user,
         )
 
-        for file in files:
-            try:
-                new_file = FileGallery.objects.create(
-                    alt=file.name,
-                    file=file,
-                    created_by=request.user,
-                )
-                new_notification.attachments.add(new_file)
-            except:
-                pass
+        if files:
+            for file in files:
+                try:
+                    new_file = FileGallery.objects.create(
+                        alt=file.name,
+                        file=file,
+                        created_by=request.user,
+                    )
+                    new_notification.attachments.add(new_file)
+                except:
+                    pass
         SendNotificationThread(notification=new_notification).start()
 
         context['message'] = f'اطلاعیه با شماره {new_notification.id} ایجاد گردید'
@@ -332,13 +575,14 @@ class MessageView:
                 created_by=request.user,
             )
 
-            for file in files:
-                new_file = FileGallery.objects.create(
-                    alt=file.name,
-                    file=file,
-                    created_by=request.user,
-                )
-                new_message.attachments.add(new_file)
+            if files:
+                for file in files:
+                    new_file = FileGallery.objects.create(
+                        alt=file.name,
+                        file=file,
+                        created_by=request.user,
+                    )
+                    new_message.attachments.add(new_file)
 
             if request.user == owner:
                 ticket.has_seen_by_owner = True

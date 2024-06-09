@@ -1,6 +1,6 @@
 from django.urls import path
 
-from automation.views import CreditCardView, CustomerView, RequestedProductView, RequestedProductProcessingView, \
+from automation.views import CreditCardView, CustomerView, RequestedProductProcessingView, \
     ProductRelationView, ProductWarehouseView
 
 app_name = 'automation'
@@ -36,19 +36,6 @@ urlpatterns = [
     path('customer/detail/', CustomerView().detail, name='customer-detail'),
     path('customer/modify/', CustomerView().modify, name='customer-modify'),
     path('customer/delete&id=<int:customer_id>/', CustomerView().delete, name='customer-delete-with-id'),
-
-    # Requested Product
-    path('requested-product/list/', RequestedProductView().list, name='requested-product-list'),
-    path('requested-product/filter/', RequestedProductView().filter, name='requested-product-filter'),
-    path('requested-product/create/', RequestedProductView().create, name='requested-product-create'),
-    path('requested-product/detail&id=<int:requested_product_id>/', RequestedProductView().detail,
-         name='requested-product-detail-with-id'),
-    path('requested-product/modify&id=<int:requested_product_id>/', RequestedProductView().modify,
-         name='requested-product-modify-with-id'),
-    path('requested-product/delete&id=<int:requested_product_id>/', RequestedProductView().delete,
-         name='requested-product-delete-with-id'),
-    path('requested-product/change-state&id=<int:requested_product_id>/', RequestedProductView().change_state,
-         name='requested-product-change_state-with-id'),
 
     # Requested Product Processing
     path('requested-product-processing/admin-list/', RequestedProductProcessingView().admin_list,

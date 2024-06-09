@@ -54,13 +54,14 @@
     <div class="menu-inner-shadow"></div>
 
     <ul class="menu-inner py-1">
+        {% if request|has_access_to_section:'read,create,modify,delete,resource' %}
         <li id="dashboard" class="menu-item">
             <a href="{% url 'panel:panel-dashboard' %}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-home"></i>
                 <div>پنل کاربری</div>
             </a>
         </li>
-
+        {% endif %}
         {% if request|has_access_to_section:'read,user' %}
         <li class="menu-item">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
@@ -158,7 +159,6 @@
         </li>
         {% endif %}
     
-        {% if request|has_access_to_section:'read,ticket' or request|has_access_to_section:'read,ticket' %}
         <li id="support" class="menu-item">
             <a href="javascript:void(0)" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-message"></i>
@@ -184,7 +184,7 @@
                         <div><span>اطلاعیه ها </span><span class="text-muted">({{ request|notification_count }})</span></div>
                     </a>
                 </li>
-                {% if request|has_access_to_section:'read,ticket' %}
+                {% if request|has_access_to_section:'read,ticket_admin' %}
                 <li id="ticket-admin-list" class="menu-item">
                     <a href="{% url 'ticket:ticket-list-with-box-status' box_status='all' %}" class="menu-link">
                         <div><span>پیام های کاربران </span><span class="text-muted">({{ request|ticket_count:'all' }})</span></div>
@@ -193,9 +193,7 @@
                 {% endif %}
             </ul>
         </li>
-        {% endif %}
-    
-        {% if request|has_access_to_section:'read,create,modify,delete,automation' %}
+        {% if request|has_access_to_section:'read,product_relation' or request|has_access_to_section:'read,warehouse' or request|has_access_to_section:'read,credit_card' or request|has_access_to_section:'read,customer' %}
         <li id="automation"  class="menu-item">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-building-house"></i>
@@ -234,7 +232,7 @@
                     </a>
                 </li>
                 {% endif %}    
-                {% if request.user.is_superuser %}
+                {% if request|has_access_to_section:'sale' and request|has_access_to_section:'warehouse' and request|has_access_to_section:'delivery' %}
                 <li id="requested-product-processing-admin-list" class="menu-item">
                     <a href="{% url 'automation:requested-product-processing-admin-list' %}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-card"></i>
@@ -245,8 +243,7 @@
             </ul>
         </li>
         {% endif %}
-    
-        {% if not request.user.is_superuser %}
+        {% if not request|has_access_to_section:'sale' or not request|has_access_to_section:'warehouse' or not request|has_access_to_section:'delivery' %}
         <li class="menu-header small text-uppercase"><span class="menu-header-text">کارپوشه</span></li>
         <li id="requested-product-processing-list" class="menu-item">
             <a href="{% url 'automation:requested-product-processing-list' %}" class="menu-link">
@@ -262,28 +259,28 @@
         </li>
         {% endif %}
     
-        <li class="menu-header small text-uppercase"><span class="menu-header-text">گزارشات</span></li>
-        <li id="latest-property" class="menu-item">
-            <a href="#" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-album"></i>
-                <div>گزارش محصولات</div>
-            </a>
-        </li>
-        <li id="advance-filter" class="menu-item">
-            <a href="#" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-search"></i>
-                <div>گزارش تیزر ساز ها</div>
-            </a>
-        </li>
+{#        <li class="menu-header small text-uppercase"><span class="menu-header-text">گزارشات</span></li>#}
+{#        <li id="latest-property" class="menu-item">#}
+{#            <a href="#" class="menu-link">#}
+{#                <i class="menu-icon tf-icons bx bx-album"></i>#}
+{#                <div>گزارش محصولات</div>#}
+{#            </a>#}
+{#        </li>#}
+{#        <li id="advance-filter" class="menu-item">#}
+{#            <a href="#" class="menu-link">#}
+{#                <i class="menu-icon tf-icons bx bx-search"></i>#}
+{#                <div>گزارش تیزر ساز ها</div>#}
+{#            </a>#}
+{#        </li>#}
 
-        <!-- Misc -->
+{#        <!-- Misc -->#}
         <li class="menu-header small text-uppercase"><span class="menu-header-text">متفرقه</span></li>
-        <li id="documentation" class="menu-item">
-            <a href="javascript:void(0)" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-file"></i>
-                <div>مستندات</div>
-            </a>
-        </li>
+{#        <li id="documentation" class="menu-item">#}
+{#            <a href="javascript:void(0)" class="menu-link">#}
+{#                <i class="menu-icon tf-icons bx bx-file"></i>#}
+{#                <div>مستندات</div>#}
+{#            </a>#}
+{#        </li>#}
         <li id="logout" class="menu-item">
             <a href="{% url 'accounts:logout' %}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-exit"></i>

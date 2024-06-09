@@ -287,7 +287,7 @@
                 method: 'POST',
                 body: formData,
             }
-            mrcm_receiver_title.innerText = `اطلاعات تخصیص دهنده ${data_title}`
+            mrcm_receiver_title.innerText = `اطلاعات دریافت کننده ${data_title}`
             mrcm_receiver_container.innerHTML=loading_html
             fetch('{% url 'resource:receiver-detail' %}', options)
                 .then(response => {

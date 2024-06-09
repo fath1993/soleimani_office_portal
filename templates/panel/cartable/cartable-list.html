@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load account_custom_tag %}
 {% load static %}
 {% load panel_custom_tag %}
 
@@ -163,8 +164,12 @@
                                         {% if requested_product_processing.warehouse_status == 'pending' %}
                                             <span class="badge bg-warning">در انتظار</span>
                                         {% elif requested_product_processing.warehouse_status == 'processing' %}
+                                            {% if request|has_access_to_section:'warehouse' %}
                                             <span class="btn badge bg-info" data-bs-toggle="modal"
                                                   data-bs-target="#warehouseStateModal" onclick="change_requested_product_id('{{ requested_product_processing.id }}')">در حال پردازش ...</span>
+                                            {% else %}
+                                            <span class="btn badge bg-info">در حال پردازش ...</span>    
+                                            {% endif %}    
                                         {% elif requested_product_processing.warehouse_status == 'sent_to_delivery' %}
                                             <span class="badge bg-success">تحویل به واحد ارسال</span>
                                         {% elif requested_product_processing.warehouse_status == 'return_to_sales' %}
@@ -261,12 +266,19 @@
         <input type="hidden" id="cl_product_name" value="none">
         <input type="hidden" id="cl_product_link" value="none">
     </form>
-    {% include 'panel/cartable/modal_canceled_retry.html' %}
+    
     {% include 'panel/cartable/modal_requested_product.html' %}
-    {% include 'panel/cartable/modal_sale_state.html' %}
-    {% include 'panel/cartable/modal_sale_approval.html' %}
-    {% include 'panel/cartable/modal_warehouse_state.html' %}
-    {% include 'panel/cartable/modal_delivery_state.html' %}
+    {% if request|has_access_to_section:'sale' %}
+        {% include 'panel/cartable/modal_sale_state.html' %}
+        {% include 'panel/cartable/modal_sale_approval.html' %}
+        {% include 'panel/cartable/modal_canceled_retry.html' %}
+    {% endif %}
+    {% if request|has_access_to_section:'warehouse' %}
+        {% include 'panel/cartable/modal_warehouse_state.html' %}
+    {% endif %}
+    {% if request|has_access_to_section:'delivery' %}
+        {% include 'panel/cartable/modal_delivery_state.html' %}
+    {% endif %}
     <!-- modals -->
 {% endblock %}
 

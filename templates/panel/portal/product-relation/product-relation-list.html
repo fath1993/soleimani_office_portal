@@ -336,7 +336,11 @@
                     if (data['message'] === 'product relation not found') {
                         toast_maker('error', `ارتباط محصول و دریافت کننده با شناسه یکتای ${prl_product_relation_id} یافت نشد`)
                     }  else {
-                        toast_maker('success', `${data['message']}`)
+                        if (data['err'] === true)
+                            toast_maker('error', `${data['message']}`)
+                        else {
+                            toast_maker('success', `${data['message']}`)
+                        }
                         get_product_relation_data(`${prl_product_relation_id}`, `${prl_product_relation_title}`)
                     }
                     console.log(data)

@@ -169,15 +169,17 @@
             .then(data => {
                 console.log(data)
                 mrp_product_container.innerHTML=`{% include 'panel/cartable/form_product.html' %}`
-                document.getElementById('fc_form_customer_data_phone_number').value=`${data['data'][0]['phone_number']}`
-                document.getElementById('fc_form_customer_data_full_name').value=`${data['data'][0]['full_name']}`
-                document.getElementById('fc_form_customer_data_age').value=`${data['data'][0]['age']}`
-                document.getElementById('fc_form_customer_data_address').value=`${data['data'][0]['address']}`
-                const desired_products = data['data'][0]['desired_product']
-                desired_products.forEach((item) => {
-                    document.getElementById('fc_form_customer_data_desired_product').innerHTML += `<a href="${item['link']}" target="_blank">${item['name']}</a>`
-                })
-                document.getElementById('fc_form_customer_data_created_at').value=`${data['data'][0]['created_at']}`
+                document.getElementById('fp_form_product_data_name').value=`${data['data'][0]['name']}`
+                document.getElementById('fp_form_product_data_type').value=`${data['data'][0]['type']}`
+                document.getElementById('fp_form_product_data_code').value=`${data['data'][0]['code']}`
+                document.getElementById('fp_form_product_data_weight').value=`${data['data'][0]['weight']}`
+                document.getElementById('fp_form_product_data_size').value=`${data['data'][0]['size']}`
+                document.getElementById('fp_form_product_data_color').value=`${data['data'][0]['color']}`
+                document.getElementById('fp_form_product_data_product_price').value=`${data['data'][0]['product_price']}`
+                document.getElementById('fp_form_product_data_shipping_price').value=`${data['data'][0]['shipping_price']}`
+                document.getElementById('fp_form_product_data_send_link_price').value=`${data['data'][0]['send_link_price']}`
+                document.getElementById('fp_form_product_data_packing_price').value=`${data['data'][0]['packing_price']}`
+                document.getElementById('fp_form_product_data_seller_commission').value=`${data['data'][0]['seller_commission']}`
             })
             .catch(error => {
                 console.log(error)

@@ -21,7 +21,7 @@ def ticket_count(request, count_type):
 
 @register.filter
 def notification_count(request):
-    if request.user.is_superuser or has_access_to_section(request.user, 'create,notification'):
+    if request.user.is_superuser or has_access_to_section(request, 'create,notification'):
         return UserNotification.objects.all().count()
     else:
         return UserNotification.objects.filter(user=request.user).count()

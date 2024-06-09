@@ -9,9 +9,10 @@ import re
 from django.urls import reverse
 
 from accounts.custom_decorator import CheckPermissions, CheckLogin, RequireMethod
-from accounts.models import Role, Profile, DeliveryProfile, WarehouseProfile, SellerProfile
+from accounts.models import Role, Profile, DeliveryProfile, WarehouseProfile, SellerProfile, Permission
 from accounts.serializer import ProfileSerializer, SellerProfileSerializer, WarehouseProfileSerializer, \
     DeliveryProfileSerializer
+from accounts.templatetags.account_custom_tag import has_access_to_section
 from utilities.http_metod import fetch_data_from_http_post
 
 
@@ -182,8 +183,10 @@ class ProfileView:
         return render(request, 'accounts/profiles/user-list.html', context)
 
     @CheckLogin()
-    @CheckPermissions(section='user', allowed_actions='read')
     def detail(self, request, user_id, *args, **kwargs):
+        if request.user.id != user_id:
+            if not has_access_to_section(request, 'read,user'):
+                return render(request, 'panel/err/err-not-authorized.html')
         try:
             user = User.objects.get(id=user_id)
             context = {'page_title': f'اطلاعات کاربر *{user.username}*',
@@ -791,7 +794,8 @@ class RoleView:
             context = {'page_title': f'اطلاعات نقش *{role.title}*',
                        'role': role, 'get_params': request.GET.urlencode()}
             return render(request, 'panel/roles/role-detail.html', context)
-        except:
+        except Exception as e:
+            print(e)
             return render(request, 'panel/err/err-not-found.html')
 
     @CheckLogin()

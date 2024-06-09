@@ -40,15 +40,7 @@
                                     </div>
                                     <div class="flex-grow-1">
                                         <span class="fw-semibold d-block">{{ request.user.username }}</span>
-                                        {% if request.user.is_superuser %}
-                                        <span>ادمین کل</span>
-                                        {% else %}
-                                            {% if not request.user.user_profile.user_role.role_name %}
-                                            <small>مدیر</small>
-                                            {% else %}
-                                            <small>{{ request.user.user_profile.user_role.role_name }}</small>
-                                            {% endif %}
-                                        {% endif %}
+                                        <small>{{ request.user.user_profile.role.title }}</small>
                                     </div>
                                 </div>
                             </a>

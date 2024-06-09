@@ -7,9 +7,9 @@
             <a href="https://s-office-portal.a-fathollahi.com/" target="_blank" class="footer-link fw-semibold">portal.com</a>
         </div>
         <div>
-            <a href="javascript:void()"
-               class="footer-link me-4">مستندات</a>
-            <a href="javascript:void()"
+{#            <a href="javascript:void()"#}
+{#               class="footer-link me-4">مستندات</a>#}
+            <a href="{% url 'ticket:ticket-list-with-box-status' box_status='sent' %}?message=شناسه پیام رسانی گیرنده  مدیریت  admin می باشد."
                class="footer-link d-none d-sm-inline-block">پشتیبانی</a>
         </div>
     </div>

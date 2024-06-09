@@ -46,7 +46,7 @@
                                 </td>
                                 <td>
                                     {% for permission in role.permissions.all %}
-                                        <span class="badge bg-success">{{ permission.has_access_to_section }}</span>
+                                        <span class="badge bg-success">{{ permission.has_access_to_section }}</span><span>خواندن: {{ permission.read }}</span><span>ساختن: {{ permission.create }}</span><span>ویرایش: {{ permission.modify }}</span><span>حذف: {{ permission.delete }}</span>
                                         <br>
                                     {% endfor %}    
                                 </td>

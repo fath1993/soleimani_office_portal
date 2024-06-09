@@ -1,5 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from accounts.custom_decorator import CheckLogin
+from accounts.templatetags.account_custom_tag import has_access_to_section
 
 
 class DashboardView:
@@ -8,5 +9,8 @@ class DashboardView:
 
     @CheckLogin()
     def main(self, request, *args, **kwargs):
-        context = {'page_title': 'پنل کاربری - داشبورد'}
-        return render(request, 'panel/dashboard.html', context)
+        if has_access_to_section(request, 'read,create,modify,delete,resource'):
+            context = {'page_title': 'پنل کاربری - داشبورد'}
+            return render(request, 'panel/dashboard.html', context)
+        else:
+            return redirect('automation:requested-product-processing-list')

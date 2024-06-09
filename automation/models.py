@@ -339,7 +339,7 @@ def create_requested_product_processing_report(requested_product_processing, dep
     )
     time.sleep(0.1)
     try:
-        if report is not None:
+        if report is not None and report != '':
             RequestedProductProcessingReport.objects.create(
                 requested_product_processing=requested_product_processing,
                 department=department,

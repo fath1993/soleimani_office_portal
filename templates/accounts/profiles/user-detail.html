@@ -67,8 +67,13 @@
                                         <a href="{% url 'accounts:user-edit-with-id' user_id=user.id %}{% if get_params %}?{{ get_params }}{% endif %}"
                                            class="btn btn-primary me-3">ویرایش</a>
                                     {% endif %}
+                                    {% if request|has_access_to_section:'read,user' %}
                                     <a href="{% url 'accounts:profile-list' %}{% if get_params %}?{{ get_params }}{% endif %}"
                                        class="btn btn-outline-gray me-3">بازگشت</a>
+                                    {% else %}
+                                    <a href="{% url 'panel:panel-dashboard' %}"
+                                       class="btn btn-outline-gray me-3">بازگشت</a>
+                                    {% endif %}
                                 </div>
                                 {% if request|has_access_to_section:'delete,user' %}
                                     <div class="text-left">

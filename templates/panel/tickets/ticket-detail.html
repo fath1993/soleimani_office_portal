@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load account_custom_tag %}
 {% load static %}
 {% load panel_custom_tag %}
 {% load tickets_custom_tag %}
@@ -12,7 +13,7 @@
         <h4 class="py-3 breadcrumb-wrapper mb-2">
             <span class="text-muted fw-light">پیام رسانی / {{ page_title}} / </span>{{ ticket.title }}
         </h4>
-        {% if request|message_is_allowed:'create' %}
+        {% if request|has_access_to_section:'create,ticket' %}
         <button id="create-new" type="button" class="btn btn-primary btn-uppercase m-3">
             <i class="ti-plus m-r-5"></i>ارسال پاسخ
         </button>

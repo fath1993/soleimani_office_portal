@@ -8,22 +8,21 @@ from django_jalali.db import models as jmodel
 from tickets.models import Notification
 
 SECTIONS = (
-            ('file', 'فایل'),
-            ('user', 'کاربر'),
-            ('permission', 'مجوز'),
-            ('role', 'نقش'),
-            ('resource', 'منابع'), ('product', 'محصولات'), ('teaser_maker', 'تیزر ساز'),
-            ('reseller_network', 'شبکه'), ('receiver', 'دریافت کننده'),
-            ('advertise_content', 'محتوای تبلیغاتی'), ('forward_to_portal', 'انتقال دهنده'),
-            ('communication_channel', 'کانال ارتباطی'), ('registrar', 'تخصیص دهنده'),
-            ('ticket_admin', 'تیکت ادمین'), ('ticket', 'تیکت'),
-            ('message', 'پیام'), ('notification', 'اطلاعیه'),
-            ('sale', 'فروش'),
-            ('warehouse', 'انبار'),
-            ('delivery', 'ارسال'),
-            ('credit_card', 'کارت بانکی'), ('customer', 'مشتری'), ('product_relation', 'ارتباط محصول'),
+    ('file', 'فایل'),
+    ('user', 'کاربر'),
+    ('permission', 'مجوز'),
+    ('role', 'نقش'),
+    ('resource', 'منابع'), ('product', 'محصولات'), ('teaser_maker', 'تیزر ساز'),
+    ('reseller_network', 'شبکه'), ('receiver', 'دریافت کننده'),
+    ('advertise_content', 'محتوای تبلیغاتی'), ('forward_to_portal', 'انتقال دهنده'),
+    ('communication_channel', 'کانال ارتباطی'), ('registrar', 'تخصیص دهنده'),
+    ('ticket_admin', 'تیکت ادمین'), ('ticket', 'تیکت'),
+    ('message', 'پیام'), ('notification', 'اطلاعیه'),
+    ('sale', 'فروش'),
+    ('warehouse', 'انبار'),
+    ('delivery', 'ارسال'),
+    ('credit_card', 'کارت بانکی'), ('customer', 'مشتری'), ('product_relation', 'ارتباط محصول'),
 )
-
 
 ROLES = (('manager', 'مدیر'), ('user', 'کاربر'), ('seller', 'فروشنده'), ('warehouse_keeper', 'انباردار'),
          ('delivery_person', 'ارسال کننده'),)
@@ -33,7 +32,7 @@ class Section(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False,
                             editable=False, verbose_name='نام')
     name_fa = models.CharField(max_length=255, null=False, blank=False,
-                            editable=False, verbose_name='نام فارسی')
+                               editable=False, verbose_name='نام فارسی')
 
     def __str__(self):
         return self.name
@@ -98,8 +97,8 @@ class Profile(models.Model):
     isbn = models.CharField(max_length=255, null=True, blank=True, verbose_name='شماره شبا')
     address = models.CharField(max_length=1000, null=True, blank=True, verbose_name='آدرس')
 
-    role = models.ForeignKey(Role, on_delete=models.SET_NULL, related_name='roles_profile', null=True, blank=True, verbose_name='نقش')
-
+    role = models.ForeignKey(Role, on_delete=models.SET_NULL, related_name='roles_profile', null=True, blank=True,
+                             verbose_name='نقش')
 
     def __str__(self):
         return self.user.username
@@ -127,7 +126,8 @@ class SellerProfile(models.Model):
 
 
 class WarehouseProfile(models.Model):
-    profile = models.OneToOneField(Profile, related_name='profile_warehouse_profile', on_delete=models.CASCADE, null=False,
+    profile = models.OneToOneField(Profile, related_name='profile_warehouse_profile', on_delete=models.CASCADE,
+                                   null=False,
                                    blank=False,
                                    editable=False, verbose_name='پروفایل کاربر')
     warehouse_allowance = models.BooleanField(default=False, verbose_name='آیا اجازه انبار داری دارد؟')
@@ -142,7 +142,8 @@ class WarehouseProfile(models.Model):
 
 
 class DeliveryProfile(models.Model):
-    profile = models.OneToOneField(Profile, related_name='profile_delivery_profile', on_delete=models.CASCADE, null=False,
+    profile = models.OneToOneField(Profile, related_name='profile_delivery_profile', on_delete=models.CASCADE,
+                                   null=False,
                                    blank=False,
                                    editable=False, verbose_name='پروفایل کاربر')
     delivery_allowance = models.BooleanField(default=False, verbose_name='آیا اجازه ارسال کالا دارد؟')
@@ -164,7 +165,8 @@ def update_extra_profile(sender, instance, created, **kwargs):
     selling_is_allowed = False
     is_sale_admin = False
     sell_permission = profile.role.permissions.filter(has_access_to_section__name='sale', read=True, modify=True)
-    sale_admin_permission = profile.role.permissions.filter(has_access_to_section__name='sale', read=True, create=True, modify=True, delete=True)
+    sale_admin_permission = profile.role.permissions.filter(has_access_to_section__name='sale', read=True, create=True,
+                                                            modify=True, delete=True)
 
     if sell_permission.exists():
         selling_is_allowed = True
@@ -185,12 +187,13 @@ def update_extra_profile(sender, instance, created, **kwargs):
         seller_profile.is_sales_admin = True
     seller_profile.save()
 
-
     # warehouse
     warehouse_is_allowed = False
     is_warehouse_admin = False
-    warehouse_permission = profile.role.permissions.filter(has_access_to_section__name='warehouse', read=True, modify=True)
-    warehouse_admin_permission = profile.role.permissions.filter(has_access_to_section__name='warehouse', read=True, create=True, modify=True, delete=True)
+    warehouse_permission = profile.role.permissions.filter(has_access_to_section__name='warehouse', read=True,
+                                                           modify=True)
+    warehouse_admin_permission = profile.role.permissions.filter(has_access_to_section__name='warehouse', read=True,
+                                                                 create=True, modify=True, delete=True)
 
     if warehouse_permission.exists():
         warehouse_is_allowed = True
@@ -212,14 +215,13 @@ def update_extra_profile(sender, instance, created, **kwargs):
         warehouse_profile.is_warehouse_admin = True
     warehouse_profile.save()
 
-
     # delivery
     delivery_is_allowed = False
     is_delivery_admin = False
     delivery_permission = profile.role.permissions.filter(has_access_to_section__name='delivery', read=True,
-                                                           modify=True)
+                                                          modify=True)
     delivery_admin_permission = profile.role.permissions.filter(has_access_to_section__name='delivery', read=True,
-                                                                 create=True, modify=True, delete=True)
+                                                                create=True, modify=True, delete=True)
 
     if delivery_permission.exists():
         delivery_is_allowed = True
@@ -358,7 +360,6 @@ def create_roles():
     get_or_create_manager_default_role_permission()
 
 
-
 def get_or_create_manager_default_role_permission():
     permissions = Permission.objects.filter(read=True, create=True, modify=True, delete=True)
     try:
@@ -381,11 +382,13 @@ def get_or_create_user_default_role_permission():
             title='کاربر - سیستم',
             role='user',
         )
+    default_permission_grant(role)
     return role
 
 
 def get_or_create_seller_default_role_permission():
-    permissions = Permission.objects.filter(has_access_to_section__name='sale', read=True, create=True, modify=True, delete=True)
+    permissions = Permission.objects.filter(has_access_to_section__name='sale', read=True, create=True, modify=True,
+                                            delete=True)
     try:
         role = Role.objects.get(title='فروشنده - سیستم')
     except:
@@ -393,13 +396,15 @@ def get_or_create_seller_default_role_permission():
             title='فروشنده - سیستم',
             role='seller',
         )
+    default_permission_grant(role)
     for permission in permissions:
         role.permissions.add(permission)
     return role
 
 
 def get_or_create_warehouse_keeper_default_role_permission():
-    permissions = Permission.objects.filter(has_access_to_section__name='warehouse', read=True, create=True, modify=True, delete=True)
+    permissions = Permission.objects.filter(has_access_to_section__name='warehouse', read=True, create=True,
+                                            modify=True, delete=True)
     try:
         role = Role.objects.get(title='انباردار - سیستم')
     except:
@@ -407,13 +412,15 @@ def get_or_create_warehouse_keeper_default_role_permission():
             title='انباردار - سیستم',
             role='warehouse_keeper',
         )
+    default_permission_grant(role)
     for permission in permissions:
         role.permissions.add(permission)
     return role
 
 
 def get_or_create_delivery_person_default_role_permission():
-    permissions = Permission.objects.filter(has_access_to_section__name='delivery', read=True, create=True, modify=True, delete=True)
+    permissions = Permission.objects.filter(has_access_to_section__name='delivery', read=True, create=True, modify=True,
+                                            delete=True)
     try:
         role = Role.objects.get(title='ارسال کننده - سیستم')
     except:
@@ -421,9 +428,22 @@ def get_or_create_delivery_person_default_role_permission():
             title='ارسال کننده - سیستم',
             role='delivery_person',
         )
+    default_permission_grant(role)
     for permission in permissions:
         role.permissions.add(permission)
     return role
 
 
-
+def default_permission_grant(role):
+    file_permission = Permission.objects.get(has_access_to_section=Section.objects.get(name='file'), read=True, create=False,
+                                                modify=False, delete=False)
+    ticket_permission = Permission.objects.get(has_access_to_section=Section.objects.get(name='ticket'), read=True, create=True,
+                                                  modify=True, delete=True)
+    message_permission = Permission.objects.get(has_access_to_section=Section.objects.get(name='message'), read=True, create=True,
+                                                   modify=True, delete=True)
+    notification_permission = Permission.objects.get(has_access_to_section=Section.objects.get(name='notification'), read=True,
+                                                        create=False, modify=False, delete=False)
+    role.permissions.add(file_permission)
+    role.permissions.add(ticket_permission)
+    role.permissions.add(message_permission)
+    role.permissions.add(notification_permission)
